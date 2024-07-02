@@ -193,12 +193,28 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             }
             WebElement loginButton = webDriver.findElement(By.name("login"));
             loginButton.click();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if (webDriver.getPageSource().contains("查看通知")){
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div/div[4]/div/div/div/div[1]/div/span/span")))
+                        .click();
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[3]/div[2]/div[4]/div/div/div[2]/div/div/div/div/label[2]/div[1]/div/div[2]/div/input")))
+                        .click();
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[4]/div[3]/div/div/div/div/div/div/div/div/div[1]/div/span/span")))
+                        .click();
+            }
             //新版双重验证码输入
             try {
                 WebElement approvalsCode = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/form/div/div/div/div/div[1]/input")));
                 approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
                 WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span")));
                 submitButton.click();
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[2]/div/div/div[3]/div[1]/div/div/div/div[1]/div/span/span")))
+                        .click();
             } catch (Exception e) {
                 WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
                 WebElement approvalsCode = webDriver.findElement(By.id("approvals_code"));
@@ -951,20 +967,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     public static String getAccountName(String html) {
         String name = "";
         try {
-            // 解析HTML文档
-            Document doc = Jsoup.parse(html);
 
-            // 找到包含特定class的span元素
-            Elements spanElements = doc.select("span.x193iq5w.xeuugli.x13faqbe.x1vvkbs.x1xmvt09.x1lliihq.x1s928wv.xhkezso.x1gmr53x.x1cpjm7i.x1fgarty.x1943h6x.x14qwyeo.xw06pyt.x579bpy.xjkpybl.x1xlr1w8.xzsf02u.x1yc453h");
-
-            // 在找到的span元素下找包含特定class的h1元素
-            for (Element span : spanElements) {
-                Elements h1Elements = span.select("h1.html-h1.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x1vvkbs.x1heor9g.x1qlqyl8.x1pd3egz.x1a2a7pz");
-
-                for (Element h1 : h1Elements) {
-                    name= h1.text();
-                }
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
