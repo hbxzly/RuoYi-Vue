@@ -230,11 +230,10 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                         if (webDriver.getPageSource().contains("立即")){
                             fbAccount.setStatus("4");
                         }else {
-                            fbAccount.setStatus("0");
+                            fbAccount.setStatus("5");
                         }
                         closeBrowser(fbAccount);
                     }
-                    fbAccount.setStatus("0");
                     fbAccountMapper.updateFbAccount(fbAccount);
                     ex.printStackTrace();
                     return false;
@@ -996,6 +995,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             return null;
         }
     }
+
     //获取账号名称
     public static String getAccountName(String html) {
         String name = "";
