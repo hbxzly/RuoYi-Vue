@@ -41,7 +41,7 @@ public interface ISeleniumService {
      * 登录账号
      * @param fbAccount
      */
-    void login(FbAccount fbAccount);
+    boolean login(FbAccount fbAccount);
 
     /**
      * 显示浏览器

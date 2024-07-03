@@ -38,10 +38,13 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @Service
@@ -160,7 +163,8 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     }
 
     @Override
-    public void login(FbAccount fbAccount) {
+    public boolean login(FbAccount fbAccount) {
+
         WebDriver webDriver = webDriverMap.get(fbAccount.getId());
         webDriver.get("https://www.facebook.com");
         if (!isLogin(webDriver)){
@@ -216,10 +220,25 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[2]/div/div/div[3]/div[1]/div/div/div/div[1]/div/span/span")))
                         .click();
             } catch (Exception e) {
-                WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
-                WebElement approvalsCode = webDriver.findElement(By.id("approvals_code"));
-                approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
-                submitButton.click();
+                try {
+                    WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
+                    WebElement approvalsCode = webDriver.findElement(By.id("approvals_code"));
+                    approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
+                    submitButton.click();
+                } catch (Exception ex) {
+                    if (webDriver.getCurrentUrl().contains("checkpoint")){
+                        if (webDriver.getPageSource().contains("立即")){
+                            fbAccount.setStatus("4");
+                        }else {
+                            fbAccount.setStatus("0");
+                        }
+                        closeBrowser(fbAccount);
+                    }
+                    fbAccount.setStatus("0");
+                    fbAccountMapper.updateFbAccount(fbAccount);
+                    ex.printStackTrace();
+                    return false;
+                }
                 e.printStackTrace();
             }
             //判断是否存在继续操作按钮
@@ -233,8 +252,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             }
 
         }
-
-
+        return true;
     }
 
     @Override
@@ -466,18 +484,18 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         Integer id = processMap.get(fbAccount.getId());
         User32 user32 = User32.INSTANCE;
 
-            user32.EnumWindows((hWnd, arg1) -> {
-                IntByReference processId = new IntByReference();
-                user32.GetWindowThreadProcessId(hWnd, processId);
-                int windowProcessId = processId.getValue();
+        user32.EnumWindows((hWnd, arg1) -> {
+            IntByReference processId = new IntByReference();
+            user32.GetWindowThreadProcessId(hWnd, processId);
+            int windowProcessId = processId.getValue();
 
-                if (user32.IsWindowVisible(hWnd) && windowProcessId == id) {
-                    user32.ShowWindow(hWnd,User32.SW_MINIMIZE);
-                    user32.ShowWindow(hWnd, User32.SW_RESTORE);
-                    user32.SetForegroundWindow(hWnd);
-                }
-                return true;
-            }, null);
+            if (user32.IsWindowVisible(hWnd) && windowProcessId == id) {
+                user32.ShowWindow(hWnd,User32.SW_MINIMIZE);
+                user32.ShowWindow(hWnd, User32.SW_RESTORE);
+                user32.SetForegroundWindow(hWnd);
+            }
+            return true;
+        }, null);
 
     }
 
@@ -952,36 +970,48 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     @Override
     public FbAccount checkAccountInfo(FbAccount fbAccount) {
 
-        login(fbAccount);
-        WebDriver webDriver = webDriverMap.get(fbAccount.getId());
-        WebDriverWait wait = new WebDriverWait(webDriver,50,1);
-        webDriver.get("https://www.facebook.com/business-support-home/"+fbAccount.getId());
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div[1]/div[2]/div/div/div/div[4]/div/div/div[2]/div/div/div/div[1]")));
-        String accountName = getAccountName(webDriver.getPageSource());
-        fbAccount.setName(accountName);
-        return fbAccount;
+        openBrowser(fbAccount);
+        if (login(fbAccount)) {
+            WebDriver webDriver = webDriverMap.get(fbAccount.getId());
+            WebDriverWait wait = new WebDriverWait(webDriver, 50, 1);
+            webDriver.get("https://www.facebook.com/business-support-home/" + fbAccount.getId());
+            try {
+                wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div/div/span/div/div[1]/div[2]/div/div[2]/div[1]/div[1]/div/div/div[1]/div[2]/div[1]/div/div/div/div[1]/div/div")));
+            } catch (Exception e) {
+                fbAccount.setName("获取失败");
+                e.printStackTrace();
+                return fbAccount;
+            }
+            if (webDriver.getPageSource().contains("帳號受到限制") || webDriver.getPageSource().contains("帐户受限")
+                    || webDriver.getPageSource().contains("受到限制的帳戶") || webDriver.getPageSource().contains("アカウントが制限されています")
+                    || webDriver.getPageSource().contains("Account restricted")) {
+                fbAccount.setStatus("2");
+            } else {
+                fbAccount.setStatus("1");
+            }
+            fbAccount.setName(getAccountName(webDriver.getPageSource()));
+            closeBrowser(fbAccount);
+            return fbAccount;
+        }else {
+            return null;
+        }
     }
-
-
     //获取账号名称
     public static String getAccountName(String html) {
         String name = "";
         try {
-            // 解析HTML文档
+            // 从URL加载整个页面
             Document doc = Jsoup.parse(html);
 
-            // 找到包含特定class的span元素
-            Elements spanElements = doc.select("span.x193iq5w.xeuugli.x13faqbe.x1vvkbs.x1xmvt09.x1lliihq.x1s928wv.xhkezso.x1gmr53x.x1cpjm7i.x1fgarty.x1943h6x.x14qwyeo.xw06pyt.x579bpy.xjkpybl.x1xlr1w8.xzsf02u.x1yc453h");
+            // 使用CSS选择器选择特定的<div>标签
+            Elements divs = doc.select("div.x1xqt7ti.xm46was.x1jrz1v4.xbsr9hj.xuxw1ft.x6ikm8r.x10wlt62.xlyipyv.x1h4wwuj.x117nqv4.xeuugli");
 
-            // 在找到的span元素下找包含特定class的h1元素
-            for (Element span : spanElements) {
-                Elements h1Elements = span.select("h1.html-h1.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x1vvkbs.x1heor9g.x1qlqyl8.x1pd3egz.x1a2a7pz");
-
-                for (Element h1 : h1Elements) {
-                    name= h1.text();
-                }
+            // 遍历所有匹配的<div>标签
+            for (Element div : divs) {
+                name = div.text();
             }
         } catch (Exception e) {
+            name = "获取失败";
             e.printStackTrace();
         }
         return name;
