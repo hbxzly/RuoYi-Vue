@@ -181,6 +181,18 @@
             @click="handleShow(scope.row)"
             v-hasPermi="['account:fbAccount:remove']"
           >显示</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-user"
+            @click="handleChangePassword(scope.row)"
+          >修改密码</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-user"
+            @click="handleUnlockAccount(scope.row)"
+          >解锁</el-button>
           <el-dropdown size="mini" @command="(command) => handleCommand(command, scope.row)">
             <el-button size="mini" type="text" icon="el-icon-d-arrow-right">更多</el-button>
             <el-dropdown-menu slot="dropdown">
@@ -311,7 +323,7 @@
 <script>
 import { listFbAccount, getAccount, updateAccount, addAccount, delFbaccount,
       openBrowser, moreOperate, collectAdsInfo, multipleOpenBrowser, closeBrowser, closeAllBrowser,
-      showBrowser, createBM, checkBM, checkAccount, openAds,  batchAddFriend, checkAccountInfo} from "@/api/account/fbAccount";
+      showBrowser, createBM, checkBM, checkAccount, openAds,  batchAddFriend, checkAccountInfo, changePassword, unlockAccount} from "@/api/account/fbAccount";
 
 
 export default {
@@ -642,6 +654,22 @@ export default {
 
       });
 
+    },
+
+    //修改密码
+    handleChangePassword(row){
+      const id = row.id;
+      changePassword(id).then(respone =>{
+
+      })
+    },
+
+    //解锁
+    handleUnlockAccount(row){
+      const id = row.id;
+      unlockAccount(id).then(respone =>{
+
+      })
     }
 
   }

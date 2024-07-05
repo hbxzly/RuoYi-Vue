@@ -165,4 +165,20 @@ export function checkAccountInfo(ids) {
   })
 }
 
+//修改密码
+export function changePassword(id){
+  return request({
+    url: '/account/fbAccount/changePassword/' + id,
+    method: 'get'
+  })
+}
+
+//修改密码
+export function unlockAccount(id){
+  return request({
+    url: '/account/fbAccount/unlockAccount/' + id,
+    method: 'get'
+  })
+}
+
 

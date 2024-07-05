@@ -137,4 +137,17 @@ public interface ISeleniumService {
      */
     FbAccount checkAccountInfo(FbAccount fbAccount);
 
+    /**
+     * 修改账号密码
+     * @param fbAccount
+     * @return
+     */
+    FbAccount changePassword(FbAccount fbAccount);
+
+    /**
+     * 解锁账号
+     * @param fbAccount
+     */
+    void unlockAccount(FbAccount fbAccount);
+
 }

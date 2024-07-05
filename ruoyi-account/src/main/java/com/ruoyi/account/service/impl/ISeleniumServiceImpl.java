@@ -7,10 +7,7 @@ import com.ruoyi.account.mapper.FbAccountMapper;
 import com.ruoyi.account.service.IAccountAdAccountBmInfoService;
 import com.ruoyi.account.service.IAdvertiseService;
 import com.ruoyi.account.service.ISeleniumService;
-import com.ruoyi.account.util.AdvertiseUrl;
-import com.ruoyi.account.util.CompanyInfo;
-import com.ruoyi.account.util.DefuMobile;
-import com.ruoyi.account.util.ReadJsonData;
+import com.ruoyi.account.util.*;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.unix.Reboot;
@@ -73,28 +70,29 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     @Override
     public WebDriver openBrowser(FbAccount fbAccount) {
         //判断账号是否已经打开
-        if (!webDriverMap.containsKey(fbAccount.getId())){
+        if (!webDriverMap.containsKey(fbAccount.getId())) {
             try {
                 //参数配置
                 System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
                 ChromeOptions option = new ChromeOptions();
-                option.addArguments("--user-data-dir="+fbAccount.getDataSource()+fbAccount.getBrowserProfile());
+                option.addArguments("--user-data-dir=" + fbAccount.getDataSource() + fbAccount.getBrowserProfile());
                 option.addArguments("--remote-allow-origins=*");
-                option.addArguments("--user-agent="+fbAccount.getUa());
+                option.addArguments("--disable-notifications");
+                option.addArguments("--user-agent=" + fbAccount.getUa());
                 option.setExperimentalOption("useAutomationExtension", false);
                 option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
                 List<Integer> beforeProcessIdList = listWindows();
                 WebDriver webDriver = new ChromeDriver(option);
                 List<Integer> afterProcessIdList = listWindows();
-                changeBrowserStatus(fbAccount,"1");
-                processMap.put(fbAccount.getId(),findExtraProcessId(beforeProcessIdList,afterProcessIdList));
-                webDriverMap.put(fbAccount.getId(),webDriver);
+                changeBrowserStatus(fbAccount, "1");
+                processMap.put(fbAccount.getId(), findExtraProcessId(beforeProcessIdList, afterProcessIdList));
+                webDriverMap.put(fbAccount.getId(), webDriver);
                 return webDriver;
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
                 return null;
             }
-        }else {
+        } else {
             showBrowser(fbAccount);
             return null;
         }
@@ -107,7 +105,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         ArrayList<String> idList = new ArrayList<>();
         for (String id : ids) {
             idList.add(id);
-            if (!webDriverMap.containsKey(id)){
+            if (!webDriverMap.containsKey(id)) {
                 openBrowser(fbAccountMapper.selectOneByFbAccountId(id));
             }
         }
@@ -125,22 +123,22 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     @Override
     public String closeBrowser(FbAccount fbAccount) {
 
-        try{
-            if (webDriverMap.containsKey(fbAccount.getId())){
+        try {
+            if (webDriverMap.containsKey(fbAccount.getId())) {
                 webDriverMap.get(fbAccount.getId()).close();
                 webDriverMap.get(fbAccount.getId()).quit();
                 webDriverMap.remove(fbAccount.getId());
                 processMap.remove(fbAccount.getId());
-                changeBrowserStatus(fbAccount,"0");
+                changeBrowserStatus(fbAccount, "0");
                 return "ok";
-            }else {
+            } else {
                 return "failed";
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             webDriverMap.remove(fbAccount.getId());
-            changeBrowserStatus(fbAccount,"0");
+            changeBrowserStatus(fbAccount, "0");
         }
 
         return "ok";
@@ -152,10 +150,10 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     public String closeAllBrowser() {
 
         List<String> ids = new ArrayList<>();
-        webDriverMap.entrySet().forEach(entry->{
+        webDriverMap.entrySet().forEach(entry -> {
             ids.add(entry.getKey());
         });
-        ids.forEach(id->{
+        ids.forEach(id -> {
             closeBrowser(fbAccountMapper.selectOneByFbAccountId(id));
         });
 
@@ -167,8 +165,8 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
         WebDriver webDriver = webDriverMap.get(fbAccount.getId());
         webDriver.get("https://www.facebook.com");
-        if (!isLogin(webDriver)){
-            WebDriverWait wait = new WebDriverWait(webDriver, 10,1);
+        if (!isLogin(webDriver)) {
+            WebDriverWait wait = new WebDriverWait(webDriver, 10, 1);
             WebElement email = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("email")));
             WebElement password = webDriver.findElement(By.name("pass"));
             try {
@@ -192,7 +190,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 Thread.sleep(500);
                 actions.sendKeys(Keys.DELETE).perform();
                 password.sendKeys(fbAccount.getPassword());
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             WebElement loginButton = webDriver.findElement(By.name("login"));
@@ -203,7 +201,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 e.printStackTrace();
             }
 
-            if (webDriver.getPageSource().contains("查看通知")){
+            if (webDriver.getPageSource().contains("查看通知")) {
                 wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div/div[4]/div/div/div/div[1]/div/span/span")))
                         .click();
                 wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[3]/div[2]/div[4]/div/div/div[2]/div/div/div/div/label[2]/div[1]/div/div[2]/div/input")))
@@ -226,13 +224,15 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                     approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
                     submitButton.click();
                 } catch (Exception ex) {
-                    if (webDriver.getCurrentUrl().contains("checkpoint")){
-                        if (webDriver.getPageSource().contains("立即")){
-                            fbAccount.setStatus("4");
-                        }else {
-                            fbAccount.setStatus("5");
+                    if (webDriver.getCurrentUrl().contains("/checkpoint")) {
+                        if (webDriver.getPageSource().contains("帳號受到限制") || webDriver.getPageSource().contains("帐户受限")
+                                || webDriver.getPageSource().contains("受到限制的帳戶") || webDriver.getPageSource().contains("アカウントが制限されています")
+                                || webDriver.getPageSource().contains("Account restricted")) {
+                            fbAccount.setStatus("2");
                         }
-                        closeBrowser(fbAccount);
+                        if (webDriver.getPageSource().contains("帳號停權")) {
+                            fbAccount.setStatus("1");
+                        }
                     }
                     fbAccountMapper.updateFbAccount(fbAccount);
                     ex.printStackTrace();
@@ -241,12 +241,12 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 e.printStackTrace();
             }
             //判断是否存在继续操作按钮
-            try{
+            try {
                 WebElement continueButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
-                if (continueButton !=null){
+                if (continueButton != null) {
                     continueButton.click();
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
@@ -257,7 +257,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     @Override
     public void createBM(FbAccount fbAccount) {
         try {
-            if (webDriverMap.containsKey(fbAccount.getId())){
+            if (webDriverMap.containsKey(fbAccount.getId())) {
 
                 String mobile = DefuMobile.getMobile();
 
@@ -268,10 +268,10 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 WebElement mobileInput = null;
                 try {
                     mobileInput = driverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/div/div/div[1]/div/div/div[2]/div/div/div/div[1]/div[2]/div/div/input")));
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-                if (mobileInput != null){
+                if (mobileInput != null) {
                     mobileInput.sendKeys(mobile);
                     //输入号码后创建广告账户按钮
                     WebElement createAdButton = webDriver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/div/div/div[2]/div/span/div/div/div"));
@@ -304,7 +304,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                     String code = "";
 
                     for (int i = 0; i < 6; i++) {
-                        code = DefuMobile.getCode( mobile);
+                        code = DefuMobile.getCode(mobile);
                         if (code.equals("wait")) {
                             System.out.println("请求" + i + "次");
                             Thread.sleep(10000);
@@ -336,7 +336,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                     //营业执照上传框
                     license = driverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div[1]/div[4]/div/div[2]/div/div/div/div/i")));
                     license.click();
-                }catch (Exception e){
+                } catch (Exception e) {
                     //已经上传过一次图片后出现的更换按钮
                     license = driverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div[1]/div[3]/div/span/div/div")));
                     license.click();
@@ -383,31 +383,31 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 WebElement companyName = webDriver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div[1]/div[6]/div/div/div[2]/div/div/div/div[1]/div[2]/div/div/input"));
                 actions.click(companyName).keyDown(Keys.CONTROL).sendKeys("a").keyUp(Keys.CONTROL).perform();
                 actions.sendKeys(Keys.DELETE).perform();
-                companyName.sendKeys(ReadJsonData.getInfoByNodeName(info,"Company_Name"));
+                companyName.sendKeys(ReadJsonData.getInfoByNodeName(info, "Company_Name"));
 
                 //公司邮箱
                 WebElement companyEmail = webDriver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div[1]/div[8]/div/div/div[2]/div/div/div/div[1]/div[2]/div/div/input"));
                 actions.click(companyEmail).keyDown(Keys.CONTROL).sendKeys("a").keyUp(Keys.CONTROL).perform();
                 actions.sendKeys(Keys.DELETE).perform();
-                companyEmail.sendKeys(ReadJsonData.getInfoByNodeName(info,"Temporary_mail"));
+                companyEmail.sendKeys(ReadJsonData.getInfoByNodeName(info, "Temporary_mail"));
 
                 //公司地址
                 WebElement companyAddress = webDriver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div[1]/div[9]/div/div/div[2]/div/div/div/div[1]/div[2]/div/div/input"));
                 actions.click(companyAddress).keyDown(Keys.CONTROL).sendKeys("a").keyUp(Keys.CONTROL).perform();
                 actions.sendKeys(Keys.DELETE).perform();
-                companyAddress.sendKeys(ReadJsonData.getInfoByNodeName(info,"Full_Name_Tran"));
+                companyAddress.sendKeys(ReadJsonData.getInfoByNodeName(info, "Full_Name_Tran"));
 
                 //邮编
                 WebElement postCode = webDriver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div[1]/div[10]/div/div/div[2]/div/div/div/div[1]/div[2]/div/div/input"));
                 actions.click(postCode).keyDown(Keys.CONTROL).sendKeys("a").keyUp(Keys.CONTROL).perform();
                 actions.sendKeys(Keys.DELETE).perform();
-                postCode.sendKeys(ReadJsonData.getInfoByNodeName(info,"Zip_Code"));
+                postCode.sendKeys(ReadJsonData.getInfoByNodeName(info, "Zip_Code"));
 
                 //地址拼音
                 WebElement companyAddressEn = webDriver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div[1]/div[11]/div/div/div[2]/div/div/div/div[1]/div[2]/div/div/input"));
                 actions.click(companyAddressEn).keyDown(Keys.CONTROL).sendKeys("a").keyUp(Keys.CONTROL).perform();
                 actions.sendKeys(Keys.DELETE).perform();
-                companyAddressEn.sendKeys(ReadJsonData.getInfoByNodeName(info,"City"));
+                companyAddressEn.sendKeys(ReadJsonData.getInfoByNodeName(info, "City"));
 
                 //推广网站
                 WebElement companyWebsite = webDriver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div[1]/div[12]/div/div/div[2]/div/div/div/div[1]/div[2]/div/div/input"));
@@ -437,7 +437,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 WebElement submitButton = driverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div[2]/div/div[1]/div/div[3]/div/div[2]/div")));
                 submitButton.click();
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -445,6 +445,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
     /**
      * 判断是否在线
+     *
      * @param webDriver
      * @return
      */
@@ -461,6 +462,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
     /**
      * 获取双重验证
+     *
      * @param secretKey
      * @return
      */
@@ -478,7 +480,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     }
 
     @Override
-    public void showBrowser(FbAccount fbAccount){
+    public void showBrowser(FbAccount fbAccount) {
 
         Integer id = processMap.get(fbAccount.getId());
         User32 user32 = User32.INSTANCE;
@@ -489,7 +491,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             int windowProcessId = processId.getValue();
 
             if (user32.IsWindowVisible(hWnd) && windowProcessId == id) {
-                user32.ShowWindow(hWnd,User32.SW_MINIMIZE);
+                user32.ShowWindow(hWnd, User32.SW_MINIMIZE);
                 user32.ShowWindow(hWnd, User32.SW_RESTORE);
                 user32.SetForegroundWindow(hWnd);
             }
@@ -500,6 +502,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
     /**
      * 获取任务栏窗口
+     *
      * @return
      */
     public static List<Integer> listWindows() {
@@ -530,8 +533,9 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
     /**
      * 返回新开浏览器的进程ID
-     * @param beforeProcessIdList  打开之前的进程
-     * @param afterProcessIdList    打开之后的进程
+     *
+     * @param beforeProcessIdList 打开之前的进程
+     * @param afterProcessIdList  打开之后的进程
      * @return
      */
     private static Integer findExtraProcessId(List<Integer> beforeProcessIdList, List<Integer> afterProcessIdList) {
@@ -549,19 +553,20 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
     /**
      * 修改浏览器状态
+     *
      * @param fbAccount
      * @param status
      */
-    public void changeBrowserStatus(FbAccount fbAccount,String status){
-        fbAccountMapper.updateBrowserStatus(fbAccount,status);
+    public void changeBrowserStatus(FbAccount fbAccount, String status) {
+        fbAccountMapper.updateBrowserStatus(fbAccount, status);
     }
 
     @Override
-    public void checkBM(String[] ids){
+    public void checkBM(String[] ids) {
         ArrayList<String> idList = new ArrayList<>();
         for (String id : ids) {
             idList.add(id);
-            if (!webDriverMap.containsKey(id)){
+            if (!webDriverMap.containsKey(id)) {
                 openBrowser(fbAccountMapper.selectOneByFbAccountId(id));
             }
         }
@@ -572,13 +577,13 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             FbAccount fbAccount = fbAccountMapper.selectOneByFbAccountId(idList.get(i));
             threads[i] = new Thread(() -> {
                 WebDriver webDriver = webDriverMap.get(fbAccount.getId());
-                WebDriverWait webDriverWait = new WebDriverWait(webDriver, 20,1);
+                WebDriverWait webDriverWait = new WebDriverWait(webDriver, 20, 1);
                 webDriver.get("https://business.facebook.com/settings");
                 try {
                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div/div[2]/div/div/div/div/div/div[2]/div[1]/div[4]/span/span/div/div[2]/div/div/div/div[1]/div[2]/div/div/input")))
                             .sendKeys(getVerificationCode(fbAccount.getSecretKey()));
                     webDriver.findElement(By.xpath("/html/body/div[1]/div[1]/div/div[2]/div/div/div/div/div/div[3]/div[2]/div/div/span/div/div/div")).click();
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             });
@@ -591,7 +596,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         ArrayList<String> idList = new ArrayList<>();
         for (String id : ids) {
             idList.add(id);
-            if (!webDriverMap.containsKey(id)){
+            if (!webDriverMap.containsKey(id)) {
                 FbAccount fbAccount = fbAccountMapper.selectOneByFbAccountId(id);
                 openBrowser(fbAccount);
                 login(fbAccount);
@@ -603,7 +608,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         for (int i = 0; i < idList.size(); i++) {
             FbAccount fbAccount = fbAccountMapper.selectOneByFbAccountId(idList.get(i));
             threads[i] = new Thread(() -> {
-                webDriverMap.get(fbAccount.getId()).get("https://www.facebook.com/business-support-home/"+fbAccount.getId());
+                webDriverMap.get(fbAccount.getId()).get("https://www.facebook.com/business-support-home/" + fbAccount.getId());
             });
             threads[i].start();
         }
@@ -617,48 +622,48 @@ public class ISeleniumServiceImpl implements ISeleniumService {
      */
     @Override
     public void batchAddFriend(String id, String[] accountIds) {
-        if (!webDriverMap.containsKey(id)){
+        if (!webDriverMap.containsKey(id)) {
             FbAccount fbAccount = fbAccountMapper.selectOneByFbAccountId(id);
             openBrowser(fbAccount);
             login(fbAccount);
-            if (webDriverMap.get(fbAccount.getId()).getPageSource().contains("永久停用")){
+            WebDriverWait wait = new WebDriverWait(webDriverMap.get(fbAccount.getId()), 8, 1);
+            if (webDriverMap.get(fbAccount.getId()).getPageSource().contains("永久停用")) {
                 closeBrowser(fbAccount);
                 return;
             }
-            for (String accountId : accountIds){
-                webDriverMap.get(fbAccount.getId()).get("https://www.facebook.com/"+accountId);
-                webDriverMap.get(fbAccount.getId()).manage().window().maximize();
-                WebDriverWait wait = new WebDriverWait(webDriverMap.get(fbAccount.getId()),8,1);
-                JavascriptExecutor js = (JavascriptExecutor) webDriverMap.get(fbAccount.getId());
+            for (String accountId : accountIds) {
                 try {
+                    webDriverMap.get(fbAccount.getId()).get("https://www.facebook.com/" + accountId);
+                    webDriverMap.get(fbAccount.getId()).manage().window().maximize();
                     Thread.sleep(2000);
-                } catch (InterruptedException e) {
+                    JavascriptExecutor js = (JavascriptExecutor) webDriverMap.get(fbAccount.getId());
+                    js.executeScript("window.scrollTo(0, 0);");
+                    String script = "var evt = new MouseEvent('click', {" +
+                            "bubbles: true, cancelable: true, view: window, clientX: " + 1340 + ", clientY: " + 575 + "});" +
+                            "document.elementFromPoint(" + 1340 + ", " + 575 + ").dispatchEvent(evt);";
+                    js.executeScript(script);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-                js.executeScript("window.scrollTo(0, 0);");
-                String script = "var evt = new MouseEvent('click', {" +
-                        "bubbles: true, cancelable: true, view: window, clientX: " + 1340 + ", clientY: " + 575 + "});" +
-                        "document.elementFromPoint(" + 1340 + ", " + 575 + ").dispatchEvent(evt);";
-                js.executeScript(script);
-                if (!webDriverMap.get(fbAccount.getId()).getPageSource().contains("取消")){
+                if (!webDriverMap.get(fbAccount.getId()).getPageSource().contains("取消")) {
 
                     try {
                         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div[1]/div[2]/div/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[2]/span/span")))
                                 .click();
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
-                try{
+                try {
                     wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[4]/div[1]/div/div/div[1]/div[2]/span/span")))
                             .click();
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-                try{
+                try {
                     wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[7]/div[1]/div/div[2]/div/div/div/div/div/div/div[3]/div/div/div/div/div/div/div/div[1]/div/span/span")))
                             .click();
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -679,11 +684,11 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         String tomorrowStr = tomorrow.format(formatter);
         openBrowser(fbAccount);
         WebDriver webDriver = webDriverMap.get(fbAccount.getId());
-        if (!isLogin(webDriver)){
+        if (!isLogin(webDriver)) {
             login(fbAccount);
         }
         if (webDriver != null && !webDriver.getPageSource().contains(adAccountId)) {
-            webDriver.get("https://adsmanager.facebook.com/adsmanager/manage/ads?act=" + adAccountId+"&date="+todayStr+"_"+tomorrowStr);
+            webDriver.get("https://adsmanager.facebook.com/adsmanager/manage/ads?act=" + adAccountId + "&date=" + todayStr + "_" + tomorrowStr);
         }
 
     }
@@ -692,18 +697,18 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     public void openScreenshotPage(Long[] keyIds) {
         ArrayList<Advertise> advertises = new ArrayList<>();
         Set<String> accountIds = new HashSet<>();
-        for(Long keyId : keyIds){
+        for (Long keyId : keyIds) {
             Advertise advertise = advertiseService.selectAdvertiseByKeyId(keyId);
             advertises.add(advertise);
             accountIds.add(advertise.getAuthorizedAccount());
         }
-        for (String id : accountIds){
-            if (!webDriverMap.containsKey(id)){
+        for (String id : accountIds) {
+            if (!webDriverMap.containsKey(id)) {
                 openBrowser(fbAccountMapper.selectOneByFbAccountId(id));
             }
         }
-        for (String id : accountIds){
-            if (!webDriverMap.containsKey(id)){
+        for (String id : accountIds) {
+            if (!webDriverMap.containsKey(id)) {
                 login(fbAccountMapper.selectOneByFbAccountId(id));
             }
         }
@@ -723,10 +728,10 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 e.printStackTrace();
             }
         }
-        for (Advertise advertise : advertises){
+        for (Advertise advertise : advertises) {
             WebDriver webDriver = webDriverMap.get(advertise.getAuthorizedAccount());
             Set<String> windowHandles = webDriver.getWindowHandles();
-            Map<String,String> windowAndURLMap = new HashMap<>();
+            Map<String, String> windowAndURLMap = new HashMap<>();
             // 遍历每个窗口句柄
             for (String handle : windowHandles) {
                 // 切换到窗口
@@ -734,25 +739,24 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
                 // 获取当前窗口的 URL
                 String currentURL = webDriver.getCurrentUrl();
-                windowAndURLMap.put(handle,currentURL);
+                windowAndURLMap.put(handle, currentURL);
             }
 
             boolean isOpen = false;
-            for (String key: windowAndURLMap.keySet()){
-                if (windowAndURLMap.get(key).contains("ads?") && windowAndURLMap.get(key).contains("act="+advertise.getAdAccountId())){
+            for (String key : windowAndURLMap.keySet()) {
+                if (windowAndURLMap.get(key).contains("ads?") && windowAndURLMap.get(key).contains("act=" + advertise.getAdAccountId())) {
                     webDriver.switchTo().window(key);
                     isOpen = true;
                 }
             }
 
-            if (!isOpen){
-                String scriptScreenshotUrl = "window.open('"+AdvertiseUrl.screenshotUrl(advertise)+"','_blank');";
-                String scriptBalanceUrl = "window.open('"+AdvertiseUrl.balanceUrl(advertise)+"','_blank');";
+            if (!isOpen) {
+                String scriptScreenshotUrl = "window.open('" + AdvertiseUrl.screenshotUrl(advertise) + "','_blank');";
+                String scriptBalanceUrl = "window.open('" + AdvertiseUrl.balanceUrl(advertise) + "','_blank');";
                 ((ChromeDriver) webDriver).executeScript(scriptScreenshotUrl);
                 ((ChromeDriver) webDriver).executeScript(scriptBalanceUrl);
             }
         }
-
 
 
     }
@@ -828,11 +832,11 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     }
 
     @Override
-    public void loadAdAccountInfo(String id){
+    public void loadAdAccountInfo(String id) {
 
         Map<String, String> bmInfo = new HashMap<>();
         WebDriver webDriver = webDriverMap.get(id);
-        WebDriverWait webDriverWait = new WebDriverWait(webDriver,20,10);
+        WebDriverWait webDriverWait = new WebDriverWait(webDriver, 20, 10);
         try {
             showBrowser(fbAccountMapper.selectOneByFbAccountId(id));
             webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div.xeuugli.x2lwn1j.x78zum5.x1exxf4d.x1y71gwh.x1nb4dca.xu1343h.x13fuv20.xu3j5b3.x1q0q8m5.x26u7qi.x178xt8z.xm81vs4.xso031l.xy80clv.x10l6tqk")))
@@ -846,19 +850,19 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div[2]/div/div/div/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/li[2]/div/div/div/span/div/div/div")))
                         .click();
                 Thread.sleep(2000);
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             try {
                 webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div[3]/div/div/div/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/li[2]/div/div/div/span/div/div/div")))
                         .click();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             Thread.sleep(5000);
             String adPageSource = webDriver.getPageSource();
             List<String> adAccountAndBmInfo = ReadJsonData.getAdAccountBmInfo(id, adPageSource, bmInfo);
-            for (String str:adAccountAndBmInfo) {
+            for (String str : adAccountAndBmInfo) {
                 String[] split = str.split("-");
                 AccountAdAccountBmInfo accountAdAccountBmInfo = new AccountAdAccountBmInfo();
                 accountAdAccountBmInfo.setAccountId(split[0]);
@@ -866,7 +870,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 accountAdAccountBmInfo.setAdAccountId(split[2]);
                 accountAdAccountBmInfo.setBmName(split[3]);
                 accountAdAccountBmInfo.setBmId(split[4]);
-                if (!(accountAdAccountBmInfoService.selectAccountAdAccountBmInfoList(accountAdAccountBmInfo).size() >0)){
+                if (!(accountAdAccountBmInfoService.selectAccountAdAccountBmInfoList(accountAdAccountBmInfo).size() > 0)) {
                     accountAdAccountBmInfoService.insertAccountAdAccountBmInfo(accountAdAccountBmInfo);
                 }
             }
@@ -879,7 +883,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
             System.out.println(adAccountAndBmInfo);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -910,7 +914,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         ArrayList<String> idList = new ArrayList<>();
         for (String id : ids) {
             idList.add(id);
-            if (!webDriverMap.containsKey(id)){
+            if (!webDriverMap.containsKey(id)) {
                 openBrowser(fbAccountMapper.selectOneByFbAccountId(id));
             }
         }
@@ -922,7 +926,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             threads[i] = new Thread(() -> {
                 WebDriver webDriver = webDriverMap.get(fbAccount.getId());
                 webDriver.get("https://www.facebook.com");
-                WebDriverWait webDriverWait = new WebDriverWait(webDriver, 20,1);
+                WebDriverWait webDriverWait = new WebDriverWait(webDriver, 20, 1);
                 String name = webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div[1]/div/div/div[1]/div/div/div[1]/div[1]/ul/li[1]/div/a/div[1]/div[2]/div/div/div/div/span/span"))).getText();
                 fbAccount.setName(name);
                 fbAccountMapper.updateFbAccount(fbAccount);
@@ -937,15 +941,15 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         for (int i = 0; i < ids.length; i++) {
             String id = ids[i];
             WebDriver webDriver = webDriverMap.get(id);
-            WebDriverWait webDriverWait = new WebDriverWait(webDriver,50,1);
+            WebDriverWait webDriverWait = new WebDriverWait(webDriver, 50, 1);
             threads[i] = new Thread(() -> {
-                webDriver.get("https://www.facebook.com/business-support-home/"+id);
+                webDriver.get("https://www.facebook.com/business-support-home/" + id);
                 try {
                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div/div/span/div/div/div[2]/div/div[2]/div[2]/div/div[1]/div[2]/div/div/span/div/div/div")))
                             .click();
                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/span/div/div[1]/div[1]/div/div/div/div/div/div[1]/div[2]/div[2]/div/div/div[3]/div/div[2]/div/span/div/div/div")))
                             .click();
-                }catch (Exception e){
+                } catch (Exception e) {
                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div/div/span/div/div/div[2]/div/div[2]/div[2]/div/div/div[2]/div/div/span/div/div/div")))
                             .click();
                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div[2]/div/div/div[2]/div/div/div/div/div[1]/div/span/span")))
@@ -958,7 +962,8 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     }
 
     @Override
-    public void unlimitedAccountTwoStep(String[] ids) {}
+    public void unlimitedAccountTwoStep(String[] ids) {
+    }
 
     /**
      * 获取账号状态信息
@@ -977,23 +982,146 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             try {
                 wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div/div/span/div/div[1]/div[2]/div/div[2]/div[1]/div[1]/div/div/div[1]/div[2]/div[1]/div/div/div/div[1]/div/div")));
             } catch (Exception e) {
-                fbAccount.setName("获取失败");
+                if (webDriver.getCurrentUrl().contains("/checkpoint")) {
+                    if (webDriver.getPageSource().contains("立即") || webDriver.getPageSource().contains("开始") ||
+                            webDriver.getPageSource().contains("has been locked")) {
+                        fbAccount.setStatus("4");
+                    } else {
+                        fbAccount.setStatus("5");
+                    }
+                }
                 e.printStackTrace();
-                return fbAccount;
             }
-            if (webDriver.getPageSource().contains("帳號受到限制") || webDriver.getPageSource().contains("帐户受限")
-                    || webDriver.getPageSource().contains("受到限制的帳戶") || webDriver.getPageSource().contains("アカウントが制限されています")
-                    || webDriver.getPageSource().contains("Account restricted")) {
-                fbAccount.setStatus("2");
-            } else {
-                fbAccount.setStatus("1");
+            if (webDriver.getCurrentUrl().contains("/www.facebook.com/business-support-home")){
+                if (webDriver.getPageSource().contains("帳號受到限制") || webDriver.getPageSource().contains("帐户受限")
+                        || webDriver.getPageSource().contains("受到限制的帳戶") || webDriver.getPageSource().contains("アカウントが制限されています")
+                        || webDriver.getPageSource().contains("Account restricted")) {
+                    fbAccount.setStatus("2");
+                } else {
+                    fbAccount.setStatus("1");
+                }
+            }
+            if (webDriver.getPageSource().contains("帳號停權")) {
+                fbAccount.setStatus("5");
             }
             fbAccount.setName(getAccountName(webDriver.getPageSource()));
             closeBrowser(fbAccount);
             return fbAccount;
-        }else {
+        } else {
+            closeBrowser(fbAccount);
             return null;
         }
+    }
+
+    /**
+     * 修改账号密码
+     *
+     * @param fbAccount
+     * @return
+     */
+    @Override
+    public FbAccount changePassword(FbAccount fbAccount) {
+        WebDriver webDriver = webDriverMap.get(fbAccount.getId());
+        WebDriverWait wait = new WebDriverWait(webDriver, 20, 1);
+        webDriver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/div[2]/form/div[2]/div[4]/div/a"))
+                .click();
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/div/div/form/div/div[2]/div/table/tbody/tr[2]/td[2]/input")))
+                .sendKeys(fbAccount.getEmail());
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/div/div/form/div/div[3]/div/div[1]/button")))
+                .click();
+        try {
+            Thread.sleep(2500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[3]/div[2]/form/div[2]/div[4]/a")))
+                    .click();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/form/div/div[3]/div/div[1]/button")))
+                .click();
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        String message = EmailUtil.getMessage(fbAccount);
+        String verificationCode = EmailUtil.getVerificationCode(message);
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/form/div/div[2]/div[3]/div[1]/input")))
+                .sendKeys(verificationCode);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/form/div/div[3]/div/div[1]/button")))
+                .click();
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/form/div/div[2]/div[2]/div[1]/div/input")))
+                .sendKeys(fbAccount.getPassword()+".");
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/form/div/div[3]/div/div[1]/button[2]")))
+                .click();
+        try {
+            WebElement approvalsCode = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/form/div/div/div/div/div[1]/input")));
+            approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
+            WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span")));
+            submitButton.click();
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[2]/div/div/div[3]/div[1]/div/div/div/div[1]/div/span/span")))
+                    .click();
+        } catch (Exception e) {
+            try {
+                WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
+                WebElement approvalsCode = webDriver.findElement(By.id("approvals_code"));
+                approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
+                submitButton.click();
+            } catch (Exception ex){
+                ex.printStackTrace();
+            }
+        }
+        fbAccount.setPassword(fbAccount.getPassword()+".");
+        return fbAccount;
+    }
+
+    /**
+     * 解锁账号
+     * @param fbAccount
+     */
+    @Override
+    public void unlockAccount(FbAccount fbAccount) {
+        WebDriver webDriver = webDriverMap.get(fbAccount.getId());
+        WebDriverWait wait = new WebDriverWait(webDriver, 20,1);
+        webDriver.findElement(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[5]/div/div/div[1]/div/span/span"))
+                .click();
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[4]/div/div[2]/div/div")))
+                .click();
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[2]/div/div[1]/div/div[1]/div[2]/div[1]/div/div/div/span")))
+                .click();
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[4]/div/div[2]/div/div/div[1]/div/span/span")))
+                .click();
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        String message = EmailUtil.getMessage(fbAccount);
+        String verificationCode = EmailUtil.getVerificationCode(message);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[2]/div/div/div/div/label/div/div/input")))
+                .sendKeys(verificationCode);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[4]/div/div[2]/div/div/div[1]/div/span/span")))
+                .click();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[4]/div/div/div/div/div[1]/div/span/span")))
+                .click();
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[5]/div/div[2]/div/div/div[1]/div/span/span")))
+                .click();
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[4]/div/div/div[1]/div/span/span")))
+                .click();
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[6]/a/div/div[1]/div/span/span")))
+                .click();
+
     }
 
     //获取账号名称
@@ -1016,6 +1144,8 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         }
         return name;
     }
+
+
 
 
 }

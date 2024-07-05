@@ -330,7 +330,44 @@ public class FbAccountController extends BaseController {
     @GetMapping(value = "/checkAccountInfo/{ids}")
     @ResponseBody
     public AjaxResult checkAccountInfo(@PathVariable String[] ids) {
+        for (String id : ids){
+            FbAccount fbAccount = seleniumService.checkAccountInfo(fbAccountService.selectOneByFbAccountId(id));
+            if (fbAccount != null){
+                fbAccountService.updateFbAccount(fbAccount);
+            }
+        }
         return success();
     }
+
+
+    /**
+     * 修改密码
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping(value = "/changePassword/{id}")
+    @ResponseBody
+    public AjaxResult changePassword(@PathVariable String id) {
+        FbAccount fbAccount = fbAccountService.selectOneByFbAccountId(id);
+        FbAccount account = seleniumService.changePassword(fbAccount);
+        account.setBrowserStatus("1");
+        fbAccountService.updateFbAccount(account);
+        return success();
+    }
+
+    /**
+     * 解锁
+     * @param id
+     * @return
+     */
+    @GetMapping(value = "/unlockAccount/{id}")
+    @ResponseBody
+    public AjaxResult unlockAccount(@PathVariable String id) {
+        FbAccount fbAccount = fbAccountService.selectOneByFbAccountId(id);
+        seleniumService.unlockAccount(fbAccount);
+        return success();
+    }
+
 
 }
