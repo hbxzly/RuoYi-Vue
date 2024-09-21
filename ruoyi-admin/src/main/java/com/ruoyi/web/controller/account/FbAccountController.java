@@ -17,7 +17,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 岗位信息操作处理
@@ -63,6 +65,7 @@ public class FbAccountController extends BaseController {
 
         return success(fbAccountService.selectOneByFbAccountId(id));
     }
+
 
     /**
      * 根据账户ID删除账号
@@ -120,6 +123,14 @@ public class FbAccountController extends BaseController {
         FbAccount fbAccount = fbAccountService.selectOneByFbAccountId(id);
         seleniumService.openBrowser(fbAccount);
         seleniumService.login(fbAccount);
+        /*List<FbAccount> fbAccounts = fbAccountService.selectByFbAccount(new FbAccount());
+        for (FbAccount fbAccount : fbAccounts) {
+                if (fbAccount.getNote() == null || !fbAccount.getNote().contains("成功")) {
+                    seleniumService.openBrowser(fbAccount);
+                    seleniumService.login(fbAccount);
+                    seleniumService.closeBrowser(fbAccount);
+                }
+        }*/
         return success();
     }
 
@@ -331,10 +342,7 @@ public class FbAccountController extends BaseController {
     @ResponseBody
     public AjaxResult checkAccountInfo(@PathVariable String[] ids) {
         for (String id : ids){
-            FbAccount fbAccount = seleniumService.checkAccountInfo(fbAccountService.selectOneByFbAccountId(id));
-            if (fbAccount != null){
-                fbAccountService.updateFbAccount(fbAccount);
-            }
+          seleniumService.checkAccountInfo(fbAccountService.selectOneByFbAccountId(id));
         }
         return success();
     }
@@ -369,5 +377,36 @@ public class FbAccountController extends BaseController {
         return success();
     }
 
+    /**
+     * 创建主页
+     * @return
+     */
+    @PostMapping(value = "/createPage/")
+    @ResponseBody
+    public AjaxResult createPage(@RequestBody Map<String, Object> data){
+
+        List<String> ids = (List<String>) data.get("ids");
+        List<String> pageNames = (List<String>) data.get("pageName");
+
+        // 创建一个新的Map用于存储键值对
+        Map<String, String> idPageMap = new HashMap<>();
+
+        // 将ids和pageNames合并成键值对
+        for (int i = 0; i < ids.size(); i++) {
+            idPageMap.put(ids.get(i), pageNames.get(i));
+        }
+
+        // 使用 forEach 遍历 idPageMap
+        idPageMap.forEach((id, pageName) -> {
+            FbAccount fbAccount = fbAccountService.selectOneByFbAccountId(id);
+            try {
+                seleniumService.createPage(fbAccount,pageName);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return success();
+    }
 
 }

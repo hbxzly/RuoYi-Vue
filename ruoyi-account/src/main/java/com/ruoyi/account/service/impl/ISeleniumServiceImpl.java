@@ -1,5 +1,6 @@
 package com.ruoyi.account.service.impl;
 
+import com.ruoyi.account.constants.CreatePageConstants;
 import com.ruoyi.account.domain.AccountAdAccountBmInfo;
 import com.ruoyi.account.domain.Advertise;
 import com.ruoyi.account.domain.FbAccount;
@@ -10,7 +11,6 @@ import com.ruoyi.account.service.ISeleniumService;
 import com.ruoyi.account.util.*;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
-import com.sun.jna.platform.unix.Reboot;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
@@ -33,15 +33,10 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 @Service
@@ -77,7 +72,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 ChromeOptions option = new ChromeOptions();
                 option.addArguments("--user-data-dir=" + fbAccount.getDataSource() + fbAccount.getBrowserProfile());
                 option.addArguments("--remote-allow-origins=*");
-                option.addArguments("--disable-notifications");
+                option.addArguments("--disable-notifications");//限制通知
                 option.addArguments("--user-agent=" + fbAccount.getUa());
                 option.setExperimentalOption("useAutomationExtension", false);
                 option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
@@ -165,91 +160,110 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
         WebDriver webDriver = webDriverMap.get(fbAccount.getId());
         webDriver.get("https://www.facebook.com");
-        if (!isLogin(webDriver)) {
-            WebDriverWait wait = new WebDriverWait(webDriver, 10, 1);
-            WebElement email = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("email")));
-            WebElement password = webDriver.findElement(By.name("pass"));
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        if (isLogin(webDriver).equals("false") || isLogin(webDriver).equals("error")) {
             try {
-                email.click();
-                // 创建Actions对象
-                Actions actions = new Actions(webDriver);
-                // 模拟Ctrl+A组合键
-                actions.keyDown(Keys.CONTROL)
-                        .sendKeys("a")
-                        .keyUp(Keys.CONTROL)
-                        .perform();
-                Thread.sleep(500);
-                actions.sendKeys(Keys.DELETE).perform();
-                email.sendKeys(fbAccount.getEmail());
-                password.click();
-                // 模拟Ctrl+A组合键
-                actions.keyDown(Keys.CONTROL)
-                        .sendKeys("a")
-                        .keyUp(Keys.CONTROL)
-                        .perform();
-                Thread.sleep(500);
-                actions.sendKeys(Keys.DELETE).perform();
-                password.sendKeys(fbAccount.getPassword());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            WebElement loginButton = webDriver.findElement(By.name("login"));
-            loginButton.click();
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            if (webDriver.getPageSource().contains("查看通知")) {
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div/div[4]/div/div/div/div[1]/div/span/span")))
-                        .click();
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[3]/div[2]/div[4]/div/div/div[2]/div/div/div/div/label[2]/div[1]/div/div[2]/div/input")))
-                        .click();
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[4]/div[3]/div/div/div/div/div/div/div/div/div[1]/div/span/span")))
-                        .click();
-            }
-            //新版双重验证码输入
-            try {
-                WebElement approvalsCode = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/form/div/div/div/div/div[1]/input")));
-                approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
-                WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span")));
-                submitButton.click();
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[2]/div/div/div[3]/div[1]/div/div/div/div[1]/div/span/span")))
-                        .click();
-            } catch (Exception e) {
+                WebDriverWait wait = new WebDriverWait(webDriver, 10, 1);
+                WebElement email = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("email")));
+                WebElement password = webDriver.findElement(By.name("pass"));
                 try {
-                    WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
-                    WebElement approvalsCode = webDriver.findElement(By.id("approvals_code"));
-                    approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
-                    submitButton.click();
-                } catch (Exception ex) {
-                    if (webDriver.getCurrentUrl().contains("/checkpoint")) {
-                        if (webDriver.getPageSource().contains("帳號受到限制") || webDriver.getPageSource().contains("帐户受限")
-                                || webDriver.getPageSource().contains("受到限制的帳戶") || webDriver.getPageSource().contains("アカウントが制限されています")
-                                || webDriver.getPageSource().contains("Account restricted")) {
-                            fbAccount.setStatus("2");
-                        }
-                        if (webDriver.getPageSource().contains("帳號停權")) {
-                            fbAccount.setStatus("1");
-                        }
-                    }
-                    fbAccountMapper.updateFbAccount(fbAccount);
-                    ex.printStackTrace();
-                    return false;
+                    email.click();
+                    // 创建Actions对象
+                    Actions actions = new Actions(webDriver);
+                    // 模拟Ctrl+A组合键
+                    actions.keyDown(Keys.CONTROL)
+                            .sendKeys("a")
+                            .keyUp(Keys.CONTROL)
+                            .perform();
+                    Thread.sleep(500);
+                    actions.sendKeys(Keys.DELETE).perform();
+                    email.sendKeys(fbAccount.getEmail());
+                    password.click();
+                    // 模拟Ctrl+A组合键
+                    actions.keyDown(Keys.CONTROL)
+                            .sendKeys("a")
+                            .keyUp(Keys.CONTROL)
+                            .perform();
+                    Thread.sleep(500);
+                    actions.sendKeys(Keys.DELETE).perform();
+                    password.sendKeys(fbAccount.getPassword());
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                e.printStackTrace();
-            }
-            //判断是否存在继续操作按钮
-            try {
-                WebElement continueButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
-                if (continueButton != null) {
-                    continueButton.click();
+                WebElement loginButton = webDriver.findElement(By.name("login"));
+                loginButton.click();
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if (webDriver.getPageSource().contains("查看通知")) {
+                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div/div[4]/div/div/div/div[1]/div/span/span")))
+                            .click();
+                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[3]/div[2]/div[4]/div/div/div[2]/div/div/div/div/label[2]/div[1]/div/div[2]/div/input")))
+                            .click();
+                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[4]/div[3]/div/div/div/div/div/div/div/div/div[1]/div/span/span")))
+                            .click();
+                }
+                //新版双重验证码输入
+                try {
+                    WebElement approvalsCode = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/form/div/div/div/div/div[1]/input")));
+                    approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
+                    WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span")));
+                    submitButton.click();
+                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[2]/div/div/div[3]/div[1]/div/div/div/div[1]/div/span/span")))
+                            .click();
+                } catch (Exception e) {
+                    try {
+                        WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
+                        WebElement approvalsCode = webDriver.findElement(By.id("approvals_code"));
+                        approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
+                        submitButton.click();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        return false;
+                    }
+                    e.printStackTrace();
+                }
+                //判断是否存在继续操作按钮
+                try {
+                    WebElement continueButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
+                    if (continueButton != null) {
+                        continueButton.click();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                webDriver.get("https://www.facebook.com/"+fbAccount.getId());
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                if (!isLogin(webDriver).equals("true")) {
+//                    fbAccount.setNote("不成功");
+//                    fbAccountMapper.updateFbAccount(fbAccount);
+                } else {
+//                    fbAccount.setNote("成功");
+//                    fbAccountMapper.updateFbAccount(fbAccount);
+                }
             }
 
+        }
+        if (!isLogin(webDriver).equals("true")) {
+//            fbAccount.setNote("不成功");
+//            fbAccountMapper.updateFbAccount(fbAccount);
+        } else {
+//            fbAccount.setNote("成功");
+//            fbAccountMapper.updateFbAccount(fbAccount);
         }
         return true;
     }
@@ -449,15 +463,32 @@ public class ISeleniumServiceImpl implements ISeleniumService {
      * @param webDriver
      * @return
      */
-    public boolean isLogin(WebDriver webDriver) {
-
+    public String isLogin(WebDriver webDriver) {
+        boolean hasCUser = false;
+        boolean hasPresence = false;
         Set<Cookie> cookies = webDriver.manage().getCookies();
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("c_user")) {
-                return true; // 找到了c_user项
+                hasCUser = true; // 找到了c_user项
+            }
+            if (cookie.getName().equals("presence")) {
+                hasPresence = true;
             }
         }
-        return false; // 未找到c_user项
+
+        if (hasCUser && hasPresence) {
+            return "true";
+        }
+        if (hasCUser && !hasPresence) {
+            return "disable";
+        }
+        if (!hasCUser && !hasPresence) {
+            return "error";
+        }
+        if (!hasCUser) {
+            return "false";
+        }
+        return "error";
     }
 
     /**
@@ -626,7 +657,8 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             FbAccount fbAccount = fbAccountMapper.selectOneByFbAccountId(id);
             openBrowser(fbAccount);
             login(fbAccount);
-            WebDriverWait wait = new WebDriverWait(webDriverMap.get(fbAccount.getId()), 8, 1);
+            WebDriver webDriver = webDriverMap.get(fbAccount.getId());
+            WebDriverWait wait = new WebDriverWait(webDriver, 30, 1);
             if (webDriverMap.get(fbAccount.getId()).getPageSource().contains("永久停用")) {
                 closeBrowser(fbAccount);
                 return;
@@ -635,37 +667,45 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 try {
                     webDriverMap.get(fbAccount.getId()).get("https://www.facebook.com/" + accountId);
                     webDriverMap.get(fbAccount.getId()).manage().window().maximize();
-                    Thread.sleep(2000);
-                    JavascriptExecutor js = (JavascriptExecutor) webDriverMap.get(fbAccount.getId());
-                    js.executeScript("window.scrollTo(0, 0);");
-                    String script = "var evt = new MouseEvent('click', {" +
-                            "bubbles: true, cancelable: true, view: window, clientX: " + 1340 + ", clientY: " + 575 + "});" +
-                            "document.elementFromPoint(" + 1340 + ", " + 575 + ").dispatchEvent(evt);";
-                    js.executeScript(script);
+                    Thread.sleep(20000);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                if (!webDriverMap.get(fbAccount.getId()).getPageSource().contains("取消")) {
+                String pageSource = webDriver.getPageSource();
+                String xpath = WebPageUtil.getXpathBySelector(pageSource, "div[aria-label=添加好友]");
+                System.out.println(xpath);
+                webDriver.findElement(By.xpath(xpath.replace("/#root[1]", ""))).click();
+               /* if (!webDriverMap.get(fbAccount.getId()).getPageSource().contains("取消")) {
 
                     try {
-                        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div[1]/div[2]/div/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[2]/span/span")))
+                        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@aria-label='添加好友']")))
+                                .click();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+
+                    }
+                }
+                try {
+//                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[4]/div[1]/div/div/div[1]/div[2]/span/span")))
+                    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div[aria-label='添加好友'], div[aria-label='Add friend'], div[aria-label='加朋友']")))
+                            .click();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                String pageSource = webDriver.getPageSource();
+                if (!(pageSource.contains("取消邀請") || pageSource.contains("取消请求") || pageSource.contains("Cancel request"))){
+                    try {
+                        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("div[aria-label='加为好友'], div[aria-label='Add friend'], div[aria-label='加朋友']")))
                                 .click();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }
-                try {
-                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[4]/div[1]/div/div/div[1]/div[2]/span/span")))
-                            .click();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                try {
-                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[7]/div[1]/div/div[2]/div/div/div/div/div/div/div[3]/div/div/div/div/div/div/div/div[1]/div/span/span")))
-                            .click();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                }*/
             }
             closeBrowser(fbAccount);
         }
@@ -684,7 +724,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         String tomorrowStr = tomorrow.format(formatter);
         openBrowser(fbAccount);
         WebDriver webDriver = webDriverMap.get(fbAccount.getId());
-        if (!isLogin(webDriver)) {
+        if (isLogin(webDriver).equals("false")) {
             login(fbAccount);
         }
         if (webDriver != null && !webDriver.getPageSource().contains(adAccountId)) {
@@ -972,45 +1012,40 @@ public class ISeleniumServiceImpl implements ISeleniumService {
      * @return
      */
     @Override
-    public FbAccount checkAccountInfo(FbAccount fbAccount) {
+    public void checkAccountInfo(FbAccount fbAccount) {
 
         openBrowser(fbAccount);
-        if (login(fbAccount)) {
-            WebDriver webDriver = webDriverMap.get(fbAccount.getId());
-            WebDriverWait wait = new WebDriverWait(webDriver, 50, 1);
-            webDriver.get("https://www.facebook.com/business-support-home/" + fbAccount.getId());
-            try {
-                wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div/div/span/div/div[1]/div[2]/div/div[2]/div[1]/div[1]/div/div/div[1]/div[2]/div[1]/div/div/div/div[1]/div/div")));
-            } catch (Exception e) {
-                if (webDriver.getCurrentUrl().contains("/checkpoint")) {
-                    if (webDriver.getPageSource().contains("立即") || webDriver.getPageSource().contains("开始") ||
-                            webDriver.getPageSource().contains("has been locked")) {
-                        fbAccount.setStatus("4");
-                    } else {
-                        fbAccount.setStatus("5");
-                    }
-                }
-                e.printStackTrace();
-            }
-            if (webDriver.getCurrentUrl().contains("/www.facebook.com/business-support-home")){
-                if (webDriver.getPageSource().contains("帳號受到限制") || webDriver.getPageSource().contains("帐户受限")
-                        || webDriver.getPageSource().contains("受到限制的帳戶") || webDriver.getPageSource().contains("アカウントが制限されています")
-                        || webDriver.getPageSource().contains("Account restricted")) {
-                    fbAccount.setStatus("2");
-                } else {
-                    fbAccount.setStatus("1");
+        login(fbAccount);
+        WebDriver webDriver = webDriverMap.get(fbAccount.getId());
+        String loginResult = isLogin(webDriver);
+        System.out.println(loginResult);
+        if (loginResult.equals("true")) {
+            // 通过JavaScriptExecutor进行页面滚动
+            for (int i = 0; i < 3; i++) {
+                JavascriptExecutor js = (JavascriptExecutor) webDriver;
+                js.executeScript("window.scrollBy(0,500)");// 向下滚动500像素
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             }
-            if (webDriver.getPageSource().contains("帳號停權")) {
-                fbAccount.setStatus("5");
-            }
-            fbAccount.setName(getAccountName(webDriver.getPageSource()));
-            closeBrowser(fbAccount);
-            return fbAccount;
-        } else {
-            closeBrowser(fbAccount);
-            return null;
         }
+        if (loginResult.equals("false")) {
+            checkAccountInfo(fbAccount);
+        }
+        if (loginResult.equals("disable")) {
+            if (webDriver.getCurrentUrl().contains("/checkpoint")) {
+                if (webDriver.getPageSource().contains("立即") || webDriver.getPageSource().contains("开始") ||
+                        webDriver.getPageSource().contains("has been locked")) {
+                    fbAccount.setStatus("4");
+                } else {
+                    fbAccount.setStatus("5");
+                }
+            }
+        }
+        fbAccountMapper.updateFbAccount(fbAccount);
+        closeBrowser(fbAccount);
     }
 
     /**
@@ -1057,7 +1092,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/form/div/div[3]/div/div[1]/button")))
                 .click();
         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/form/div/div[2]/div[2]/div[1]/div/input")))
-                .sendKeys(fbAccount.getPassword()+".");
+                .sendKeys(fbAccount.getPassword() + ".");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/form/div/div[3]/div/div[1]/button[2]")))
                 .click();
         try {
@@ -1073,22 +1108,23 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 WebElement approvalsCode = webDriver.findElement(By.id("approvals_code"));
                 approvalsCode.sendKeys(getVerificationCode(fbAccount.getSecretKey()));
                 submitButton.click();
-            } catch (Exception ex){
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
-        fbAccount.setPassword(fbAccount.getPassword()+".");
+        fbAccount.setPassword(fbAccount.getPassword() + ".");
         return fbAccount;
     }
 
     /**
      * 解锁账号
+     *
      * @param fbAccount
      */
     @Override
     public void unlockAccount(FbAccount fbAccount) {
         WebDriver webDriver = webDriverMap.get(fbAccount.getId());
-        WebDriverWait wait = new WebDriverWait(webDriver, 20,1);
+        WebDriverWait wait = new WebDriverWait(webDriver, 20, 1);
         webDriver.findElement(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[5]/div/div/div[1]/div/span/span"))
                 .click();
         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[4]/div/div[2]/div/div")))
@@ -1097,17 +1133,31 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 .click();
         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[4]/div/div[2]/div/div/div[1]/div/span/span")))
                 .click();
+        String message = EmailUtil.getMessage(fbAccount);
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        String message = EmailUtil.getMessage(fbAccount);
+        message = EmailUtil.getMessage(fbAccount);
+        System.out.println("邮件内容：" + message);
         String verificationCode = EmailUtil.getVerificationCode(message);
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[2]/div/div/div/div/label/div/div/input")))
+        System.out.println("验证码：" + verificationCode);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[2]/div/div/div/div/div[1]/div/label/input")))
                 .sendKeys(verificationCode);
+        //等待两秒
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[4]/div/div[2]/div/div/div[1]/div/span/span")))
                 .click();
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -1121,6 +1171,169 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 .click();
         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div[6]/a/div/div[1]/div/span/span")))
                 .click();
+
+    }
+
+    /**
+     * 创主页
+     *
+     * @param fbAccount
+     * @param pageName
+     */
+    @Override
+    public void createPage(FbAccount fbAccount, String pageName) throws InterruptedException {
+        openBrowser(fbAccount);
+        login(fbAccount);
+        WebDriver webDriver = webDriverMap.get(fbAccount.getId());
+        webDriver.get(CreatePageConstants.CREATE_PAGE_WEBSITE);
+        Thread.sleep(1000);
+        webDriver.navigate().refresh();
+        Thread.sleep(5000);
+        String pageSource = webDriver.getPageSource();
+        WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
+
+        //主页名
+        String pageNameXpath = WebPageUtil.getXpathBySelector(pageSource, CreatePageConstants.CREATE_PAGE_PAGE_NAME_XPATH);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageNameXpath)))
+                .sendKeys(pageName);
+        Thread.sleep(1000);
+        //类别
+        String pageTypeXpath = WebPageUtil.getXpathBySelector(pageSource, CreatePageConstants.CREATE_PAGE_PAGE_TYPE_XPATH);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageTypeXpath)))
+                .sendKeys("服装");
+        Thread.sleep(2000);
+        try {
+            Robot robot = new Robot();
+            robot.keyPress(KeyEvent.VK_ESCAPE);
+            robot.keyRelease(KeyEvent.VK_ESCAPE);
+            Thread.sleep(1000);
+            // 按下方向键“下”键
+            robot.keyPress(KeyEvent.VK_DOWN);
+            robot.keyRelease(KeyEvent.VK_DOWN);
+            robot.keyPress(KeyEvent.VK_ENTER);
+            robot.keyRelease(KeyEvent.VK_ENTER);
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+        Thread.sleep(2000);
+        //简介
+        String pageIntroductionXpath = WebPageUtil.getXpathBySelector(pageSource, CreatePageConstants.CREATE_PAGE_PAGE_INTRODUCTION_XPATH);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageIntroductionXpath)))
+                .sendKeys("We are a company that always adheres to the concept of \"innovation, quality, service, economy\".");
+        Thread.sleep(1000);
+        //建立按钮
+        String createPageButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_CREATE_BUTTON_SOURCE_CODE);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(createPageButton)))
+                .click();
+        Thread.sleep(10000);
+
+        pageSource = webDriver.getPageSource();
+
+        String contactInformation = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_INFORMATION_SOURCE_CODE);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(contactInformation)))
+                .click();
+        try {
+            Robot robot = new Robot();
+            robot.keyPress(KeyEvent.VK_PAGE_DOWN);
+            robot.keyRelease(KeyEvent.VK_PAGE_DOWN);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String openingHour = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_OPENING_TIME_SOURCE_CODE);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(openingHour)))
+                .click();
+
+        //下一步
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_SECOND_PAGE_CONTINUE_BUTTON_SOURCE_CODE)))
+                .click();
+        Thread.sleep(5000);
+
+        pageSource = webDriver.getPageSource();
+        //头像
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_UPLOAD_AVATAR_SOURCE_CODE)))
+                .click();
+        try {
+            // 创建Robot实例
+            Robot robot = new Robot();
+
+            // 等待一段时间以确保文件对话框已打开（可以根据实际情况调整等待时间）
+            Thread.sleep(1000);
+
+            // 输入文件路径
+            String filePath = "E:\\发帖\\头像\\头像4.jpg"; // 替换成你要上传的文件的路径
+            // 将文件路径复制到剪贴板
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            StringSelection stringSelection = new StringSelection(filePath);
+            clipboard.setContents(stringSelection, null);
+
+            // 模拟粘贴操作
+            robot.keyPress(KeyEvent.VK_CONTROL);
+            robot.keyPress(KeyEvent.VK_V);
+            robot.keyRelease(KeyEvent.VK_V);
+            robot.keyRelease(KeyEvent.VK_CONTROL);
+
+            // 模拟按下Enter键，以确认文件选择
+            robot.keyPress(KeyEvent.VK_ENTER);
+            robot.keyRelease(KeyEvent.VK_ENTER);
+        } catch (AWTException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        Thread.sleep(10000);
+        //封面
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_UPLOAD_BACKGROUND_SOURCE_CODE)))
+                .click();
+        try {
+            // 创建Robot实例
+            Robot robot = new Robot();
+
+            // 等待一段时间以确保文件对话框已打开（可以根据实际情况调整等待时间）
+            Thread.sleep(1000);
+
+            // 输入文件路径
+            String filePath = "E:\\发帖\\banner\\4.jpg"; // 替换成你要上传的文件的路径
+            // 将文件路径复制到剪贴板
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            StringSelection stringSelection = new StringSelection(filePath);
+            clipboard.setContents(stringSelection, null);
+
+            // 模拟粘贴操作
+            robot.keyPress(KeyEvent.VK_CONTROL);
+            robot.keyPress(KeyEvent.VK_V);
+            robot.keyRelease(KeyEvent.VK_V);
+            robot.keyRelease(KeyEvent.VK_CONTROL);
+
+            // 模拟按下Enter键，以确认文件选择
+            robot.keyPress(KeyEvent.VK_ENTER);
+            robot.keyRelease(KeyEvent.VK_ENTER);
+        } catch (AWTException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        Thread.sleep(10000);
+        //第三页下一步
+        String thirdPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_THIRD_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(thirdPageContinueButton)))
+                .click();
+        Thread.sleep(5000);
+        pageSource = webDriver.getPageSource();
+        //第四页跳过
+        String fourthPageSkipButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_FOURTH_PAGE_SKIP_BUTTON_SOURCE_CODE);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fourthPageSkipButton)))
+                .click();
+        Thread.sleep(5000);
+        pageSource = webDriver.getPageSource();
+        //第五页完成
+        String fifthPageFinishButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_FIFTH_PAGE_FINISH_BUTTON_SOURCE_CODE);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fifthPageFinishButton)))
+                .click();
+        //关闭对话框
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[6]/div[1]/div/div[2]/div/div/div/div[1]/div/i")))
+                .click();
+        Thread.sleep(2000);
+        //关闭对话框
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[6]/div[1]/div/div[2]/div/div/div/div[1]/div/i")))
+                .click();
+
 
     }
 
@@ -1144,8 +1357,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         }
         return name;
     }
-
-
 
 
 }

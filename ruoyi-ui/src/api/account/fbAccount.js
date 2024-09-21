@@ -181,4 +181,17 @@ export function unlockAccount(id){
   })
 }
 
+//创建主页
+export function createPage(ids,pageName) {
+  const data = {
+    ids,
+    pageName
+  }
+  return request({
+    url: '/account/fbAccount/createPage/',
+    data: data,
+    method: 'post'
+  })
+}
+
 

@@ -135,7 +135,7 @@ public interface ISeleniumService {
      * @param fbAccount
      * @return
      */
-    FbAccount checkAccountInfo(FbAccount fbAccount);
+    void checkAccountInfo(FbAccount fbAccount);
 
     /**
      * 修改账号密码
@@ -149,5 +149,12 @@ public interface ISeleniumService {
      * @param fbAccount
      */
     void unlockAccount(FbAccount fbAccount);
+
+    /**
+     * 创主页
+     * @param fbAccount
+     * @param pageName
+     */
+    void createPage(FbAccount fbAccount, String pageName) throws InterruptedException;
 
 }

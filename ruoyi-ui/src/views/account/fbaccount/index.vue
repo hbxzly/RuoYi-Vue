@@ -1,5 +1,6 @@
 <template>
   <div class="app-container">
+    <!--  搜索条件  -->
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="序号" prop="keyId">
         <el-input
@@ -58,7 +59,7 @@
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
-
+    <!--  表格操作  -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
@@ -142,9 +143,19 @@
           @click="handleCheckAccountInfo"
         >检查状态信息</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-document"
+          size="mini"
+          :disabled="multiple"
+          @click="handleCreatePage"
+        >创建主页</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
-
+    <!--  表格体  -->
     <el-table v-loading="loading" :data="fbAccountList" @selection-change="handleSelectionChange" style="height: calc(100vh - 300px); overflow-y: auto;" >
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" prop="keyId" width="50px"/>
@@ -303,7 +314,23 @@
       </div>
     </el-dialog>
 
-
+    <!--批量添加好友-->
+    <el-dialog :title="title" :visible.sync="openCreatePage" width="700px" append-to-body>
+      <el-form ref="elForm" :model="formData"  size="medium" label-width="100px">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="主页名称" prop="pageName">
+              <el-input type="textarea" v-model="formData.pageName" placeholder="主页名称"  clearable :style="{width: '100%'}" :rows="5">
+              </el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitCreatePage">确 定</el-button>
+        <el-button @click="cancelCreatePage">取 消</el-button>
+      </div>
+    </el-dialog>
 
   </div>
 </template>
@@ -323,7 +350,8 @@
 <script>
 import { listFbAccount, getAccount, updateAccount, addAccount, delFbaccount,
       openBrowser, moreOperate, collectAdsInfo, multipleOpenBrowser, closeBrowser, closeAllBrowser,
-      showBrowser, createBM, checkBM, checkAccount, openAds,  batchAddFriend, checkAccountInfo, changePassword, unlockAccount} from "@/api/account/fbAccount";
+      showBrowser, createBM, checkBM, checkAccount, openAds,  batchAddFriend, checkAccountInfo, changePassword,
+      unlockAccount, createPage} from "@/api/account/fbAccount";
 
 
 export default {
@@ -341,6 +369,8 @@ export default {
       openAddFriend:false,
 
       openBatchAddFriend:false,
+
+      openCreatePage:false,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -379,9 +409,11 @@ export default {
 
     };
   },
+
   created() {
     this.getList();
   },
+
   methods: {
 
     //查询岗位列表
@@ -411,6 +443,12 @@ export default {
       this.formData.operationAccount = undefined;
       this.formData.friendAccount = undefined;
       this.openBatchAddFriend = false;
+    },
+
+    // 取消按钮
+    cancelCreatePage(){
+      this.formData.pageName = undefined;
+      this.openCreatePage = false;
     },
 
     // 更多操作触发
@@ -568,57 +606,6 @@ export default {
       });
     },
 
-    //修改提交按钮
-    submitForm: function() {
-      this.$refs["form"].validate(valid => {
-        if (valid) {
-          if (this.form.id != undefined) {
-            updateAccount(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
-          }
-        }
-      });
-    },
-
-    //操作提交
-    submitOperate: function (row) {
-      const ids = row.id || this.ids
-      const operateId = this.operate
-      moreOperate(ids,operateId).then(
-        this.openOperate = false,
-        response => {
-
-      });
-    },
-
-    //添加账号提交
-    submitFormAdd: function (){
-      if (this.formData.account != undefined){
-        addAccount(this.formData).then(response => {
-          this.$modal.msgSuccess("添加成功");
-          this.openAdd = false;
-          this.getList();
-        });
-      }
-    },
-
-    //提交批量添加好友
-    submitBatchAddFriend: function () {
-
-      const operationAccount = this.ids;
-      const friendAccount = this.formData.friendAccount;
-      if ( operationAccount != undefined && friendAccount != ""){
-        batchAddFriend(operationAccount, friendAccount).then(
-          this.cancelBatchAdd(),
-          response =>{
-
-          });
-      }
-    },
-
     //删除按钮操作
     handleDelete(row) {
       const fbaccountIds = row.id || this.ids;
@@ -670,6 +657,76 @@ export default {
       unlockAccount(id).then(respone =>{
 
       })
+    },
+
+    //创主页
+    handleCreatePage(){
+      this.title = "创建主页";
+      this.openCreatePage = true;
+    },
+
+    //修改提交按钮
+    submitForm: function() {
+      this.$refs["form"].validate(valid => {
+        if (valid) {
+          if (this.form.id != undefined) {
+            updateAccount(this.form).then(response => {
+              this.$modal.msgSuccess("修改成功");
+              this.open = false;
+              this.getList();
+            });
+          }
+        }
+      });
+    },
+
+    //操作提交
+    submitOperate: function (row) {
+      const ids = row.id || this.ids
+      const operateId = this.operate
+      moreOperate(ids,operateId).then(
+        this.openOperate = false,
+        response => {
+
+        });
+    },
+
+    //添加账号提交
+    submitFormAdd: function (){
+      if (this.formData.account != undefined){
+        addAccount(this.formData).then(response => {
+          this.$modal.msgSuccess("添加成功");
+          this.openAdd = false;
+          this.getList();
+        });
+      }
+    },
+
+    //提交批量添加好友
+    submitBatchAddFriend: function () {
+
+      const operationAccount = this.ids;
+      const friendAccount = this.formData.friendAccount;
+      if ( operationAccount != undefined && friendAccount != ""){
+        batchAddFriend(operationAccount, friendAccount).then(
+          this.cancelBatchAdd(),
+          response =>{
+
+          });
+      }
+    },
+
+    //提交创主页
+    submitCreatePage: function () {
+      const ids = this.ids;
+      const pageNames = this.formData.pageName;
+      const formattedPageNames = pageNames.trim().split('\n');
+      if (ids.length != formattedPageNames.length){
+        this.$modal.confirm('主页数量跟选择账户数量不一样');
+      }else {
+        createPage(ids,formattedPageNames);
+        this.cancelCreatePage();
+      }
     }
 
   }
