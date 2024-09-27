@@ -242,12 +242,12 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                webDriver.get("https://www.facebook.com/"+fbAccount.getId());
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+//                webDriver.get("https://www.facebook.com/"+fbAccount.getId());
+//                try {
+////                    Thread.sleep(2000);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
                 if (!isLogin(webDriver).equals("true")) {
 //                    fbAccount.setNote("不成功");
 //                    fbAccountMapper.updateFbAccount(fbAccount);
@@ -1191,6 +1191,19 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         Thread.sleep(5000);
         String pageSource = webDriver.getPageSource();
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
+        try {
+            Robot robot = new Robot();
+            robot.keyPress(KeyEvent.VK_ESCAPE);
+            robot.keyRelease(KeyEvent.VK_ESCAPE);
+            Thread.sleep(1000);
+            // 按下方向键“下”键
+            robot.keyPress(KeyEvent.VK_DOWN);
+            robot.keyRelease(KeyEvent.VK_DOWN);
+            robot.keyPress(KeyEvent.VK_ENTER);
+            robot.keyRelease(KeyEvent.VK_ENTER);
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
 
         //主页名
         String pageNameXpath = WebPageUtil.getXpathBySelector(pageSource, CreatePageConstants.CREATE_PAGE_PAGE_NAME_XPATH);
@@ -1204,9 +1217,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         Thread.sleep(2000);
         try {
             Robot robot = new Robot();
-            robot.keyPress(KeyEvent.VK_ESCAPE);
-            robot.keyRelease(KeyEvent.VK_ESCAPE);
-            Thread.sleep(1000);
             // 按下方向键“下”键
             robot.keyPress(KeyEvent.VK_DOWN);
             robot.keyRelease(KeyEvent.VK_DOWN);
@@ -1228,7 +1238,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         Thread.sleep(10000);
 
         pageSource = webDriver.getPageSource();
-
         String contactInformation = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_INFORMATION_SOURCE_CODE);
         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(contactInformation)))
                 .click();
@@ -1239,19 +1248,22 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        Thread.sleep(2000);
 
-        String openingHour = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_OPENING_TIME_SOURCE_CODE);
-        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(openingHour)))
+        pageSource = webDriver.getPageSource();
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_OPENING_TIME_XPATH)))
                 .click();
 
         //下一步
-        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_SECOND_PAGE_CONTINUE_BUTTON_SOURCE_CODE)))
+        String secondPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_SECOND_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(secondPageContinueButton)))
                 .click();
         Thread.sleep(5000);
 
         pageSource = webDriver.getPageSource();
         //头像
-        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_UPLOAD_AVATAR_SOURCE_CODE)))
+        String uploadAvatar = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_UPLOAD_AVATAR_SOURCE_CODE);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(uploadAvatar)))
                 .click();
         try {
             // 创建Robot实例
@@ -1261,7 +1273,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             Thread.sleep(1000);
 
             // 输入文件路径
-            String filePath = "E:\\发帖\\头像\\头像4.jpg"; // 替换成你要上传的文件的路径
+            String filePath = "E:\\发帖\\头像\\头像5.jpg"; // 替换成你要上传的文件的路径
             // 将文件路径复制到剪贴板
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             StringSelection stringSelection = new StringSelection(filePath);
@@ -1281,7 +1293,8 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         }
         Thread.sleep(10000);
         //封面
-        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_UPLOAD_BACKGROUND_SOURCE_CODE)))
+        String background = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_UPLOAD_BACKGROUND_SOURCE_CODE);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(background)))
                 .click();
         try {
             // 创建Robot实例
@@ -1291,7 +1304,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             Thread.sleep(1000);
 
             // 输入文件路径
-            String filePath = "E:\\发帖\\banner\\4.jpg"; // 替换成你要上传的文件的路径
+            String filePath = "E:\\发帖\\banner\\5.jpg"; // 替换成你要上传的文件的路径
             // 将文件路径复制到剪贴板
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             StringSelection stringSelection = new StringSelection(filePath);
@@ -1314,15 +1327,22 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         String thirdPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_THIRD_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(thirdPageContinueButton)))
                 .click();
-        Thread.sleep(5000);
-        pageSource = webDriver.getPageSource();
+        Thread.sleep(10000);
         //第四页跳过
+        pageSource = webDriver.getPageSource();
         String fourthPageSkipButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_FOURTH_PAGE_SKIP_BUTTON_SOURCE_CODE);
         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fourthPageSkipButton)))
                 .click();
-        Thread.sleep(5000);
+        Thread.sleep(10000);
         pageSource = webDriver.getPageSource();
-        //第五页完成
+        //第五页继续
+        if(pageSource.contains("拓展粉絲專頁粉絲群")){
+            String fifthPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_FIFTH_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fifthPageContinueButton)))
+                    .click();
+        }
+        Thread.sleep(10000);
+        pageSource = webDriver.getPageSource();
         String fifthPageFinishButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_FIFTH_PAGE_FINISH_BUTTON_SOURCE_CODE);
         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fifthPageFinishButton)))
                 .click();

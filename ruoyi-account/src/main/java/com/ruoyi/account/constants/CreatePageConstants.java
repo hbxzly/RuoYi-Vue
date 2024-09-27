@@ -14,7 +14,7 @@ public final class CreatePageConstants {
 
     public static final String CREATE_PAGE_INFORMATION_SOURCE_CODE = "<span class=\"x193iq5w xeuugli x13faqbe x1vvkbs x1xmvt09 x1lliihq x1s928wv xhkezso x1gmr53x x1cpjm7i x1fgarty x1943h6x xudqn12 x676frb x1lkfr7t x1lbecb7 x1s688f xzsf02u\" dir=\"auto\">聯絡資料</span>";
 
-    public static final String CREATE_PAGE_OPENING_TIME_SOURCE_CODE = "<input dir=\"ltr\" aria-label=\"24 小時營業\" aria-checked=\"true\" class=\"x1i10hfl x9f619 xggy1nq x1s07b3s x1ypdohk x5yr21d xdj266r x11i5rnm xat24cr x1mh8g0r x1w3u9th x1a2a7pz xexx8yu x4uap5 x18d9i69 xkhd6sd x10l6tqk x17qophe x13vifvy xh8yej3\" type=\"radio\" value=\"ALWAYS_OPEN\" name=\"hours\">";
+    public static final String CREATE_PAGE_OPENING_TIME_XPATH = "//input[@value='ALWAYS_OPEN']";
 
     public static final String CREATE_PAGE_SECOND_PAGE_CONTINUE_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">繼續</span>";
 
@@ -25,6 +25,8 @@ public final class CreatePageConstants {
     public static final String CREATE_PAGE_THIRD_PAGE_CONTINUE_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">繼續</span>";
 
     public static final String CREATE_PAGE_FOURTH_PAGE_SKIP_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">略過</span>";
+
+    public static final String CREATE_PAGE_FIFTH_PAGE_CONTINUE_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">繼續</span>";
 
     public static final String CREATE_PAGE_FIFTH_PAGE_FINISH_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">完成</span>";
 
