@@ -1,4 +1,4 @@
-package com.ruoyi.account.constants;
+package com.ruoyi.account.util;
 
 public final class CreatePageConstants {
 

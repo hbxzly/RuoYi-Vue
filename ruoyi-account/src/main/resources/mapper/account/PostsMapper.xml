@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.account.mapper.PostsMapper">
+    
+    <resultMap type="Posts" id="PostsResult">
+        <result property="keyId"    column="key_id"    />
+        <result property="filePath"    column="file_path"    />
+        <result property="pictureName"    column="picture_name"    />
+        <result property="content"    column="content"    />
+        <result property="type"    column="type"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+
+    <sql id="selectPostsVo">
+        select key_id, file_path, picture_name, content, type, note from posts
+    </sql>
+
+    <select id="selectPostsList" parameterType="Posts" resultMap="PostsResult">
+        <include refid="selectPostsVo"/>
+        <where>  
+            <if test="filePath != null  and filePath != ''"> and file_path = #{filePath}</if>
+            <if test="pictureName != null  and pictureName != ''"> and picture_name like concat('%', #{pictureName}, '%')</if>
+            <if test="content != null  and content != ''"> and content = #{content}</if>
+            <if test="type != null  and type != ''"> and type = #{type}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+        </where>
+    </select>
+    
+    <select id="selectPostsByKeyId" parameterType="Long" resultMap="PostsResult">
+        <include refid="selectPostsVo"/>
+        where key_id = #{keyId}
+    </select>
+        
+    <insert id="insertPosts" parameterType="Posts" useGeneratedKeys="true" keyProperty="keyId">
+        insert into posts
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="filePath != null">file_path,</if>
+            <if test="pictureName != null">picture_name,</if>
+            <if test="content != null">content,</if>
+            <if test="type != null">type,</if>
+            <if test="note != null">note,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="filePath != null">#{filePath},</if>
+            <if test="pictureName != null">#{pictureName},</if>
+            <if test="content != null">#{content},</if>
+            <if test="type != null">#{type},</if>
+            <if test="note != null">#{note},</if>
+         </trim>
+    </insert>
+
+    <update id="updatePosts" parameterType="Posts">
+        update posts
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="filePath != null">file_path = #{filePath},</if>
+            <if test="pictureName != null">picture_name = #{pictureName},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where key_id = #{keyId}
+    </update>
+
+    <delete id="deletePostsByKeyId" parameterType="Long">
+        delete from posts where key_id = #{keyId}
+    </delete>
+
+    <delete id="deletePostsByKeyIds" parameterType="String">
+        delete from posts where key_id in 
+        <foreach item="keyId" collection="array" open="(" separator="," close=")">
+            #{keyId}
+        </foreach>
+    </delete>
+</mapper>

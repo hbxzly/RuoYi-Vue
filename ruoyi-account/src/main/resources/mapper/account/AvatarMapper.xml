@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.account.mapper.AvatarMapper">
+    
+    <resultMap type="Avatar" id="AvatarResult">
+        <result property="keyId"    column="key_id"    />
+        <result property="filePath"    column="file_path"    />
+        <result property="avatarName"    column="avatar_name"    />
+        <result property="type"    column="type"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+
+    <sql id="selectAvatarVo">
+        select key_id, file_path, avatar_name, type, note from avatar
+    </sql>
+
+    <select id="selectAvatarList" parameterType="Avatar" resultMap="AvatarResult">
+        <include refid="selectAvatarVo"/>
+        <where>  
+            <if test="filePath != null  and filePath != ''"> and file_path = #{filePath}</if>
+            <if test="avatarName != null  and avatarName != ''"> and avatar_name like concat('%', #{avatarName}, '%')</if>
+            <if test="type != null  and type != ''"> and type = #{type}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+        </where>
+    </select>
+    
+    <select id="selectAvatarByKeyId" parameterType="Long" resultMap="AvatarResult">
+        <include refid="selectAvatarVo"/>
+        where key_id = #{keyId}
+    </select>
+        
+    <insert id="insertAvatar" parameterType="Avatar" useGeneratedKeys="true" keyProperty="keyId">
+        insert into avatar
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="filePath != null">file_path,</if>
+            <if test="avatarName != null">avatar_name,</if>
+            <if test="type != null">type,</if>
+            <if test="note != null">note,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="filePath != null">#{filePath},</if>
+            <if test="avatarName != null">#{avatarName},</if>
+            <if test="type != null">#{type},</if>
+            <if test="note != null">#{note},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAvatar" parameterType="Avatar">
+        update avatar
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="filePath != null">file_path = #{filePath},</if>
+            <if test="avatarName != null">avatar_name = #{avatarName},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where key_id = #{keyId}
+    </update>
+
+    <delete id="deleteAvatarByKeyId" parameterType="Long">
+        delete from avatar where key_id = #{keyId}
+    </delete>
+
+    <delete id="deleteAvatarByKeyIds" parameterType="String">
+        delete from avatar where key_id in 
+        <foreach item="keyId" collection="array" open="(" separator="," close=")">
+            #{keyId}
+        </foreach>
+    </delete>
+</mapper>
