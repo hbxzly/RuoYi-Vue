@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.account.mapper.BackgroundMapper">
+    
+    <resultMap type="Background" id="BackgroundResult">
+        <result property="keyId"    column="key_id"    />
+        <result property="filePath"    column="file_path"    />
+        <result property="backgroundName"    column="background_name"    />
+        <result property="type"    column="type"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+
+    <sql id="selectBackgroundVo">
+        select key_id, file_path, background_name, type, note from background
+    </sql>
+
+    <select id="selectBackgroundList" parameterType="Background" resultMap="BackgroundResult">
+        <include refid="selectBackgroundVo"/>
+        <where>  
+            <if test="filePath != null  and filePath != ''"> and file_path = #{filePath}</if>
+            <if test="backgroundName != null  and backgroundName != ''"> and background_name like concat('%', #{backgroundName}, '%')</if>
+            <if test="type != null  and type != ''"> and type = #{type}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+        </where>
+    </select>
+    
+    <select id="selectBackgroundByKeyId" parameterType="Long" resultMap="BackgroundResult">
+        <include refid="selectBackgroundVo"/>
+        where key_id = #{keyId}
+    </select>
+        
+    <insert id="insertBackground" parameterType="Background" useGeneratedKeys="true" keyProperty="keyId">
+        insert into background
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="filePath != null">file_path,</if>
+            <if test="backgroundName != null">background_name,</if>
+            <if test="type != null">type,</if>
+            <if test="note != null">note,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="filePath != null">#{filePath},</if>
+            <if test="backgroundName != null">#{backgroundName},</if>
+            <if test="type != null">#{type},</if>
+            <if test="note != null">#{note},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBackground" parameterType="Background">
+        update background
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="filePath != null">file_path = #{filePath},</if>
+            <if test="backgroundName != null">background_name = #{backgroundName},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where key_id = #{keyId}
+    </update>
+
+    <delete id="deleteBackgroundByKeyId" parameterType="Long">
+        delete from background where key_id = #{keyId}
+    </delete>
+
+    <delete id="deleteBackgroundByKeyIds" parameterType="String">
+        delete from background where key_id in 
+        <foreach item="keyId" collection="array" open="(" separator="," close=")">
+            #{keyId}
+        </foreach>
+    </delete>
+</mapper>
