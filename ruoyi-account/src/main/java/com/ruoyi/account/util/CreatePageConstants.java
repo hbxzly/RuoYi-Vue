@@ -30,6 +30,16 @@ public final class CreatePageConstants {
 
     public static final String CREATE_PAGE_FIFTH_PAGE_FINISH_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">完成</span>";
 
+    public static final String CREATE_PAGE_TALK_LATER_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft x1j85h84\">稍後再說</span>";
+
+    public static final String CREATE_PAGE_PICTURE_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">相片／影片</span>";
+
+    public static final String CREATE_PAGE_ADD_PICTURE_BUTTON_SOURCE_CODE = "<span class=\"x193iq5w xeuugli x13faqbe x1vvkbs x10flsy6 x1lliihq x1s928wv xhkezso x1gmr53x x1cpjm7i x1fgarty x1943h6x x1tu3fi x41vudc x1lkfr7t x1lbecb7 xk50ysn xzsf02u\" dir=\"auto\">新增相片／影片</span>";
+
+    public static final String CREATE_PAGE_POSTS_CONTENT_INPUT_SOURCE_CODE = "<p class=\"xdj266r x11i5rnm xat24cr x1mh8g0r x16tdsg8\"><br></p>";
+
+    public static final String CREATE_PAGE_POSTS_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">發佈</span>";
+
     public static final String CREATE_PAGE_ACTION_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div[2]/div[1]/div/div[3]/div[1]/div[2]/div/div/div/div[3]/div/div/div/div[1]/div[2]/span/span";
     public static final String CREATE_PAGE_TRY_IT_NOW_BUTTON_XPATH = "/html/body/div[6]/div[1]/div/div[2]/div/div/div/div/div[1]/div[2]/div[4]/div/div/div/div/div[1]/div/span/span";
     public static final String CREATE_PAGE_AFTER_TRY_IT_NOW_CONTINUE_BUTTON_XPATH = "/html/body/div[6]/div[1]/div/div[2]/div/div/div/div/div[2]/div/div[3]/div/div[2]/div/div[2]/div/div/div[1]/div/span/span";
