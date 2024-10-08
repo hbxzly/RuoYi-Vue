@@ -26,6 +26,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="operationTime != null "> and operation_time = #{operationTime}</if>
             <if test="note != null  and note != ''"> and note = #{note}</if>
         </where>
+        order by key_id DESC
     </select>
     
     <select id="selectOperationLogByKeyId" parameterType="Long" resultMap="OperationLogResult">
