@@ -1,6 +1,9 @@
 package com.ruoyi.account.service;
 
+import com.ruoyi.account.domain.Avatar;
+import com.ruoyi.account.domain.Background;
 import com.ruoyi.account.domain.FbAccount;
+import com.ruoyi.account.domain.Posts;
 import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.WebDriver;
 
@@ -155,6 +158,6 @@ public interface ISeleniumService {
      * @param fbAccount
      * @param pageName
      */
-    void createPage(FbAccount fbAccount, String pageName) throws InterruptedException;
+    void createPage(FbAccount fbAccount, String pageName, Avatar avatar, Background background, List<Posts> posts) throws InterruptedException;
 
 }
