@@ -2,9 +2,11 @@ package com.ruoyi.web.controller.account;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ruoyi.account.domain.Avatar;
+import com.ruoyi.account.domain.Background;
 import com.ruoyi.account.domain.FbAccount;
-import com.ruoyi.account.service.IFbAccountService;
-import com.ruoyi.account.service.ISeleniumService;
+import com.ruoyi.account.domain.Posts;
+import com.ruoyi.account.service.*;
 import com.ruoyi.account.util.AccountUtil;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
@@ -16,10 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 岗位信息操作处理
@@ -35,6 +34,15 @@ public class FbAccountController extends BaseController {
 
     @Autowired
     private ISeleniumService seleniumService;
+
+    @Autowired
+    private IAvatarService avatarService;
+
+    @Autowired
+    private IPostsService postsService;
+
+    @Autowired
+    private IBackgroundService backgroundService;
 
 
     /**
@@ -387,6 +395,10 @@ public class FbAccountController extends BaseController {
 
         List<String> ids = (List<String>) data.get("ids");
         List<String> pageNames = (List<String>) data.get("pageName");
+        List<Avatar> avatarList = avatarService.selectAvatarList(new Avatar());
+        List<Background> backgroundList = backgroundService.selectBackgroundList(new Background());
+        List<Posts> postsList = postsService.selectPostsList(new Posts());
+
 
         // 创建一个新的Map用于存储键值对
         Map<String, String> idPageMap = new HashMap<>();
@@ -398,9 +410,23 @@ public class FbAccountController extends BaseController {
 
         // 使用 forEach 遍历 idPageMap
         idPageMap.forEach((id, pageName) -> {
+            Random random = new Random();
+            int randomAvatarIndex = random.nextInt(avatarList.size());
+            Avatar randomAvatar = avatarList.get(randomAvatarIndex);
+            avatarList.remove(randomAvatarIndex);
+            int randomBackgroundIndex = random.nextInt(backgroundList.size());
+            Background randomBackground = backgroundList.get(randomBackgroundIndex);
+            backgroundList.remove(randomBackgroundIndex);
+            List<Posts> selectedPosts = new ArrayList<>();
+            if (postsList.size() >= 3) {
+                Collections.shuffle(postsList);
+                selectedPosts = new ArrayList<>(postsList.subList(0, 3));
+            } else {
+                selectedPosts = new ArrayList<>(postsList); // 如果少于 3 个，返回所有
+            }
             FbAccount fbAccount = fbAccountService.selectOneByFbAccountId(id);
             try {
-                seleniumService.createPage(fbAccount,pageName);
+                seleniumService.createPage(fbAccount, pageName, randomAvatar, randomBackground, selectedPosts);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
