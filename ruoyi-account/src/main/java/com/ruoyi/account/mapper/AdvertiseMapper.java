@@ -70,4 +70,6 @@ public interface AdvertiseMapper
     public int deleteAdvertiseByKeyIds(Long[] keyIds);
 
     public List<Advertise> selectAllAdvertise();
+
+    public void completeInfo();
 }

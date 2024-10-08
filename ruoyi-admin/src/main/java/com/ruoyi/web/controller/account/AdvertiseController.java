@@ -131,4 +131,10 @@ public class AdvertiseController extends BaseController
        iSeleniumService.openScreenshotPage(keyIds);
        return success();
     }
+
+    @GetMapping(value = "/completeInfo")
+    public AjaxResult completeInfo(){
+        advertiseService.completeInfo();
+        return success();
+    }
 }

@@ -10,8 +10,7 @@ import com.ruoyi.account.domain.Advertise;
  * @author ruoyi
  * @date 2023-09-25
  */
-public interface IAdvertiseService
-{
+public interface IAdvertiseService {
     /**
      * 查询广告信息
      *
@@ -69,8 +68,15 @@ public interface IAdvertiseService
     public int deleteAdvertiseByKeyId(Long keyId);
 
     /**
-     *查询所有广告信息
+     * 查询所有广告信息
+     *
      * @return
      */
     public List<Advertise> selectAllAdvertise();
+
+    /**
+     * 完善个人号、BM信息
+     */
+    public void completeInfo();
+
 }

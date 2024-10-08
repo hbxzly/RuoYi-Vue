@@ -68,3 +68,10 @@ export function multipleOpenScreenshotPage(keyIds) {
     method: 'get'
   })
 }
+
+export function completeInfo(){
+  return request({
+    url:'/account/advertise/completeInfo',
+    method: 'get'
+  })
+}

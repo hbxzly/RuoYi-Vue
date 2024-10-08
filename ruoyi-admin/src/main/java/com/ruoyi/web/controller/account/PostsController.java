@@ -2,6 +2,8 @@ package com.ruoyi.web.controller.account;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+
+import com.ruoyi.common.core.domain.entity.SysUser;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import com.ruoyi.account.domain.Posts;
 import com.ruoyi.account.service.IPostsService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 帖子Controller
@@ -100,5 +103,33 @@ public class PostsController extends BaseController
     public AjaxResult remove(@PathVariable Long[] keyIds)
     {
         return toAjax(postsService.deletePostsByKeyIds(keyIds));
+    }
+
+    /**
+     * 导入数据
+     * @param file
+     * @param updateSupport
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/importData")
+    public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception
+    {
+        ExcelUtil<Posts> util = new ExcelUtil<Posts>(Posts.class);
+        List<Posts> psotList = util.importExcel(file.getInputStream());
+        String operName = getUsername();
+        String message = postsService.importPosts(psotList, updateSupport, operName);
+        return success(message);
+    }
+
+    /**
+     * 导入模板
+     * @param response
+     */
+    @PostMapping("/importTemplate")
+    public void importTemplate(HttpServletResponse response)
+    {
+        ExcelUtil<Posts> util = new ExcelUtil<Posts>(Posts.class);
+        util.importTemplateExcel(response, "帖子数据");
     }
 }

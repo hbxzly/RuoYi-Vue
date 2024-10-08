@@ -58,4 +58,11 @@ public interface PostsMapper
      * @return 结果
      */
     public int deletePostsByKeyIds(Long[] keyIds);
+
+    /**
+     * 查询帖子
+     * @param content
+     * @return
+     */
+    public Posts selectPostsByContent(String content);
 }

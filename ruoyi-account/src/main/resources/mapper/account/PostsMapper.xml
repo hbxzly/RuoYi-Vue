@@ -32,6 +32,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <include refid="selectPostsVo"/>
         where key_id = #{keyId}
     </select>
+
+    <select id="selectPostsByContent" parameterType="java.lang.String" resultMap="PostsResult">
+        <include refid="selectPostsVo"/>
+        where content = #{content}
+    </select>
         
     <insert id="insertPosts" parameterType="Posts" useGeneratedKeys="true" keyProperty="keyId">
         insert into posts

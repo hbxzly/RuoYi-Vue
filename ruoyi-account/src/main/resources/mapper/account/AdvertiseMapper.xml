@@ -137,4 +137,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectAllAdvertise" resultMap="AdvertiseResult">
         select * from advertise
     </select>
+
+    <update id="completeInfo">
+        UPDATE advertise AS a
+            INNER JOIN account_ad_account_bm_info AS b ON a.ad_account_id = b.ad_account_id
+            SET a.authorized_account = b.account_id,
+                a.authorized_BM = b.bm_id
+        WHERE a.authorized_account IS NULL
+           OR a.authorized_BM IS NULL;
+    </update>
 </mapper>

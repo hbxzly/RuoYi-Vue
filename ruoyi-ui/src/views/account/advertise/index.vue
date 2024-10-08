@@ -178,7 +178,15 @@
           v-hasPermi="['account:fbAccount:edit']"
         >打开广告</el-button>
       </el-col>
-
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-log"
+          size="mini"
+          @click="handleCompleteInfo"
+        >完善信息</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -342,9 +350,18 @@
 </style>
 
 <script>
-  import {
-    addAdvertise, delAdvertise, getAdvertise, listAdvertise, updateAdvertise, openAdvertise, openScreenshotPage, multipleOpenScreenshotPage
-  } from "@/api/account/advertise";
+import {
+  addAdvertise,
+  delAdvertise,
+  getAdvertise,
+  listAdvertise,
+  updateAdvertise,
+  openAdvertise,
+  openScreenshotPage,
+  multipleOpenScreenshotPage,
+  CompleteInfo,
+  completeInfo
+} from "@/api/account/advertise";
 
   export default {
     name: "Advertise",
@@ -565,6 +582,12 @@
           this.$modal.msgSuccess("打开成功");
           this.getList();
         });
+      },
+      handleCompleteInfo(){
+        completeInfo().then(response => {
+          this.$modal.msgSuccess("更新成功");
+          this.getList();
+        })
       }
 
     }

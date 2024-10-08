@@ -109,4 +109,12 @@ public class AdvertiseServiceImpl implements IAdvertiseService
     public List<Advertise> selectAllAdvertise() {
         return advertiseMapper.selectAllAdvertise();
     }
+
+    /**
+     * 完善个人号、BM信息
+     */
+    @Override
+    public void completeInfo() {
+        advertiseMapper.completeInfo();
+    }
 }
