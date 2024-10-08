@@ -1,11 +1,8 @@
 package com.ruoyi.account.service.impl;
 
-import com.ruoyi.account.domain.OperationLog;
+import com.ruoyi.account.domain.*;
 import com.ruoyi.account.service.IOperationLogService;
 import com.ruoyi.account.util.CreatePageConstants;
-import com.ruoyi.account.domain.AccountAdAccountBmInfo;
-import com.ruoyi.account.domain.Advertise;
-import com.ruoyi.account.domain.FbAccount;
 import com.ruoyi.account.mapper.FbAccountMapper;
 import com.ruoyi.account.service.IAccountAdAccountBmInfoService;
 import com.ruoyi.account.service.IAdvertiseService;
@@ -1186,7 +1183,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
      * @param pageName
      */
     @Override
-    public void createPage(FbAccount fbAccount, String pageName) throws InterruptedException {
+    public void createPage(FbAccount fbAccount, String pageName, Avatar avatar, Background background, List<Posts> postsList) throws InterruptedException {
         openBrowser(fbAccount);
         login(fbAccount);
         WebDriver webDriver = webDriverMap.get(fbAccount.getId());
@@ -1198,7 +1195,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
         OperationLog operationLog = new OperationLog();
         operationLog.setOperationAccount(fbAccount.getId());
-        operationLog.setOperationContent("create page:"+pageName);
+        operationLog.setOperationContent("create page:" + pageName);
         try {
             Robot robot = new Robot();
             robot.keyPress(KeyEvent.VK_ESCAPE);
@@ -1212,7 +1209,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         } catch (AWTException e) {
             e.printStackTrace();
         }
-
+        //创主页
         try {
             //主页名
             String pageNameXpath = WebPageUtil.getXpathBySelector(pageSource, CreatePageConstants.CREATE_PAGE_PAGE_NAME_XPATH);
@@ -1238,7 +1235,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             //简介
             String pageIntroductionXpath = WebPageUtil.getXpathBySelector(pageSource, CreatePageConstants.CREATE_PAGE_PAGE_INTRODUCTION_XPATH);
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageIntroductionXpath)))
-                    .sendKeys("We are a company that always adheres to the concept of \"innovation, quality, service, economy\".");
+                    .sendKeys(avatar.getNote());
             Thread.sleep(1000);
             //建立按钮
             String createPageButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_CREATE_BUTTON_SOURCE_CODE);
@@ -1248,14 +1245,14 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             operationLog.setOperationStatus("create success");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             operationLog.setOperationStatus("create failed");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
             e.printStackTrace();
             return;
         }
-
+        //设置营业时间
         try {
             pageSource = webDriver.getPageSource();
             String contactInformation = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_INFORMATION_SOURCE_CODE);
@@ -1278,12 +1275,12 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(secondPageContinueButton)))
                     .click();
             Thread.sleep(5000);
-            operationLog.setOperationContent(pageName+"设置营业时间");
+            operationLog.setOperationContent(pageName + "设置营业时间");
             operationLog.setOperationStatus("设置成功");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
         } catch (Exception e) {
-            operationLog.setOperationStatus(pageName+"设置营业时间");
+            operationLog.setOperationStatus(pageName + "设置营业时间");
             operationLog.setOperationStatus("设置失败");
             operationLog.setOperationTime(new Date());
             //下一步
@@ -1293,13 +1290,12 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             operationLogService.insertOperationLog(operationLog);
             e.printStackTrace();
         }
-
+        //添加头像背景
         try {
             pageSource = webDriver.getPageSource();
             //头像
             String uploadAvatar = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_UPLOAD_AVATAR_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(uploadAvatar)))
-                    .click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(uploadAvatar))).click();
             try {
                 // 创建Robot实例
                 Robot robot = new Robot();
@@ -1308,7 +1304,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 Thread.sleep(1000);
 
                 // 输入文件路径
-                String filePath = "E:\\发帖\\头像\\头像5.jpg"; // 替换成你要上传的文件的路径
+                String filePath = avatar.getFilePath() + avatar.getAvatarName(); // 替换成你要上传的文件的路径
                 // 将文件路径复制到剪贴板
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 StringSelection stringSelection = new StringSelection(filePath);
@@ -1328,9 +1324,8 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             }
             Thread.sleep(10000);
             //封面
-            String background = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_UPLOAD_BACKGROUND_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(background)))
-                    .click();
+            String uploadBackground = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_UPLOAD_BACKGROUND_SOURCE_CODE);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(uploadBackground))).click();
 
             try {
                 // 创建Robot实例
@@ -1340,7 +1335,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 Thread.sleep(1000);
 
                 // 输入文件路径
-                String filePath = "E:\\发帖\\banner\\5.jpg"; // 替换成你要上传的文件的路径
+                String filePath = background.getFilePath() + background.getBackgroundName(); // 替换成你要上传的文件的路径
                 // 将文件路径复制到剪贴板
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 StringSelection stringSelection = new StringSelection(filePath);
@@ -1361,14 +1356,13 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             Thread.sleep(10000);
             //第三页下一步
             String thirdPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_THIRD_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(thirdPageContinueButton)))
-                    .click();
-            operationLog.setOperationContent(pageName+"设置主页头像背景");
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(thirdPageContinueButton))).click();
+            operationLog.setOperationContent(pageName + "设置主页头像背景");
             operationLog.setOperationStatus("设置成功");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
         } catch (Exception e) {
-            operationLog.setOperationContent(pageName+"设置主页头像背景");
+            operationLog.setOperationContent(pageName + "设置主页头像背景");
             operationLog.setOperationStatus("设置失败");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
@@ -1378,8 +1372,9 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                     .click();
             e.printStackTrace();
         }
-
+        //进入主页
         try {
+            Thread.sleep(10000);
             //第四页跳过
             pageSource = webDriver.getPageSource();
             String fourthPageSkipButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_FOURTH_PAGE_SKIP_BUTTON_SOURCE_CODE);
@@ -1388,7 +1383,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             Thread.sleep(10000);
             pageSource = webDriver.getPageSource();
             //第五页继续
-            if(pageSource.contains("拓展粉絲專頁粉絲群")){
+            if (pageSource.contains("拓展粉絲專頁粉絲群")) {
                 String fifthPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_FIFTH_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
                 webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fifthPageContinueButton)))
                         .click();
@@ -1398,20 +1393,66 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             String fifthPageFinishButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_FIFTH_PAGE_FINISH_BUTTON_SOURCE_CODE);
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fifthPageFinishButton)))
                     .click();
+            Thread.sleep(10000);
             //关闭对话框
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[6]/div[1]/div/div[2]/div/div/div/div[1]/div/i")))
+            String talkLaterButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_TALK_LATER_BUTTON_SOURCE_CODE);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(talkLaterButton)))
                     .click();
-            Thread.sleep(2000);
-            //关闭对话框
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[6]/div[1]/div/div[2]/div/div/div/div[1]/div/i")))
-                    .click();
-            operationLog.setOperationContent(pageName+"进入主页");
+            operationLog.setOperationContent(pageName + "进入主页");
             operationLog.setOperationStatus("主页成功");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
         } catch (Exception e) {
-            operationLog.setOperationContent(pageName+"进入主页");
+            operationLog.setOperationContent(pageName + "进入主页");
             operationLog.setOperationStatus("主页失败");
+            operationLog.setOperationTime(new Date());
+            operationLogService.insertOperationLog(operationLog);
+            e.printStackTrace();
+        }
+        //发帖
+        int postsNumber = 0;
+        try {
+            for (Posts posts : postsList) {
+                postsNumber = ++postsNumber;
+                pageSource = webDriver.getPageSource();
+                String pictureButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_PICTURE_BUTTON_SOURCE_CODE);
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(pictureButton))).click();
+                Thread.sleep(3000);
+                pageSource = webDriver.getPageSource();
+                String postsContent = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_POSTS_CONTENT_INPUT_SOURCE_CODE);
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(postsContent))).sendKeys(posts.getContent());
+                String addPictureButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_ADD_PICTURE_BUTTON_SOURCE_CODE);
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(addPictureButton))).click();
+                // 创建Robot实例
+                Robot robot = new Robot();
+                // 等待一段时间以确保文件对话框已打开（可以根据实际情况调整等待时间）
+                Thread.sleep(1000);
+                // 输入文件路径
+                String filePath = posts.getFilePath() + posts.getPictureName(); // 替换成你要上传的文件的路径
+                // 将文件路径复制到剪贴板
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                StringSelection stringSelection = new StringSelection(filePath);
+                clipboard.setContents(stringSelection, null);
+                // 模拟粘贴操作
+                robot.keyPress(KeyEvent.VK_CONTROL);
+                robot.keyPress(KeyEvent.VK_V);
+                robot.keyRelease(KeyEvent.VK_V);
+                robot.keyRelease(KeyEvent.VK_CONTROL);
+                // 模拟按下Enter键，以确认文件选择
+                robot.keyPress(KeyEvent.VK_ENTER);
+                robot.keyRelease(KeyEvent.VK_ENTER);
+                Thread.sleep(5000);
+                String postsButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_POSTS_BUTTON_SOURCE_CODE);
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(postsButton))).click();
+                Thread.sleep(10000);
+                operationLog.setOperationContent(pageName + "发第"+postsNumber+"贴");
+                operationLog.setOperationStatus("发帖成功");
+                operationLog.setOperationTime(new Date());
+                operationLogService.insertOperationLog(operationLog);
+            }
+        } catch (Exception e) {
+            operationLog.setOperationContent(pageName + "发第"+postsNumber+"贴");
+            operationLog.setOperationStatus("发帖失败");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
             e.printStackTrace();
