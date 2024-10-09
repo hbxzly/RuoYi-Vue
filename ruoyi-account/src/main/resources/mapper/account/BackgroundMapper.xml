@@ -68,4 +68,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{keyId}
         </foreach>
     </delete>
+
+    <select id="selectBackgroundByBackgroundName" parameterType="java.lang.String" resultMap="BackgroundResult">
+        <include refid="selectBackgroundVo"/>
+        where background_name = #{backgroundName}
+    </select>
 </mapper>
