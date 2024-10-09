@@ -1399,12 +1399,12 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(talkLaterButton)))
                     .click();
             operationLog.setOperationContent(pageName + "进入主页");
-            operationLog.setOperationStatus("主页成功");
+            operationLog.setOperationStatus("进入成功");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
         } catch (Exception e) {
             operationLog.setOperationContent(pageName + "进入主页");
-            operationLog.setOperationStatus("主页失败");
+            operationLog.setOperationStatus("进入失败");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
             e.printStackTrace();
