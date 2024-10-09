@@ -331,6 +331,11 @@ export default {
       this.upload.title = "用户导入";
       this.upload.open = true;
     },
+    /** 下载模板操作 */
+    importTemplate() {
+      this.download('account/avatar/importTemplate', {
+      }, `avatar_template_${new Date().getTime()}.xlsx`)
+    },
     // 文件上传中处理
     handleFileUploadProgress(event, file, fileList) {
       this.upload.isUploading = true;

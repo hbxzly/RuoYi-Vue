@@ -58,4 +58,11 @@ public interface BackgroundMapper
      * @return 结果
      */
     public int deleteBackgroundByKeyIds(Long[] keyIds);
+
+    /**
+     * 查询背景图
+     * @param BackgroundName 背景图名字
+     * @return
+     */
+    public Background selectBackgroundByBackgroundName(String BackgroundName);
 }

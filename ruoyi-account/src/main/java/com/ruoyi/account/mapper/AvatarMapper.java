@@ -58,4 +58,11 @@ public interface AvatarMapper
      * @return 结果
      */
     public int deleteAvatarByKeyIds(Long[] keyIds);
+
+    /**
+     * 查询头像
+     * @param avatarName 头像名称
+     * @return
+     */
+    public Avatar selectAvatarByName(String avatarName);
 }

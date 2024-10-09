@@ -68,4 +68,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{keyId}
         </foreach>
     </delete>
+
+
+    <select id="selectAvatarByName" parameterType="java.lang.String" resultMap="AvatarResult">
+        <include refid="selectAvatarVo"/>
+        where avatar_name = #{avatarName}
+    </select>
 </mapper>

@@ -1,6 +1,12 @@
 package com.ruoyi.account.service.impl;
 
 import java.util.List;
+
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.bean.BeanValidators;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.account.mapper.PostsMapper;
@@ -101,6 +107,46 @@ public class PostsServiceImpl implements IPostsService
      */
     @Override
     public String importPosts(List<Posts> postsList, Boolean isUpdateSupport, String operName) {
-        return "";
+        if (StringUtils.isNull(postsList) || postsList.size() == 0) {
+            throw new ServiceException("导入数据不能为空！");
+        }
+        int successNum = 0;
+        int failureNum = 0;
+        StringBuilder successMsg = new StringBuilder();
+        StringBuilder failureMsg = new StringBuilder();
+        for (Posts posts : postsList) {
+            try
+            {
+                // 验证是否存在这个用户
+                Posts p = postsMapper.selectPostsByContent(posts.getContent());
+                if (StringUtils.isNull(p)) {
+                    postsMapper.insertPosts(posts);
+                    successNum++;
+                    successMsg.append("<br/>" + successNum + "、账号 " + posts.getPictureName() + " 导入成功");
+                }
+                else if (isUpdateSupport) {
+                    postsMapper.updatePosts(posts);
+                    successNum++;
+                    successMsg.append("<br/>" + successNum + "、账号 " + posts.getPictureName() + " 更新成功");
+                }
+                else {
+                    failureNum++;
+                    failureMsg.append("<br/>" + failureNum + "、账号 " + posts.getPictureName() + " 已存在");
+                }
+            }
+            catch (Exception e) {
+                failureNum++;
+                String msg = "<br/>" + failureNum + "、账号 " + posts.getPictureName() + " 导入失败：";
+                failureMsg.append(msg + e.getMessage());
+            }
+        }
+        if (failureNum > 0) {
+            failureMsg.insert(0, "很抱歉，导入失败！共 " + failureNum + " 条数据格式不正确，错误如下：");
+            throw new ServiceException(failureMsg.toString());
+        }
+        else {
+            successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
+        }
+        return successMsg.toString();
     }
 }

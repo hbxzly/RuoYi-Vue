@@ -339,7 +339,7 @@ export default {
     /** 下载模板操作 */
     importTemplate() {
       this.download('account/posts/importTemplate', {
-      }, `template_${new Date().getTime()}.xlsx`)
+      }, `posts_template_${new Date().getTime()}.xlsx`)
     },
     // 文件上传中处理
     handleFileUploadProgress(event, file, fileList) {

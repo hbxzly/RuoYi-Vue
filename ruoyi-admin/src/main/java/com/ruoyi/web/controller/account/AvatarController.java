@@ -3,7 +3,6 @@ package com.ruoyi.web.controller.account;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
-import com.ruoyi.account.domain.Posts;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -114,11 +113,11 @@ public class AvatarController extends BaseController
      */
     @PostMapping("/importData")
     public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception {
-        ExcelUtil<Posts> util = new ExcelUtil<Posts>(Posts.class);
-        List<Posts> psotList = util.importExcel(file.getInputStream());
+        ExcelUtil<Avatar> util = new ExcelUtil<Avatar>(Avatar.class);
+        List<Avatar> avatarList = util.importExcel(file.getInputStream());
         String operName = getUsername();
-//        String message = avatarService.importPosts(psotList, updateSupport, operName);
-        return success("message");
+        String message = avatarService.importAvatar(avatarList, updateSupport, operName);
+        return success(message);
     }
 
     /**
@@ -127,7 +126,7 @@ public class AvatarController extends BaseController
      */
     @PostMapping("/importTemplate")
     public void importTemplate(HttpServletResponse response) {
-        ExcelUtil<Posts> util = new ExcelUtil<Posts>(Posts.class);
-        util.importTemplateExcel(response, "帖子数据");
+        ExcelUtil<Avatar> util = new ExcelUtil<Avatar>(Avatar.class);
+        util.importTemplateExcel(response, "头像数据");
     }
 }
