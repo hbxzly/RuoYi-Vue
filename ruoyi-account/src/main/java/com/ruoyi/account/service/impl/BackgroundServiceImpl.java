@@ -120,21 +120,21 @@ public class BackgroundServiceImpl implements IBackgroundService
                 if (StringUtils.isNull(b)) {
                     backgroundMapper.insertBackground(background);
                     successNum++;
-                    successMsg.append("<br/>" + successNum + "、账号 " + background.getBackgroundName() + " 导入成功");
+                    successMsg.append("<br/>" + successNum + "、数据 " + background.getBackgroundName() + " 导入成功");
                 }
                 else if (isUpdateSupport) {
                     backgroundMapper.updateBackground(background);
                     successNum++;
-                    successMsg.append("<br/>" + successNum + "、账号 " + background.getBackgroundName() + " 更新成功");
+                    successMsg.append("<br/>" + successNum + "、数据 " + background.getBackgroundName() + " 更新成功");
                 }
                 else {
                     failureNum++;
-                    failureMsg.append("<br/>" + failureNum + "、账号 " + background.getBackgroundName() + " 已存在");
+                    failureMsg.append("<br/>" + failureNum + "、数据 " + background.getBackgroundName() + " 已存在");
                 }
             }
             catch (Exception e) {
                 failureNum++;
-                String msg = "<br/>" + failureNum + "、账号 " + background.getBackgroundName() + " 导入失败：";
+                String msg = "<br/>" + failureNum + "、数据 " + background.getBackgroundName() + " 导入失败：";
                 failureMsg.append(msg + e.getMessage());
             }
         }

@@ -120,21 +120,21 @@ public class AvatarServiceImpl implements IAvatarService
                 if (StringUtils.isNull(a)) {
                     avatarMapper.insertAvatar(avatar);
                     successNum++;
-                    successMsg.append("<br/>" + successNum + "、账号 " + avatar.getAvatarName() + " 导入成功");
+                    successMsg.append("<br/>" + successNum + "、数据 " + avatar.getAvatarName() + " 导入成功");
                 }
                 else if (isUpdateSupport) {
                     avatarMapper.updateAvatar(avatar);
                     successNum++;
-                    successMsg.append("<br/>" + successNum + "、账号 " + avatar.getAvatarName() + " 更新成功");
+                    successMsg.append("<br/>" + successNum + "、数据 " + avatar.getAvatarName() + " 更新成功");
                 }
                 else {
                     failureNum++;
-                    failureMsg.append("<br/>" + failureNum + "、账号 " + avatar.getAvatarName() + " 已存在");
+                    failureMsg.append("<br/>" + failureNum + "、数据 " + avatar.getAvatarName() + " 已存在");
                 }
             }
             catch (Exception e) {
                 failureNum++;
-                String msg = "<br/>" + failureNum + "、账号 " + avatar.getAvatarName() + " 导入失败：";
+                String msg = "<br/>" + failureNum + "、数据 " + avatar.getAvatarName() + " 导入失败：";
                 failureMsg.append(msg + e.getMessage());
             }
         }
