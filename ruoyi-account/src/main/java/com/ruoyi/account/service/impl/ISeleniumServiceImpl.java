@@ -1186,6 +1186,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     public void createPage(FbAccount fbAccount, String pageName, Avatar avatar, Background background, List<Posts> postsList) throws InterruptedException {
         openBrowser(fbAccount);
         login(fbAccount);
+        showBrowser(fbAccount);
         WebDriver webDriver = webDriverMap.get(fbAccount.getId());
         webDriver.get(CreatePageConstants.CREATE_PAGE_WEBSITE);
         Thread.sleep(1000);
