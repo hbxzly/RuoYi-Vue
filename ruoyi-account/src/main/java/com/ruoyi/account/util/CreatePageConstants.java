@@ -30,7 +30,7 @@ public final class CreatePageConstants {
 
     public static final String CREATE_PAGE_FIFTH_PAGE_FINISH_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">完成</span>";
 
-    public static final String CREATE_PAGE_TALK_LATER_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft x1j85h84\">稍後再說</span>";
+    public static final String CREATE_PAGE_TALK_LATER_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">稍後再說</span>";
 
     public static final String CREATE_PAGE_PICTURE_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">相片／影片</span>";
 
