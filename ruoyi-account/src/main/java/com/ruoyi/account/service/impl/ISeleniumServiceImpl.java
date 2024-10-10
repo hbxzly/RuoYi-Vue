@@ -1256,9 +1256,11 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         }
         //设置营业时间
         try {
-            pageSource = webDriver.getPageSource();
-            String contactInformation = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_INFORMATION_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(contactInformation))).click();
+//            pageSource = webDriver.getPageSource();
+//            String contactInformation = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_INFORMATION_SOURCE_CODE);
+//            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(contactInformation))).click();
+
+            clickAtCoordinates(webDriver,100,240);
             try {
                 Robot robot = new Robot();
                 robot.keyPress(KeyEvent.VK_PAGE_DOWN);
@@ -1477,5 +1479,12 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         return name;
     }
 
+    // 模拟鼠标点击指定坐标位置
+    public static void clickAtCoordinates(WebDriver driver, int x, int y) {
+        // 使用Actions类模拟鼠标点击
+        Actions actions = new Actions(driver);
+        // 移动鼠标到指定坐标，并点击
+        actions.moveByOffset(x, y).click().perform();
+    }
 
 }
