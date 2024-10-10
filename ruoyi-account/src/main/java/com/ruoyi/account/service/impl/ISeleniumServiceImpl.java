@@ -1258,8 +1258,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         try {
             pageSource = webDriver.getPageSource();
             String contactInformation = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_INFORMATION_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(contactInformation)))
-                    .click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(contactInformation))).click();
             try {
                 Robot robot = new Robot();
                 robot.keyPress(KeyEvent.VK_PAGE_DOWN);
@@ -1269,8 +1268,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             }
             Thread.sleep(2000);
             pageSource = webDriver.getPageSource();
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_OPENING_TIME_XPATH)))
-                    .click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_OPENING_TIME_XPATH))).click();
 
             //下一步
             String secondPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_SECOND_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
@@ -1368,8 +1366,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             operationLogService.insertOperationLog(operationLog);
             //第三页下一步
             String thirdPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_THIRD_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(thirdPageContinueButton)))
-                    .click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(thirdPageContinueButton))).click();
             e.printStackTrace();
         }
         //进入主页
@@ -1378,8 +1375,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             //第四页跳过
             pageSource = webDriver.getPageSource();
             String fourthPageSkipButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_FOURTH_PAGE_SKIP_BUTTON_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fourthPageSkipButton)))
-                    .click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fourthPageSkipButton))).click();
             Thread.sleep(10000);
             pageSource = webDriver.getPageSource();
             //第五页继续
@@ -1391,13 +1387,12 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             Thread.sleep(10000);
             pageSource = webDriver.getPageSource();
             String fifthPageFinishButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_FIFTH_PAGE_FINISH_BUTTON_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fifthPageFinishButton)))
-                    .click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(fifthPageFinishButton))).click();
             Thread.sleep(10000);
             //关闭对话框
+            pageSource = webDriver.getPageSource();
             String talkLaterButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_TALK_LATER_BUTTON_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(talkLaterButton)))
-                    .click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(talkLaterButton))).click();
             operationLog.setOperationContent(pageName + "进入主页");
             operationLog.setOperationStatus("进入成功");
             operationLog.setOperationTime(new Date());
