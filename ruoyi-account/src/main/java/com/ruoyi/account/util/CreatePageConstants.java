@@ -40,6 +40,8 @@ public final class CreatePageConstants {
 
     public static final String CREATE_PAGE_POSTS_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">發佈</span>";
 
+    public static final String CREATE_PAGE_SELECT_CLOTHES_XPATH = "//*[contains(text(),'服裝（品牌）')]";
+
     public static final String CREATE_PAGE_ACTION_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div[2]/div[1]/div/div[3]/div[1]/div[2]/div/div/div/div[3]/div/div/div/div[1]/div[2]/span/span";
     public static final String CREATE_PAGE_TRY_IT_NOW_BUTTON_XPATH = "/html/body/div[6]/div[1]/div/div[2]/div/div/div/div/div[1]/div[2]/div[4]/div/div/div/div/div[1]/div/span/span";
     public static final String CREATE_PAGE_AFTER_TRY_IT_NOW_CONTINUE_BUTTON_XPATH = "/html/body/div[6]/div[1]/div/div[2]/div/div/div/div/div[2]/div/div[3]/div/div[2]/div/div[2]/div/div/div[1]/div/span/span";

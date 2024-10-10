@@ -1222,17 +1222,19 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageTypeXpath)))
                     .sendKeys("服装");
             Thread.sleep(2000);
-            try {
-                Robot robot = new Robot();
-                // 按下方向键“下”键
-                robot.keyPress(KeyEvent.VK_DOWN);
-                robot.keyRelease(KeyEvent.VK_DOWN);
-                robot.keyPress(KeyEvent.VK_ENTER);
-                robot.keyRelease(KeyEvent.VK_ENTER);
-            } catch (AWTException e) {
-                e.printStackTrace();
-            }
-            Thread.sleep(2000);
+
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_SELECT_CLOTHES_XPATH))).click();
+//            try {
+//                Robot robot = new Robot();
+//                // 按下方向键“下”键
+//                robot.keyPress(KeyEvent.VK_DOWN);
+//                robot.keyRelease(KeyEvent.VK_DOWN);
+//                robot.keyPress(KeyEvent.VK_ENTER);
+//                robot.keyRelease(KeyEvent.VK_ENTER);
+//            } catch (AWTException e) {
+//                e.printStackTrace();
+//            }
+//            Thread.sleep(2000);
             //简介
             String pageIntroductionXpath = WebPageUtil.getXpathBySelector(pageSource, CreatePageConstants.CREATE_PAGE_PAGE_INTRODUCTION_XPATH);
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageIntroductionXpath)))
@@ -1240,8 +1242,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             Thread.sleep(1000);
             //建立按钮
             String createPageButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_CREATE_BUTTON_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(createPageButton)))
-                    .click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(createPageButton))).click();
             Thread.sleep(10000);
             operationLog.setOperationStatus("create success");
             operationLog.setOperationTime(new Date());
@@ -1273,8 +1274,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
             //下一步
             String secondPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_SECOND_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(secondPageContinueButton)))
-                    .click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(secondPageContinueButton))).click();
             Thread.sleep(5000);
             operationLog.setOperationContent(pageName + "设置营业时间");
             operationLog.setOperationStatus("设置成功");
@@ -1286,8 +1286,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             operationLog.setOperationTime(new Date());
             //下一步
             String secondPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_SECOND_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(secondPageContinueButton)))
-                    .click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(secondPageContinueButton))).click();
             operationLogService.insertOperationLog(operationLog);
             e.printStackTrace();
         }
