@@ -1270,7 +1270,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             }
             Thread.sleep(2000);
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CreatePageConstants.CREATE_PAGE_OPENING_TIME_XPATH))).click();
-            pageSource = webDriver.getPageSource();7
+            pageSource = webDriver.getPageSource();
 
             //下一步
             String secondPageContinueButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_SECOND_PAGE_CONTINUE_BUTTON_SOURCE_CODE);
