@@ -17,6 +17,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="操作状态" prop="operationStatus">
+        <el-input
+          v-model="queryParams.operationStatus"
+          placeholder="请输入操作状态"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="操作时间" prop="operationTime">
         <el-date-picker clearable
           v-model="queryParams.operationTime"
