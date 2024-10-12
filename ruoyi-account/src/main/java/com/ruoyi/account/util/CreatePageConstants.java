@@ -52,7 +52,6 @@ public final class CreatePageConstants {
     public static final String CREATE_PAGE_FIFTH_PAGE_FINISH_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div[2]/div[1]/div/div[4]/div[2]/div[2]/div/div/div[1]/div/span/span";
 
     public static final String CREATE_PAGE_CLOSE_DIALOG_BOX_XPATH = "/html/body/div[5]/div[1]/div/div[2]/div/div/div/div[1]/div/i";
-    public static final String CREATE_PAGE_CLOSE_SECOND_DIALOG_BOX_XPATH = "/html/body/div[7]/div[1]/div/div[2]/div/div/div/div[1]/div/i";
 
 
 
