@@ -9,6 +9,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="操作内容" prop="operationContent">
+        <el-input
+          v-model="queryParams.operationContent"
+          placeholder="请输入操作内容"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="操作时间" prop="operationTime">
         <el-date-picker clearable
           v-model="queryParams.operationTime"
@@ -108,7 +116,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"

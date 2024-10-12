@@ -1441,6 +1441,16 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 Thread.sleep(5000);
                 String postsButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_POSTS_BUTTON_SOURCE_CODE);
                 webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(postsButton))).click();
+                Thread.sleep(2000);
+                pageSource = webDriver.getPageSource();
+                if (pageSource.contains("發佈原始貼文")){
+                    String postOriginalButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_POSTS_ORIGINAL_POST_BUTTON_SOURCE_CODE);
+                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(postOriginalButton))).click();
+                }
+                if (pageSource.contains("稍後再說")){
+                    String postTalkLaterButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_POSTS_TALK_LATER_POST_BUTTON_SOURCE_CODE);
+                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(postTalkLaterButton))).click();
+                }
                 Thread.sleep(10000);
                 operationLog.setOperationContent(pageName + "发第"+postsNumber+"贴");
                 operationLog.setOperationStatus("发帖成功");

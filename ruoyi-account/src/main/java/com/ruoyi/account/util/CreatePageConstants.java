@@ -40,6 +40,10 @@ public final class CreatePageConstants {
 
     public static final String CREATE_PAGE_POSTS_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">發佈</span>";
 
+    public static final String CREATE_PAGE_POSTS_ORIGINAL_POST_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">發佈原始貼文</span>";
+
+    public static final String CREATE_PAGE_POSTS_TALK_LATER_POST_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft x1j85h84\">稍後再說</span>";
+
     public static final String CREATE_PAGE_SELECT_CLOTHES_XPATH = "//*[contains(text(),'服裝（品牌）')]";
 
     public static final String CREATE_PAGE_ACTION_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div[2]/div[1]/div/div[3]/div[1]/div[2]/div/div/div/div[3]/div/div/div/div[1]/div[2]/span/span";
