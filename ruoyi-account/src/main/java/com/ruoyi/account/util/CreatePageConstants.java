@@ -34,7 +34,7 @@ public final class CreatePageConstants {
 
     public static final String CREATE_PAGE_PICTURE_BUTTON_SOURCE_CODE = "<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">相片／影片</span>";
 
-    public static final String CREATE_PAGE_ADD_PICTURE_BUTTON_SOURCE_CODE = "<span class=\"x193iq5w xeuugli x13faqbe x1vvkbs x10flsy6 x1lliihq x1s928wv xhkezso x1gmr53x x1cpjm7i x1fgarty x1943h6x x1tu3fi x41vudc x1lkfr7t x1lbecb7 xk50ysn xzsf02u\" dir=\"auto\">新增相片／影片</span>";
+    public static final String CREATE_PAGE_ADD_PICTURE_BUTTON_SOURCE_CODE = "<span class=\"x193iq5w xeuugli x13faqbe x1vvkbs x1xmvt09 x1lliihq x1s928wv xhkezso x1gmr53x x1cpjm7i x1fgarty x1943h6x xudqn12 x676frb x1lkfr7t x1lbecb7 xk50ysn xzsf02u\" dir=\"auto\">新增相片／影片</span>";
 
     public static final String CREATE_PAGE_POSTS_CONTENT_INPUT_SOURCE_CODE = "<p class=\"xdj266r x11i5rnm xat24cr x1mh8g0r x16tdsg8\"><br></p>";
 
