@@ -6,7 +6,7 @@ public final class CreatePageConstants {
 
     public static final String CREATE_PAGE_PAGE_NAME_XPATH = "input.x1i10hfl.xggy1nq.x1s07b3s.x1kdt53j.x1a2a7pz.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x9f619.xzsf02u.x1uxerd5.x1fcty0u.x132q4wb.x1a8lsjc.x1pi30zi.x1swvt13.x9desvi.xh8yej3.x15h3p50.x10emqs4";
 
-    public static final String CREATE_PAGE_PAGE_TYPE_XPATH = "input.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x9f619.xzsf02u.xt0psk2.x1jchvi3.x1fcty0u.x132q4wb.x1xmf6yo.x1e56ztr.x1mnrxsn.x1w0mnb.x193iq5w.x1a2a7pz.xtt52l0.xo6swyp.x1ad04t7.x1glnyev.x1ix68h3.x19gujb8";
+    public static final String CREATE_PAGE_PAGE_TYPE_XPATH = "input.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x9f619.xzsf02u.xt0psk2.x1jchvi3.x1fcty0u.x132q4wb.x1xmf6yo.x1e56ztr.x1mnrxsn.x1w0mnb.x193iq5w.x1a2a7pz.xtt52l0.xha3pab.xtilpmw.x1ad04t7.x1glnyev.x1ix68h3.x19gujb8";
 
     public static final String CREATE_PAGE_PAGE_INTRODUCTION_XPATH = "textarea.x1i10hfl.xggy1nq.x1s07b3s.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x9f619.xzsf02u.x78zum5.x1jchvi3.x1fcty0u.x1a2a7pz.x6ikm8r.x1pi30zi.x1swvt13.xtt52l0.xh8yej3.x1ls7aod.xcrlgei.x1byulpo.x1agbcgv.x15bjb6t";
 
