@@ -1189,8 +1189,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         showBrowser(fbAccount);
         WebDriver webDriver = webDriverMap.get(fbAccount.getId());
         webDriver.get(CreatePageConstants.CREATE_PAGE_WEBSITE);
-        Thread.sleep(1000);
-        webDriver.navigate().refresh();
         Thread.sleep(5000);
         String pageSource = webDriver.getPageSource();
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
