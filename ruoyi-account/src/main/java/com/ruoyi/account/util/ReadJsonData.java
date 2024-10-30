@@ -25,7 +25,13 @@ public class ReadJsonData {
         return addressJsonNode.get(nodeName).asText();
     }
 
-    public static List<String> getAdAccountBmInfo(String id, String html, Map<String,String> bmMap){
+    /**
+     * 返回字符串集合：个人号ID-广告账户名称-广告账户ID
+     * @param id
+     * @param html
+     * @return
+     */
+    public static List<String> getAdAccountBmInfo(String id, String html){
 
         List<String> info = new ArrayList<>();
         Document doc = Jsoup.parse(html);
@@ -35,11 +41,16 @@ public class ReadJsonData {
             String accountId = extractNumber(element.select("a").attr("href"), "act=(\\d+)").trim();
             String bmId = extractNumber(element.select("a").attr("href"), "business_id=(\\d+)");
             String accountName = element.select(".ellipsis").first().text().trim();
-            info.add(id+"-"+accountName+"-"+accountId+"-"+bmMap.get(bmId)+"-"+bmId);
+            info.add(id+"-"+accountName+"-"+accountId);
         }
         return info;
     }
 
+    /**
+     * 返回BM信息（BMID，BM名称）
+     * @param html
+     * @return
+     */
     public static Map<String,String> getBmInfo(String html){
         Map<String,String> bmMap = new HashMap<>();
         Document bmDoc = Jsoup.parse(html);

@@ -876,54 +876,54 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     @Override
     public void loadAdAccountInfo(String id) {
 
-        Map<String, String> bmInfo = new HashMap<>();
         WebDriver webDriver = webDriverMap.get(id);
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 20, 10);
         try {
             showBrowser(fbAccountMapper.selectOneByFbAccountId(id));
-            webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div[1]/div/span/div/span[1]/div/div/div/div[1]/div/span/div/div/div[3]/div[1]/div[1]/div/div[2]/div/div/div/div/div/span/div/div/div[2]")))
-                    .click();
-            Thread.sleep(2000);
-            String bmPageSource = webDriver.getPageSource();
-            bmInfo = ReadJsonData.getBmInfo(bmPageSource);
-            webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div[1]/div/span/div/span[1]/div/div/div/div[2]/div/div[1]/div/div/div/div/div[1]/div/div[1]/div[2]/div/div/div/div")))
-                    .click();
-            try {
-                webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div[2]/div/div/div/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/li[2]/div/div/div/span/div/div/div")))
-                        .click();
-                Thread.sleep(2000);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div[3]/div/div/div/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/li[2]/div/div/div/span/div/div/div")))
-                        .click();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            Thread.sleep(5000);
-            String adPageSource = webDriver.getPageSource();
-            List<String> adAccountAndBmInfo = ReadJsonData.getAdAccountBmInfo(id, adPageSource, bmInfo);
-            for (String str : adAccountAndBmInfo) {
-                String[] split = str.split("-");
-                AccountAdAccountBmInfo accountAdAccountBmInfo = new AccountAdAccountBmInfo();
-                accountAdAccountBmInfo.setAccountId(split[0]);
-                accountAdAccountBmInfo.setAdAccountName(split[1]);
-                accountAdAccountBmInfo.setAdAccountId(split[2]);
-                accountAdAccountBmInfo.setBmName(split[3]);
-                accountAdAccountBmInfo.setBmId(split[4]);
-                if (!(accountAdAccountBmInfoService.selectAccountAdAccountBmInfoList(accountAdAccountBmInfo).size() > 0)) {
-                    accountAdAccountBmInfoService.insertAccountAdAccountBmInfo(accountAdAccountBmInfo);
-                }
-            }
-            // 创建Robot对象
-            Robot robot = new Robot();
-            // 模拟按下ESC键
-            robot.keyPress(KeyEvent.VK_ESCAPE);
-            // 模拟释放ESC键
-            robot.keyRelease(KeyEvent.VK_ESCAPE);
+            //判断新旧版本
+            String isOldMark = "x78zum5 x2lwn1j xeuugli x1exxf4d x1y71gwh x1nb4dca xu1343h x13fuv20 xu3j5b3 x1q0q8m5 x26u7qi x178xt8z xm81vs4 xso031l xy80clv x10l6tqk";
+            String pageSource = webDriver.getPageSource();
+            //旧版本
+            if (pageSource.contains(isOldMark)) {
 
-            System.out.println(adAccountAndBmInfo);
+                webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div[1]/div/span/div/span[1]/div/div/div/div[2]/div/div[1]/div/div/div/div/div[1]/div/div[1]/div[2]/div/div/div/div")))
+                        .click();
+                try {
+                    webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div[2]/div/div/div/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/li[2]/div/div/div/span/div/div/div")))
+                            .click();
+                    Thread.sleep(2000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div[3]/div/div/div/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/li[2]/div/div/div/span/div/div/div")))
+                            .click();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Thread.sleep(5000);
+                String adPageSource = webDriver.getPageSource();
+                //以字符串形式返回：个人号ID-广告账户名称-广告账户ID
+                List<String> adAccountAndBmInfo = ReadJsonData.getAdAccountBmInfo(id, adPageSource);
+                //数据持久化
+                for (String str : adAccountAndBmInfo) {
+                    String[] split = str.split("-");
+                    AccountAdAccountBmInfo accountAdAccountBmInfo = new AccountAdAccountBmInfo();
+                    accountAdAccountBmInfo.setAccountId(split[0]);
+                    accountAdAccountBmInfo.setAdAccountName(split[1]);
+                    accountAdAccountBmInfo.setAdAccountId(split[2]);
+                    if (!(accountAdAccountBmInfoService.selectAccountAdAccountBmInfoList(accountAdAccountBmInfo).size() > 0)) {
+                        accountAdAccountBmInfoService.insertAccountAdAccountBmInfo(accountAdAccountBmInfo);
+                    }
+                }
+                // 创建Robot对象
+                Robot robot = new Robot();
+                // 模拟按下ESC键
+                robot.keyPress(KeyEvent.VK_ESCAPE);
+                // 模拟释放ESC键
+                robot.keyRelease(KeyEvent.VK_ESCAPE);
+            }
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div/div/div/div/span/div/span[1]/div/div/div/div[2]/div/div[1]/div/div/div/div/div[1]/div/div[1]/div[2]/div/div/div/div/div/div/div[1]"))).click();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -1244,9 +1244,22 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             String createPageButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_CREATE_BUTTON_SOURCE_CODE);
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(createPageButton))).click();
             Thread.sleep(10000);
-            operationLog.setOperationStatus("create success");
-            operationLog.setOperationTime(new Date());
-            operationLogService.insertOperationLog(operationLog);
+            for (int i = 0; i < 11; i++) {
+                pageSource = webDriver.getPageSource();
+                if (pageSource.contains("完成設定粉絲專頁")){
+                    operationLog.setOperationStatus("create success");
+                    operationLog.setOperationTime(new Date());
+                    operationLogService.insertOperationLog(operationLog);
+                    break;
+                }
+                if (i==10){
+                    operationLog.setOperationStatus("create failed");
+                    operationLog.setOperationTime(new Date());
+                    operationLogService.insertOperationLog(operationLog);
+                }
+                Thread.sleep(1000);
+            }
+
         } catch (Exception e) {
             operationLog.setOperationStatus("create failed");
             operationLog.setOperationTime(new Date());
@@ -1413,7 +1426,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 postsNumber = ++postsNumber;
                 pageSource = webDriver.getPageSource();
                 String pictureButton = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_PICTURE_BUTTON_SOURCE_CODE);
-                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(pictureButton))).click();
+                webDriverWait.until(ExpectedConditions.elementToBeClickable(By.xpath(pictureButton))).click();
                 Thread.sleep(3000);
                 pageSource = webDriver.getPageSource();
                 String postsContent = WebPageUtil.getXpathBySourceCode(pageSource, CreatePageConstants.CREATE_PAGE_POSTS_CONTENT_INPUT_SOURCE_CODE);
