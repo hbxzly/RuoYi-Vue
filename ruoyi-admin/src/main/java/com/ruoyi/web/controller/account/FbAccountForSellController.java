@@ -154,12 +154,6 @@ public class FbAccountForSellController extends BaseController
                         fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
                     }
                     continue;
-                }else {
-                    if (!fbAccountForSell.getNote().equals("账号或密码无效") ){
-                        fbAccountForSell.setNote("无法登录-未知情况");
-                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
-                    }
-                    webDriver.close();
                 }
                 String accountLanguage = fbAccountForSellService.getAccountLanguage(webDriver, fbAccountForSell);
                 System.out.println("语言:"+accountLanguage);
