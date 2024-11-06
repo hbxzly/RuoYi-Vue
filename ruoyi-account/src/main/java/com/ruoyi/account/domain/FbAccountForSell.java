@@ -18,6 +18,10 @@ public class FbAccountForSell extends BaseEntity
     /** 序号 */
     private Long keyId;
 
+    /** ID */
+    @Excel(name = "ID")
+    private String id;
+
     /** 密码 */
     @Excel(name = "密码")
     private String password;
@@ -33,10 +37,6 @@ public class FbAccountForSell extends BaseEntity
     /** 账户生日 */
     @Excel(name = "账户生日")
     private String birthday;
-
-    /** ID */
-    @Excel(name = "ID")
-    private String id;
 
     /** 秘钥 */
     @Excel(name = "秘钥")
