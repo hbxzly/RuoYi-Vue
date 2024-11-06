@@ -18,21 +18,21 @@ public class FbAccountForSell extends BaseEntity
     /** 序号 */
     private Long keyId;
 
-    /** ID */
-    @Excel(name = "ID")
-    private String id;
+    /** 邮箱 */
+    @Excel(name = "邮箱")
+    private String email;
 
     /** 密码 */
     @Excel(name = "密码")
     private String password;
 
-    /** 邮箱 */
-    @Excel(name = "邮箱")
-    private String email;
-
     /** 邮箱密码 */
     @Excel(name = "邮箱密码")
     private String emailPassword;
+
+    /** ID */
+    @Excel(name = "ID")
+    private String id;
 
     /** 账户生日 */
     @Excel(name = "账户生日")
