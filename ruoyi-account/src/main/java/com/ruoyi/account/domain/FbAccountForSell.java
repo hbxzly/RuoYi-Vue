@@ -1,7 +1,5 @@
 package com.ruoyi.account.domain;
 
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
@@ -11,7 +9,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 卖号对象 fb_account_for_sell
  * 
  * @author ruoyi
- * @date 2024-09-20
+ * @date 2024-11-01
  */
 public class FbAccountForSell extends BaseEntity
 {
@@ -19,9 +17,6 @@ public class FbAccountForSell extends BaseEntity
 
     /** 序号 */
     private Long keyId;
-
-    /** ID */
-    private String id;
 
     /** 密码 */
     @Excel(name = "密码")
@@ -35,75 +30,81 @@ public class FbAccountForSell extends BaseEntity
     @Excel(name = "邮箱密码")
     private String emailPassword;
 
-    /** 生日 */
-    @Excel(name = "生日")
+    /** 账户生日 */
+    @Excel(name = "账户生日")
     private String birthday;
 
-    /** 账号名 */
-    @Excel(name = "账号名")
-    private String name;
+    /** ID */
+    @Excel(name = "ID")
+    private String id;
 
     /** 秘钥 */
     @Excel(name = "秘钥")
     private String secretKey;
 
-    /** 状态 */
-    @Excel(name = "状态")
-    private String status;
+    /** 是否商城号 */
+    @Excel(name = "是否商城号")
+    private String isMarketplace;
+
+    /** 名字 */
+    @Excel(name = "名字")
+    private String name;
+
+    /** 性别 */
+    @Excel(name = "性别")
+    private String gender;
 
     /** 创建日期 */
     @Excel(name = "创建日期")
     private String createDate;
 
-    /** 好友数量 */
-    @Excel(name = "好友数量")
-    private String friendNumber;
+    /** 地区 */
+    @Excel(name = "地区")
+    private String region;
 
     /** 备注 */
     @Excel(name = "备注")
     private String note;
 
-    /**  */
-    @Excel(name = "")
+    /** 能否登录 */
+    @Excel(name = "能否登录")
+    private String canLogin;
+
+    /** 好友数量 */
+    @Excel(name = "好友数量")
+    private String friendNumber;
+
+    /** 能否广告 */
+    @Excel(name = "能否广告")
+    private String canAds;
+
+    /** 主页数量 */
+    @Excel(name = "主页数量")
+    private String pageNumber;
+
+    /** bm数量 */
+    @Excel(name = "bm数量")
+    private String bmNumber;
+
+    /** 帖子数量 */
+    @Excel(name = "帖子数量")
+    private String postsNumber;
+
+    /** UA */
+    @Excel(name = "UA")
     private String ua;
-
-    /**  */
-    @Excel(name = "")
-    private String dataSource;
-
-    /** 账号地区 */
-    @Excel(name = "账号地区")
-    private String region;
 
     /** 浏览器状态 */
     @Excel(name = "浏览器状态")
     private String browserStatus;
 
-    /**  */
-    @Excel(name = "")
+    /** 浏览器文件 */
+    @Excel(name = "浏览器文件")
     private String browserProfile;
 
-    /** 出售时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "出售时间", width = 30, dateFormat = "yyyy-MM-dd")
-    private Date sellTime;
-
-    /** 客户 */
-    @Excel(name = "客户")
-    private String client;
-
-    /** 客户来源 */
-    @Excel(name = "客户来源")
-    private String clientSource;
-
-    /** 商城 */
-    @Excel(name = "商城")
-    private String isMarketplace;
-
-    /** 上次登录时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "上次登录时间", width = 30, dateFormat = "yyyy-MM-dd")
-    private Date lastLoginTime;
+    /** 文件路径 */
+    @Excel(name = "文件路径")
+    private String filePath;
 
     public void setKeyId(Long keyId) 
     {
@@ -177,14 +178,14 @@ public class FbAccountForSell extends BaseEntity
     {
         return secretKey;
     }
-    public void setStatus(String status) 
+    public void setGender(String gender) 
     {
-        this.status = status;
+        this.gender = gender;
     }
 
-    public String getStatus() 
+    public String getGender() 
     {
-        return status;
+        return gender;
     }
     public void setCreateDate(String createDate) 
     {
@@ -195,15 +196,6 @@ public class FbAccountForSell extends BaseEntity
     {
         return createDate;
     }
-    public void setFriendNumber(String friendNumber) 
-    {
-        this.friendNumber = friendNumber;
-    }
-
-    public String getFriendNumber() 
-    {
-        return friendNumber;
-    }
     public void setNote(String note) 
     {
         this.note = note;
@@ -213,24 +205,6 @@ public class FbAccountForSell extends BaseEntity
     {
         return note;
     }
-    public void setUa(String ua) 
-    {
-        this.ua = ua;
-    }
-
-    public String getUa() 
-    {
-        return ua;
-    }
-    public void setDataSource(String dataSource) 
-    {
-        this.dataSource = dataSource;
-    }
-
-    public String getDataSource() 
-    {
-        return dataSource;
-    }
     public void setRegion(String region) 
     {
         this.region = region;
@@ -239,6 +213,78 @@ public class FbAccountForSell extends BaseEntity
     public String getRegion() 
     {
         return region;
+    }
+    public void setCanLogin(String canLogin) 
+    {
+        this.canLogin = canLogin;
+    }
+
+    public String getCanLogin() 
+    {
+        return canLogin;
+    }
+    public void setIsMarketplace(String isMarketplace) 
+    {
+        this.isMarketplace = isMarketplace;
+    }
+
+    public String getIsMarketplace() 
+    {
+        return isMarketplace;
+    }
+    public void setFriendNumber(String friendNumber) 
+    {
+        this.friendNumber = friendNumber;
+    }
+
+    public String getFriendNumber() 
+    {
+        return friendNumber;
+    }
+    public void setCanAds(String canAds) 
+    {
+        this.canAds = canAds;
+    }
+
+    public String getCanAds() 
+    {
+        return canAds;
+    }
+    public void setPageNumber(String pageNumber) 
+    {
+        this.pageNumber = pageNumber;
+    }
+
+    public String getPageNumber() 
+    {
+        return pageNumber;
+    }
+    public void setBmNumber(String bmNumber) 
+    {
+        this.bmNumber = bmNumber;
+    }
+
+    public String getBmNumber() 
+    {
+        return bmNumber;
+    }
+    public void setPostsNumber(String postsNumber) 
+    {
+        this.postsNumber = postsNumber;
+    }
+
+    public String getPostsNumber() 
+    {
+        return postsNumber;
+    }
+    public void setUa(String ua) 
+    {
+        this.ua = ua;
+    }
+
+    public String getUa() 
+    {
+        return ua;
     }
     public void setBrowserStatus(String browserStatus) 
     {
@@ -258,50 +304,14 @@ public class FbAccountForSell extends BaseEntity
     {
         return browserProfile;
     }
-    public void setSellTime(Date sellTime) 
+    public void setFilePath(String filePath) 
     {
-        this.sellTime = sellTime;
+        this.filePath = filePath;
     }
 
-    public Date getSellTime() 
+    public String getFilePath() 
     {
-        return sellTime;
-    }
-    public void setClient(String client) 
-    {
-        this.client = client;
-    }
-
-    public String getClient() 
-    {
-        return client;
-    }
-    public void setClientSource(String clientSource) 
-    {
-        this.clientSource = clientSource;
-    }
-
-    public String getClientSource() 
-    {
-        return clientSource;
-    }
-    public void setIsMarketplace(String isMarketplace) 
-    {
-        this.isMarketplace = isMarketplace;
-    }
-
-    public String getIsMarketplace() 
-    {
-        return isMarketplace;
-    }
-    public void setLastLoginTime(Date lastLoginTime) 
-    {
-        this.lastLoginTime = lastLoginTime;
-    }
-
-    public Date getLastLoginTime() 
-    {
-        return lastLoginTime;
+        return filePath;
     }
 
     @Override
@@ -315,20 +325,21 @@ public class FbAccountForSell extends BaseEntity
             .append("birthday", getBirthday())
             .append("name", getName())
             .append("secretKey", getSecretKey())
-            .append("status", getStatus())
+            .append("gender", getGender())
             .append("createDate", getCreateDate())
-            .append("friendNumber", getFriendNumber())
             .append("note", getNote())
-            .append("ua", getUa())
-            .append("dataSource", getDataSource())
             .append("region", getRegion())
+            .append("canLogin", getCanLogin())
+            .append("isMarketplace", getIsMarketplace())
+            .append("friendNumber", getFriendNumber())
+            .append("canAds", getCanAds())
+            .append("pageNumber", getPageNumber())
+            .append("bmNumber", getBmNumber())
+            .append("postsNumber", getPostsNumber())
+            .append("ua", getUa())
             .append("browserStatus", getBrowserStatus())
             .append("browserProfile", getBrowserProfile())
-            .append("sellTime", getSellTime())
-            .append("client", getClient())
-            .append("clientSource", getClientSource())
-            .append("isMarketplace", getIsMarketplace())
-            .append("lastLoginTime", getLastLoginTime())
+            .append("filePath", getFilePath())
             .toString();
     }
 }

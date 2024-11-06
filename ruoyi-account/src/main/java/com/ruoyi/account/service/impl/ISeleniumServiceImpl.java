@@ -97,6 +97,32 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
     }
 
+    /**
+     * 打开打单个浏览器
+     *
+     * @param fbAccountForSell
+     * @return
+     */
+    @Override
+    public WebDriver openBrowserForAccountSell(FbAccountForSell fbAccountForSell) {
+        try {
+            //参数配置
+            System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
+            ChromeOptions option = new ChromeOptions();
+//            option.addArguments("--user-data-dir=" + fbAccountForSell.getFilePath() + fbAccountForSell.getBrowserProfile());
+            option.addArguments("--remote-allow-origins=*");
+            option.addArguments("--disable-notifications");//限制通知
+            option.addArguments("--user-agent=" + fbAccountForSell.getUa());
+            option.setExperimentalOption("useAutomationExtension", false);
+            option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
+            WebDriver webDriver = new ChromeDriver(option);
+            return webDriver;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     @Override
     public String multipleOpenBrowser(String[] ids) {
         ArrayList<String> idList = new ArrayList<>();

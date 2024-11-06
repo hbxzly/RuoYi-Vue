@@ -76,7 +76,6 @@ export function checkAccount(id) {
 
 // 收集广告信息
 export function collectAdsInfo(id) {
-  console.log("进来了");
   return request({
     url: '/account/fbAccount/collectAdsInfo/' + id,
     method: 'get'

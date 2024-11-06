@@ -8,7 +8,7 @@ import org.openqa.selenium.WebDriver;
  * 卖号Service接口
  * 
  * @author ruoyi
- * @date 2024-09-20
+ * @date 2024-11-01
  */
 public interface IFbAccountForSellService 
 {
@@ -61,11 +61,71 @@ public interface IFbAccountForSellService
     public int deleteFbAccountForSellByKeyId(Long keyId);
 
     /**
+     * 导入数据
+     *
+     * @param FbAccountForSellList 数据列表
+     * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
+     * @param operName 操作用户
+     * @return 结果
+     */
+    public String importFbAccountForSell(List<FbAccountForSell> FbAccountForSellList, Boolean isUpdateSupport, String operName);
+
+    /**
      * 登录账号
      * @param webDriver
      * @param fbAccountForSell
      */
-    public void login(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+    public void loginFbAccountForSell(WebDriver webDriver, FbAccountForSell fbAccountForSell);
 
 
+    /**
+     * 获取信息（简体）
+     * @param webDriver
+     * @param fbAccountForSell
+     */
+    public void getAccountMarketplaceAndNameAndFriendInSimplified(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 获取信息（TW繁體）
+     * @param webDriver
+     * @param fbAccountForSell
+     */
+    public void getAccountMarketplaceAndNameAndFriendInTwTraditional(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+
+    /**
+     * 获取信息（HK繁體）
+     * @param webDriver
+     * @param fbAccountForSell
+     */
+    public void getAccountMarketplaceAndNameAndFriendInHkTraditional(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 获取信息（英语）
+     * @param webDriver
+     * @param fbAccountForSell
+     */
+    public void getAccountMarketplaceAndNameAndFriendInEnglish(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 获取账号语言
+     * @param webDriver
+     * @param fbAccountForSell
+     * @return
+     */
+    public String getAccountLanguage(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 查询账号
+     * @param ids
+     * @return
+     */
+    public List<FbAccountForSell> selectFbAccountForSellListByAccountIds(Long[] ids);
+
+    /**
+     * 检查是否登录
+     * @param webDriver
+     * @return
+     */
+    public String isLogin(WebDriver webDriver);
 }

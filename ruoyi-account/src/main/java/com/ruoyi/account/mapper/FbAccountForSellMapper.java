@@ -7,7 +7,7 @@ import com.ruoyi.account.domain.FbAccountForSell;
  * 卖号Mapper接口
  * 
  * @author ruoyi
- * @date 2024-09-20
+ * @date 2024-11-01
  */
 public interface FbAccountForSellMapper 
 {
@@ -58,4 +58,18 @@ public interface FbAccountForSellMapper
      * @return 结果
      */
     public int deleteFbAccountForSellByKeyIds(Long[] keyIds);
+
+    /**
+     * 通过账号ID查询
+     * @param id
+     * @return
+     */
+    public FbAccountForSell selectFbAccountForSellById(String id);
+
+    /**
+     * 多ID查询
+     * @param ids
+     * @return
+     */
+    public List<FbAccountForSell> selectFbAccountForSellListByAccountIds(Long[] ids);
 }

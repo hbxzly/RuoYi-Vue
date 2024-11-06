@@ -1,9 +1,6 @@
 package com.ruoyi.account.service;
 
-import com.ruoyi.account.domain.Avatar;
-import com.ruoyi.account.domain.Background;
-import com.ruoyi.account.domain.FbAccount;
-import com.ruoyi.account.domain.Posts;
+import com.ruoyi.account.domain.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.WebDriver;
 
@@ -11,7 +8,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
-public interface ISeleniumService {
+public interface                        ISeleniumService {
 
     /**
      * 打开打单个浏览器
@@ -19,6 +16,13 @@ public interface ISeleniumService {
      * @return
      */
     WebDriver openBrowser(FbAccount fbAccount);
+
+    /**
+     * 打开打单个浏览器
+     * @param fbAccountForSell
+     * @return
+     */
+    WebDriver openBrowserForAccountSell(FbAccountForSell fbAccountForSell);
 
     /**
      * 打开多个浏览器
@@ -159,5 +163,6 @@ public interface ISeleniumService {
      * @param pageName
      */
     void createPage(FbAccount fbAccount, String pageName, Avatar avatar, Background background, List<Posts> posts) throws InterruptedException;
+
 
 }
