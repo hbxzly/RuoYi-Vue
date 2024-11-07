@@ -375,6 +375,9 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         if (text.contains("帐户受限")){
             fbAccountForSell.setCanAds("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+        }else {
+            fbAccountForSell.setCanAds("1");
+            fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
         webDriver.get("https://www.facebook.com/pages/?category=your_pages&ref=bookmarks");
         try {
@@ -526,6 +529,9 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         if (text.contains("帳號受到限制")){
             fbAccountForSell.setCanAds("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+        }else {
+            fbAccountForSell.setCanAds("1");
+            fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
         webDriver.get("https://www.facebook.com/pages/?category=your_pages&ref=bookmarks");
         try {
@@ -675,6 +681,9 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         String text = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi").get(0).text();
         if (text.contains("受到限制的帳戶")){
             fbAccountForSell.setCanAds("0");
+            fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+        }else {
+            fbAccountForSell.setCanAds("1");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
         webDriver.get("https://www.facebook.com/pages/?category=your_pages&ref=bookmarks");
@@ -827,6 +836,9 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         String text = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi").get(0).text();
         if (text.contains("Account restricted")){
             fbAccountForSell.setCanAds("0");
+            fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+        }else {
+            fbAccountForSell.setCanAds("1");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
         webDriver.get("https://www.facebook.com/pages/?category=your_pages&ref=bookmarks");
