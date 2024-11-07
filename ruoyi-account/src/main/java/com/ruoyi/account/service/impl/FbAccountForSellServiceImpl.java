@@ -743,7 +743,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
 
         Document document = Jsoup.parse(pageSource);
         Element element =  document.select("a[aria-label$='s Timeline']").first();
-        String name = element.attr("aria-label").replace("'s Timeline", "");
+        String name = element.attr("aria-label").replace("'s timeline", "");
 
         // 提取第一个捕获组，即时间线前面的内容
         fbAccountForSell.setName(name);
