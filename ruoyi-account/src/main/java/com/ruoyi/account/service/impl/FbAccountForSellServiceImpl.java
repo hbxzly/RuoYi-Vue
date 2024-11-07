@@ -523,7 +523,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         document = Jsoup.parse(pageSource);
         // 查找具有特定 class 属性的 div 元素
         String text = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi").get(0).text();
-        if (text.contains("帐户受限")){
+        if (text.contains("帳號受到限制")){
             fbAccountForSell.setCanAds("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
@@ -673,7 +673,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         document = Jsoup.parse(pageSource);
         // 查找具有特定 class 属性的 div 元素
         String text = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi").get(0).text();
-        if (text.contains("帐户受限")){
+        if (text.contains("受到限制的帳戶")){
             fbAccountForSell.setCanAds("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
@@ -825,7 +825,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         document = Jsoup.parse(pageSource);
         // 查找具有特定 class 属性的 div 元素
         String text = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi").get(0).text();
-        if (text.contains("帐户受限")){
+        if (text.contains("Account restricted")){
             fbAccountForSell.setCanAds("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
@@ -861,7 +861,6 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
     @Override
     public String getAccountLanguage(WebDriver webDriver, FbAccountForSell fbAccountForSell) {
         webDriver.get("https://www.facebook.com/settings/?tab=language_and_region");
-        webDriver.navigate().refresh();
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
