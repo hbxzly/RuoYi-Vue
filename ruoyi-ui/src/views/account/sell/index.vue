@@ -224,7 +224,7 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="sellList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="sellList" @selection-change="handleSelectionChange" style="height: calc(100vh - 300px); overflow-y: auto;">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" prop="keyId" />
       <el-table-column label="ID" align="center" prop="id" show-overflow-tooltip/>
@@ -410,6 +410,16 @@
     </el-dialog>
   </div>
 </template>
+
+<style>
+/* 固定表头 */
+.el-table__header-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #f5f7fa; /* 设置表头背景色 */
+}
+</style>
 
 <script>
 import { listSell, getSell, delSell, addSell, updateSell, checkAccount } from "@/api/account/sell";
