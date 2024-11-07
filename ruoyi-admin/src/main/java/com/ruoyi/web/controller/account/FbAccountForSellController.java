@@ -155,6 +155,7 @@ public class FbAccountForSellController extends BaseController
                     }
                     continue;
                 }
+                Thread.sleep(1000);
                 String accountLanguage = fbAccountForSellService.getAccountLanguage(webDriver, fbAccountForSell);
                 System.out.println("语言:"+accountLanguage);
                 if (accountLanguage.contains("English")) {
