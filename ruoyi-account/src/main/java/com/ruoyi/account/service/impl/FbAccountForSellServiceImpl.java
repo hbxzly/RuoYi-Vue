@@ -522,8 +522,12 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         // 使用 Jsoup 解析 HTML 源代码
         document = Jsoup.parse(pageSource);
         // 查找具有特定 class 属性的 div 元素
-        String text = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi").get(0).text();
-        if (text.contains("帐户受限")){
+        Elements divElements = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi");
+        StringBuffer divText = new StringBuffer();
+        for (Element e : divElements.get(0).children()) {
+            divText.append(e.text());
+        }
+        if (divText.toString().contains("帳號受到限制")){
             fbAccountForSell.setCanAds("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
@@ -672,8 +676,12 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         // 使用 Jsoup 解析 HTML 源代码
         document = Jsoup.parse(pageSource);
         // 查找具有特定 class 属性的 div 元素
-        String text = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi").get(0).text();
-        if (text.contains("帐户受限")){
+        Elements divElements = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi");
+        StringBuffer divText = new StringBuffer();
+        for (Element e : divElements.get(0).children()) {
+            divText.append(e.text());
+        }
+        if (divText.toString().contains("受到限制的帳戶")){
             fbAccountForSell.setCanAds("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
@@ -824,8 +832,12 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         // 使用 Jsoup 解析 HTML 源代码
         document = Jsoup.parse(pageSource);
         // 查找具有特定 class 属性的 div 元素
-        String text = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi").get(0).text();
-        if (text.contains("帐户受限")){
+        Elements divElements = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi");
+        StringBuffer divText = new StringBuffer();
+        for (Element e : divElements.get(0).children()) {
+            divText.append(e.text());
+        }
+        if (divText.toString().contains("Account restricted")){
             fbAccountForSell.setCanAds("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
