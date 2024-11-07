@@ -643,7 +643,7 @@ export default {
     //检测账号
     handleCheckAccount(row){
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认检测编号为"' + ids + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认检测选中的数据项？').then(function() {
         return checkAccount(ids);
       }).then(() => {
         this.getList();
