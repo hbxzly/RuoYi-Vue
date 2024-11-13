@@ -1,16 +1,12 @@
 package com.ruoyi.account.service.impl;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.ruoyi.account.domain.Posts;
 import com.ruoyi.account.util.RandomUitl;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
@@ -216,7 +212,6 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
             }
             WebElement loginButton = webDriver.findElement(By.name("login"));
             loginButton.click();
-            webDriverWait = new WebDriverWait(webDriver, 10, 1);
             waitingForContent(10,webDriver,"• Facebook");
             String pageSource = webDriver.getPageSource();
             Document document = Jsoup.parse(pageSource);
