@@ -227,12 +227,11 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                     webDriver.get("https://www.facebook.com");
                 }
                 int size = document.select("[role=button]").size();
-                System.out.println(size);
                 if (size == 1) {
                     webDriver.findElement(By.xpath("//div[@role='button']")).click();
                     Thread.sleep(1000);
                     webDriver.findElement(By.cssSelector("input[type='radio'][value='1']")).click();
-                    webDriver.findElement(By.xpath("//div[@role='button'][5]")).click();
+                    webDriver.findElement(By.xpath("//div[@role='button'][4]")).click();
                     Thread.sleep(1000);
                     WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
                     approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
