@@ -232,15 +232,8 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                 int size = document.select("[role=button]").size();
                 if (size == 1) {
                     webDriver.findElement(By.xpath("//div[@role='button']")).click();
-                    Thread.sleep(1000);
                     webDriver.findElement(By.cssSelector("input[type='radio'][value='1']")).click();
-                    Actions actions = new Actions(webDriver);
-                    actions.keyDown(Keys.TAB).perform();
-                    Thread.sleep(500);
-                    actions.keyDown(Keys.TAB).perform();
-                    Thread.sleep(500);
-                    actions.keyDown(Keys.ENTER).perform();
-                    Thread.sleep(500);
+                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[4]/div[3]/div/div/div/div/div/div/div/div/div[1]/div/span/span"))).click();
                     WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
                     approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
                     WebElement submitButton = webDriver.findElement(By.xpath("//div[@role='button'][1]"));
@@ -1037,53 +1030,6 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
             }
         }
         return list;
-    }
-
-
-    /**
-     * 模拟按键(单键）
-     * @param keyName
-     */
-    public void simulateKeyPress(String keyName) {
-        try {
-            Robot robot = new Robot();
-            // 使用反射获取 KeyEvent 中的常量值
-            Field field = KeyEvent.class.getField(keyName.toUpperCase());
-            int keyCode = field.getInt(null);  // 获取常量的 int 值
-
-            // 模拟按下和释放键
-            robot.keyPress(keyCode);
-            robot.keyRelease(keyCode);
-
-        } catch (NoSuchFieldException | IllegalAccessException | AWTException e) {
-            System.out.println("Invalid key name: " + keyName);
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * 模拟按键(单键）
-     * @param keyName1,keyName2
-     */
-    public void simulateKeyPress(String keyName1, String keyName2) {
-        try {
-            Robot robot = new Robot();
-            // 使用反射获取 KeyEvent 中的常量值
-            Field field1 = KeyEvent.class.getField(keyName1.toUpperCase());
-            Field field2 = KeyEvent.class.getField(keyName2.toUpperCase());
-            int keyCode1 = field1.getInt(null);  // 获取常量的 int 值
-            int keyCode2 = field2.getInt(null);  // 获取常量的 int 值
-
-            // 模拟按下和释放键
-            robot.keyPress(keyCode1);
-            robot.keyPress(keyCode2);
-            robot.keyRelease(keyCode2);
-            robot.keyRelease(keyCode1);
-
-        } catch (NoSuchFieldException | IllegalAccessException | AWTException e) {
-            System.out.println("模拟按键失败");
-            e.printStackTrace();
-        }
     }
 
 
