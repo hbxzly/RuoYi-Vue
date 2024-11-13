@@ -174,8 +174,13 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
      * @param fbAccountForSell
      */
     @Override
-    public void loginFbAccountForSell(WebDriver webDriver, FbAccountForSell fbAccountForSell) {
+    public String loginFbAccountForSell(WebDriver webDriver, FbAccountForSell fbAccountForSell) {
         webDriver.get("https://www.facebook.com");
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         // 清除所有 cookies
         webDriver.manage().window().maximize();
 //        webDriver.manage().deleteAllCookies();
@@ -201,6 +206,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                 Thread.sleep(500);
                 actions.sendKeys(Keys.DELETE).perform();
                 email.sendKeys(fbAccountForSell.getEmail());
+                Thread.sleep(1500);
                 password.click();
                 // 模拟Ctrl+A组合键
                 actions.keyDown(Keys.CONTROL)
@@ -210,6 +216,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                 Thread.sleep(500);
                 actions.sendKeys(Keys.DELETE).perform();
                 password.sendKeys(fbAccountForSell.getPassword());
+                Thread.sleep(1500);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -218,8 +225,21 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
             waitingForContent(10,webDriver,"• Facebook");
             String pageSource = webDriver.getPageSource();
             Document document = Jsoup.parse(pageSource);
+            if (pageSource.contains("输入你看到的验证码")){
+                fbAccountForSell.setNote("需要输入验证码");
+                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                return "";
+            }
             if (!pageSource.contains("账号或密码无效")){
                 //新版双重验证码输入
+                if (document.select("#approvals_code").first() != null){
+                    webDriver.findElement(By.id("approvals_code")).sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
+                    webDriver.findElement(By.id("checkpointSubmitButton")).click();
+                    Thread.sleep(2000);
+                    webDriver.findElement(By.id("checkpointSubmitButton")).click();
+                    Thread.sleep(2000);
+                    webDriver.get("https://www.facebook.com");
+                }
                 Element element = document.select("input[type=text]").first();
                 if (element != null) {
                     WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
@@ -237,15 +257,15 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                     WebElement approvalsCode = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']")));
                     approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span"))).click();
-                    Thread.sleep(5000);
+                    for (int i = 0; i < 10; i++) {
+                        String login = isLogin(webDriver);
+                        if (!login.equals("true")) {
+                            Thread.sleep(1000);
+                        }
+                    }
                     webDriver.get("https://www.facebook.com");
                 }
-                if (document.select("#approvals_code").first() != null){
-                    webDriver.findElement(By.id("approvals_code")).sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
-                    webDriver.findElement(By.id("checkpointSubmitButton")).click();
-                    Thread.sleep(5000);
-                    webDriver.get("https://www.facebook.com");
-                }
+
 
                 /*try {
                     WebElement approvalsCode = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/form/div/div/div/div/div[1]/input")));
@@ -265,14 +285,17 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                     }
                     e.printStackTrace();
                 }*/
+                return "";
             }else {
                 fbAccountForSell.setNote("账号或密码无效");
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                return "";
             }
 
         }catch (Exception e) {
             e.printStackTrace();
         }
+        return "";
     }
 
     /**
@@ -309,8 +332,25 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         Matcher matcher = pattern.matcher(pageSource);
         // 尝试查找匹配的 NAME 值
         if (matcher.find()) {
-            String name = matcher.group(1);  // 获取 NAME 的值
-            fbAccountForSell.setName(name);
+            String name = matcher.group(1);
+
+            // 手动进行 Unicode 解码，将 uXXXX 形式的编码转换为对应的字符
+            StringBuilder decodedNameBuilder = new StringBuilder();
+            Matcher unicodeMatcher = Pattern.compile("\\\\u([0-9a-fA-F]{4})").matcher(name);
+            int lastEnd = 0;
+            while (unicodeMatcher.find()) {
+                // 将前面的部分追加到结果中
+                decodedNameBuilder.append(name, lastEnd, unicodeMatcher.start());
+                // 解码当前 uXXXX 部分
+                int charCode = Integer.parseInt(unicodeMatcher.group(1), 16);
+                decodedNameBuilder.append((char) charCode);
+                lastEnd = unicodeMatcher.end();
+            }
+            decodedNameBuilder.append(name.substring(lastEnd));
+            String decodedName = decodedNameBuilder.toString();
+
+            // 获取 NAME 的值
+            fbAccountForSell.setName(decodedName);
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
 
@@ -322,8 +362,15 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         if (element != null) {
             // 提取文本并解析数字
             String friendCountText = element.text();
-            String friendCount = friendCountText.split(" ")[0];  // 获取 好友数量 部分
-            fbAccountForSell.setFriendNumber(friendCount);
+            regex = "\\D+(\\d+)\\D+"; // 匹配非数字开头，跟一个数字，再跟非数字结尾
+
+            pattern = Pattern.compile(regex);
+            matcher = pattern.matcher(friendCountText);
+            String number = "";
+            if (matcher.find()) {
+                number = matcher.group(1); // 提取数字部分
+            }  // 获取 好友数量 部分
+            fbAccountForSell.setFriendNumber(number);
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
 

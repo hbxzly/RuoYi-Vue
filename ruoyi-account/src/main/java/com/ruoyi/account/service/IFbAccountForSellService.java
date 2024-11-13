@@ -75,7 +75,7 @@ public interface IFbAccountForSellService
      * @param webDriver
      * @param fbAccountForSell
      */
-    public void loginFbAccountForSell(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+    public String loginFbAccountForSell(WebDriver webDriver, FbAccountForSell fbAccountForSell);
 
 
     /**

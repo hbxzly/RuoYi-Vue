@@ -138,7 +138,6 @@ public class FbAccountForSellController extends BaseController
     @GetMapping("/checkAccount/{ids}")
     @ResponseBody
     public AjaxResult checkAccount(@PathVariable Long[] ids) {
-        System.out.println(ids.length);
         List<FbAccountForSell> fbAccountForSells = fbAccountForSellService.selectFbAccountForSellListByAccountIds(ids);
         for (FbAccountForSell fbAccountForSell : fbAccountForSells) {
 
@@ -149,27 +148,18 @@ public class FbAccountForSellController extends BaseController
                 String loginStatus = fbAccountForSellService.isLogin(webDriver);
                 if (loginStatus != "true"){
                     webDriver.close();
-                    if (!fbAccountForSell.getNote().equals("账号或密码无效") ){
+                    if (!fbAccountForSell.getNote().equals("账号或密码无效") && fbAccountForSell.getNote().equals("需要输入验证码")){
                         fbAccountForSell.setNote("无法登录-未知情况");
                         fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
                     }
                     continue;
                 }
-                Thread.sleep(1000);
-                String accountLanguage = fbAccountForSellService.getAccountLanguage(webDriver, fbAccountForSell);
-                System.out.println("语言:"+accountLanguage);
-                if (accountLanguage.contains("English")) {
-                    fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInEnglish(webDriver, fbAccountForSell);
-                }else if (accountLanguage.contains("中文(台灣)")) {
-                    fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInTwTraditional(webDriver, fbAccountForSell);
-                }else if (accountLanguage.contains("中文(香港)")) {
-                    fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInHkTraditional(webDriver, fbAccountForSell);
-                }else if (accountLanguage.contains("中文(简体)")) {
-                    fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInSimplified(webDriver, fbAccountForSell);
-                }else {
-                    fbAccountForSell.setNote("未知语言");
+                if (fbAccountForSell.getNote().contains("无法登录-未知情况")){
+                    fbAccountForSell.setNote(fbAccountForSell.getNote().replace("无法登录-未知情况",""));
                     fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
                 }
+                Thread.sleep(1000);
+                fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInSimplified(webDriver, fbAccountForSell);
             } catch (Exception e) {
                 e.printStackTrace();
             }
