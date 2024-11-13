@@ -1,6 +1,14 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="ID" prop="password">
+        <el-input
+          v-model="queryParams.id"
+          placeholder="请输入ID"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="密码" prop="password">
         <el-input
           v-model="queryParams.password"
@@ -153,6 +161,14 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="最近帖子时间" prop="lastPostsTime">
+        <el-input
+          v-model="queryParams.lastPostsTime"
+          placeholder="请输入最近帖子时间"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -257,6 +273,7 @@
       <el-table-column label="主页数量" align="center" prop="pageNumber" show-overflow-tooltip/>
       <el-table-column label="bm数量" align="center" prop="bmNumber" show-overflow-tooltip/>
       <el-table-column label="帖子数量" align="center" prop="postsNumber" show-overflow-tooltip/>
+      <el-table-column label="最近帖子时间" align="center" prop="lastPostsTime" show-overflow-tooltip/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -453,6 +470,7 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
+        id: null,
         password: null,
         email: null,
         emailPassword: null,
@@ -473,7 +491,8 @@ export default {
         ua: null,
         browserStatus: null,
         browserProfile: null,
-        filePath: null
+        filePath: null,
+        lastPostsTime: null
       },
       // 表单参数
       form: {},

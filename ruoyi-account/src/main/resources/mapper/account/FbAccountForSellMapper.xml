@@ -3,7 +3,7 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.account.mapper.FbAccountForSellMapper">
-    
+
     <resultMap type="FbAccountForSell" id="FbAccountForSellResult">
         <result property="keyId"    column="key_id"    />
         <result property="id"    column="id"    />
@@ -28,15 +28,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="browserStatus"    column="browser_status"    />
         <result property="browserProfile"    column="browser_profile"    />
         <result property="filePath"    column="file_path"    />
+        <result property="lastPostsTime"    column="last_posts_time"    />
     </resultMap>
 
     <sql id="selectFbAccountForSellVo">
-        select key_id, id, password, email, email_password, birthday, name, secret_key, gender, create_date, note, region, can_login, is_marketplace, friend_number, can_ads, page_number, bm_number, posts_number, ua, browser_status, browser_profile, file_path from fb_account_for_sell
+        select key_id, id, password, email, email_password, birthday, name, secret_key, gender, create_date, note, region, can_login, is_marketplace, friend_number, can_ads, page_number, bm_number, posts_number, ua, browser_status, browser_profile, file_path, last_posts_time from fb_account_for_sell
     </sql>
 
     <select id="selectFbAccountForSellList" parameterType="FbAccountForSell" resultMap="FbAccountForSellResult">
         <include refid="selectFbAccountForSellVo"/>
-        <where>  
+        <where>
+            <if test="id != null  and id != ''"> and id = #{id}</if>
             <if test="password != null  and password != ''"> and password = #{password}</if>
             <if test="email != null  and email != ''"> and email = #{email}</if>
             <if test="emailPassword != null  and emailPassword != ''"> and email_password = #{emailPassword}</if>
@@ -45,7 +47,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="secretKey != null  and secretKey != ''"> and secret_key = #{secretKey}</if>
             <if test="gender != null  and gender != ''"> and gender = #{gender}</if>
             <if test="createDate != null  and createDate != ''"> and create_date = #{createDate}</if>
-            <if test="note != null  and note != ''"> and note = #{note}</if>
+            <if test="note != null  and note != ''"> and note like concat('%', #{note}, '%')</if>
             <if test="region != null  and region != ''"> and region = #{region}</if>
             <if test="canLogin != null  and canLogin != ''"> and can_login = #{canLogin}</if>
             <if test="isMarketplace != null  and isMarketplace != ''"> and is_marketplace = #{isMarketplace}</if>
@@ -58,14 +60,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="browserStatus != null  and browserStatus != ''"> and browser_status = #{browserStatus}</if>
             <if test="browserProfile != null  and browserProfile != ''"> and browser_profile = #{browserProfile}</if>
             <if test="filePath != null  and filePath != ''"> and file_path = #{filePath}</if>
+            <if test="lastPostsTime != null  and lastPostsTime != ''"> and last_posts_time = #{lastPostsTime}</if>
         </where>
+        order by key_id DESC
     </select>
-    
+
     <select id="selectFbAccountForSellByKeyId" parameterType="Long" resultMap="FbAccountForSellResult">
         <include refid="selectFbAccountForSellVo"/>
         where key_id = #{keyId}
     </select>
-        
+
     <insert id="insertFbAccountForSell" parameterType="FbAccountForSell" useGeneratedKeys="true" keyProperty="keyId">
         insert into fb_account_for_sell
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -91,7 +95,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="browserStatus != null">browser_status,</if>
             <if test="browserProfile != null">browser_profile,</if>
             <if test="filePath != null">file_path,</if>
-         </trim>
+            <if test="lastPostsTime != null">last_posts_time,</if>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">#{id},</if>
             <if test="password != null">#{password},</if>
@@ -115,7 +120,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="browserStatus != null">#{browserStatus},</if>
             <if test="browserProfile != null">#{browserProfile},</if>
             <if test="filePath != null">#{filePath},</if>
-         </trim>
+            <if test="lastPostsTime != null">#{lastPostsTime},</if>
+        </trim>
     </insert>
 
     <update id="updateFbAccountForSell" parameterType="FbAccountForSell">
@@ -143,9 +149,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="browserStatus != null">browser_status = #{browserStatus},</if>
             <if test="browserProfile != null">browser_profile = #{browserProfile},</if>
             <if test="filePath != null">file_path = #{filePath},</if>
+            <if test="lastPostsTime != null">last_posts_time = #{lastPostsTime},</if>
         </trim>
         where key_id = #{keyId}
     </update>
+
 
     <delete id="deleteFbAccountForSellByKeyId" parameterType="Long">
         delete from fb_account_for_sell where key_id = #{keyId}

@@ -3,6 +3,7 @@ package com.ruoyi.account.service.impl;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -180,14 +181,14 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         webDriver.manage().window().maximize();
 //        webDriver.manage().deleteAllCookies();
 //        webDriver.navigate().refresh();
+        WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
         try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.name("login")));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         try {
-            WebDriverWait wait = new WebDriverWait(webDriver, 10, 1);
-            WebElement email = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("email")));
+            WebElement email = webDriver.findElement(By.name("email"));
             WebElement password = webDriver.findElement(By.name("pass"));
             try {
                 email.click();
@@ -215,24 +216,43 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
             }
             WebElement loginButton = webDriver.findElement(By.name("login"));
             loginButton.click();
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            webDriverWait = new WebDriverWait(webDriver, 10, 1);
+            waitingForContent(10,webDriver,"• Facebook");
             String pageSource = webDriver.getPageSource();
+            Document document = Jsoup.parse(pageSource);
             if (!pageSource.contains("账号或密码无效")){
                 //新版双重验证码输入
-                try {
-                    WebElement approvalsCode = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/form/div/div/div/div/div[1]/input")));
+                Element element = document.select("input[type=text]").first();
+                if (element != null) {
+                    WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
                     approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
-                    WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span")));
+                    WebElement submitButton = webDriver.findElement(By.xpath("//div[@role='button'][1]"));
                     submitButton.click();
-                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[2]/div/div/div[3]/div[1]/div/div/div/div[1]/div/span/span")))
+                    Thread.sleep(1000);
+                    webDriver.get("https://www.facebook.com");
+                }
+                int size = document.select("input[type=text]").size();
+                if (size == 1) {
+                    webDriver.findElement(By.xpath("//div[@role='button']")).click();
+
+                }
+                if (document.select("#approvals_code").first() != null){
+                    webDriver.findElement(By.id("approvals_code")).sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
+                    webDriver.findElement(By.id("checkpointSubmitButton")).click();
+                    Thread.sleep(1000);
+                    webDriver.get("https://www.facebook.com");
+                }
+
+                /*try {
+                    WebElement approvalsCode = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/form/div/div/div/div/div[1]/input")));
+                    approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
+                    WebElement submitButton = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span")));
+                    submitButton.click();
+                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[2]/div/div/div[3]/div[1]/div/div/div/div[1]/div/span/span")))
                             .click();
                 } catch (Exception e) {
                     try {
-                        WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
+                        WebElement submitButton = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("checkpointSubmitButton")));
                         WebElement approvalsCode = webDriver.findElement(By.id("approvals_code"));
                         approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
                         submitButton.click();
@@ -240,7 +260,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                         ex.printStackTrace();
                     }
                     e.printStackTrace();
-                }
+                }*/
             }else {
                 fbAccountForSell.setNote("账号或密码无效");
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
@@ -260,102 +280,91 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
     public void getAccountMarketplaceAndNameAndFriendInSimplified(WebDriver webDriver, FbAccountForSell fbAccountForSell) {
 
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
-        webDriver.get("https://www.facebook.com/marketplace/ineligible/?ref=bookmark");
+        webDriver.get("https://facebook.com/marketplace/?ref=bookmark");
         try {
-            Thread.sleep(10000);
+            Thread.sleep(5000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        String pageSource = webDriver.getPageSource();
-        if(pageSource.contains("你无法使用 Marketplace")){
+
+        if(webDriver.getCurrentUrl().contains("ineligible")){
             fbAccountForSell.setIsMarketplace("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }else {
             fbAccountForSell.setIsMarketplace("1");
         }
         webDriver.get("https://www.facebook.com/"+fbAccountForSell.getId());
-        try {
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[text()='发布快拍']")));
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        //好有数量
-        pageSource = webDriver.getPageSource();
-        // 正则表达式匹配">数字 位朋友<"
-        Pattern pattern = Pattern.compile("\\d+ 位好友");
-        Matcher matcher = pattern.matcher(pageSource);
+        String target = "https://static.xx.fbcdn.net/rsrc.php/v3/yz/r/AqoGWewwdNN.png";
+        waitingForContent(30,webDriver,target);
 
-        while (matcher.find()) {
-            // 输出找到的匹配项
-            fbAccountForSell.setFriendNumber(matcher.group());
+        String pageSource = webDriver.getPageSource();
+        //账号名字
+        String regex = "\"USER_ID\":\"" + fbAccountForSell.getId() + "\".*?\"NAME\":\"(.*?)\"";
+        // 编译正则表达式
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(pageSource);
+        // 尝试查找匹配的 NAME 值
+        if (matcher.find()) {
+            String name = matcher.group(1);  // 获取 NAME 的值
+            fbAccountForSell.setName(name);
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
+
+        //好有数量
         Document document = Jsoup.parse(pageSource);
-        Element element = document.select("a[aria-label$=的时间线]").first();
-        String name = element.attr("aria-label").replace("的时间线", "");
-
-        // 提取第一个捕获组，即时间线前面的内容
-        fbAccountForSell.setName(name);
-        fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-
+        Element element = document.select("h1:containsOwn("+fbAccountForSell.getName()+")").first();
+        element = getNthParent(element, 5);
+        element.select("a[href*='sk=friends']").first();
+        if (element != null) {
+            // 提取文本并解析数字
+            String friendCountText = element.text();
+            String friendCount = friendCountText.split(" ")[0];  // 获取 好友数量 部分
+            fbAccountForSell.setFriendNumber(friendCount);
+            fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+        }
 
         //帖子数量
         webDriver.get("https://www.facebook.com/"+fbAccountForSell.getId()+"/allactivity?activity_history=false&category_key=YOURACTIVITYPOSTSSCHEMA&manage_mode=false&should_load_landing_page=false");
         try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(text(),'"+fbAccountForSell.getName()+"')]")));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
         pageSource = webDriver.getPageSource();
-        // 定义正则表达式，匹配包含特定类名组合的文本
-        pattern = Pattern.compile("x78zum5 x1q0g3np x1n2onr6");
-        matcher = pattern.matcher(pageSource);
+        document = Jsoup.parse(pageSource);
+        element = document.select("a:containsOwn("+fbAccountForSell.getName()+")").first();
+        String lastsPostsTime = getNthParent(element, 18).children().first().text();
+        fbAccountForSell.setLastPostsTime(lastsPostsTime);
+        fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
 
-        // 统计匹配到的次数
-        int count = 0;
-        while (matcher.find()) {
-            count++;
-        }
-        if(count>0){
-            fbAccountForSell.setPostsNumber(String.valueOf(count));
+        int countPosts = document.select("a:containsOwn("+fbAccountForSell.getName()+")").size();
+
+        if(countPosts>0){
+            fbAccountForSell.setPostsNumber(String.valueOf(countPosts));
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }else {
             fbAccountForSell.setPostsNumber("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
 
-        //账号状态，BM数量，主页数量
+        //BM数量
         webDriver.get("https://www.facebook.com/business-support-home/?landing_page=overview&source=link");
         try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[text()='"+fbAccountForSell.getName()+"']")));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         String currentUrl = webDriver.getCurrentUrl();
         if (!currentUrl.contains(fbAccountForSell.getId())) {
-            try {
-                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[text()='Facebook account']")));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             pageSource = webDriver.getPageSource();
             // 使用 Jsoup 解析 HTML 源代码
             document = Jsoup.parse(pageSource);
-
-            // 使用 Jsoup 的选择器找到文本为 'Facebook account' 的 div 元素
-            Element divElement = document.select("div:containsOwn(Facebook account)").first().parent();
-
-            String divText = divElement.text().replaceAll("\\s+", "");
-            if (divText.contains("帐户受限")) {
-                fbAccountForSell.setCanAds("0");
-                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-            }else {
-                fbAccountForSell.setCanAds("1");
-                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-            }
-            pattern = Pattern.compile("编号");
-            matcher = pattern.matcher(pageSource);
+            element = document.select("div:containsOwn("+fbAccountForSell.getName()+")").first();
+            element = getNthParent(element, 12);
+            Elements elements = element.siblingElements();
+            String html = elements.get(0).html();
+            pattern = Pattern.compile("business-support-home");
+            matcher = pattern.matcher(html);
 
             int countBM = 0;
             while (matcher.find()) {
@@ -367,15 +376,27 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
             fbAccountForSell.setBmNumber("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
+
+        //账号状态
+        webDriver.get("https://www.facebook.com/business-support-home/"+fbAccountForSell.getId()+"/?source=link");
+        try {
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[text()='"+fbAccountForSell.getName()+"']")));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         pageSource = webDriver.getPageSource();
         // 使用 Jsoup 解析 HTML 源代码
         document = Jsoup.parse(pageSource);
         // 查找具有特定 class 属性的 div 元素
-        String text = document.select("div.x1iyjqo2.xs83m0k.xdl72j9.x3igimt.xedcshv.x1t2pt76.xyamay9.x1l90r2v.x1swvt13.x1pi30zi").get(0).text();
-        if (text.contains("帐户受限")){
+        element = document.select("div:containsOwn("+fbAccountForSell.getName()+")").first();
+        element = getNthParent(element, 4);
+        List<String> list = new ArrayList<>();
+        list = getAllText(element, list);
+        if (list.size()==3){
             fbAccountForSell.setCanAds("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-        }else {
+        }
+        if (list.size()==1){
             fbAccountForSell.setCanAds("1");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
@@ -961,6 +982,50 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         }
         return "error";
     }
+
+    //等待页面加载
+    public void waitingForContent(int time,WebDriver webDriver, String content){
+        for (int i = 0; i < time; i++) {
+            if (webDriver.getPageSource().contains(content)){
+                break;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    // 获取第 n 级父元素的方法
+    public Element getNthParent(Element element, int levels) {
+        Element currentElement = element;
+
+        for (int i = 0; i < levels; i++) {
+            if (currentElement == null) {
+                return null; // 如果没有父元素，返回 null
+            }
+            currentElement = currentElement.parent();
+        }
+
+        return currentElement; // 返回第 n 级父元素，或找不到时返回 null
+    }
+
+    // 定义一个递归函数来遍历所有子元素
+    public List<String> getAllText(Element parent, List<String> list) {
+        for (Element child : parent.children()) {
+            if (child.children().isEmpty()) {
+                if (!child.text().isEmpty()){
+                    list.add(child.text());
+                }
+            } else {
+                getAllText(child, list);
+            }
+        }
+        return list;
+    }
+
 
 
 }

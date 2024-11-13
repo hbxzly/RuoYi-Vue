@@ -67,44 +67,37 @@ public class FbAccountForSell extends BaseEntity
     private String note;
 
     /** 能否登录 */
-    @Excel(name = "能否登录")
     private String canLogin;
 
     /** 好友数量 */
-    @Excel(name = "好友数量")
     private String friendNumber;
 
     /** 能否广告 */
-    @Excel(name = "能否广告")
     private String canAds;
 
     /** 主页数量 */
-    @Excel(name = "主页数量")
     private String pageNumber;
 
     /** bm数量 */
-    @Excel(name = "bm数量")
     private String bmNumber;
 
     /** 帖子数量 */
-    @Excel(name = "帖子数量")
     private String postsNumber;
 
     /** UA */
-    @Excel(name = "UA")
     private String ua;
 
     /** 浏览器状态 */
-    @Excel(name = "浏览器状态")
     private String browserStatus;
 
     /** 浏览器文件 */
-    @Excel(name = "浏览器文件")
     private String browserProfile;
 
     /** 文件路径 */
     @Excel(name = "文件路径")
     private String filePath;
+
+    private String lastPostsTime;
 
     public void setKeyId(Long keyId) 
     {
@@ -314,32 +307,43 @@ public class FbAccountForSell extends BaseEntity
         return filePath;
     }
 
+    public void setLastPostsTime(String lastPostsTime)
+    {
+        this.lastPostsTime = lastPostsTime;
+    }
+
+    public String getLastPostsTime()
+    {
+        return lastPostsTime;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
-            .append("keyId", getKeyId())
-            .append("id", getId())
-            .append("password", getPassword())
-            .append("email", getEmail())
-            .append("emailPassword", getEmailPassword())
-            .append("birthday", getBirthday())
-            .append("name", getName())
-            .append("secretKey", getSecretKey())
-            .append("gender", getGender())
-            .append("createDate", getCreateDate())
-            .append("note", getNote())
-            .append("region", getRegion())
-            .append("canLogin", getCanLogin())
-            .append("isMarketplace", getIsMarketplace())
-            .append("friendNumber", getFriendNumber())
-            .append("canAds", getCanAds())
-            .append("pageNumber", getPageNumber())
-            .append("bmNumber", getBmNumber())
-            .append("postsNumber", getPostsNumber())
-            .append("ua", getUa())
-            .append("browserStatus", getBrowserStatus())
-            .append("browserProfile", getBrowserProfile())
-            .append("filePath", getFilePath())
-            .toString();
+                .append("keyId", getKeyId())
+                .append("id", getId())
+                .append("password", getPassword())
+                .append("email", getEmail())
+                .append("emailPassword", getEmailPassword())
+                .append("birthday", getBirthday())
+                .append("name", getName())
+                .append("secretKey", getSecretKey())
+                .append("gender", getGender())
+                .append("createDate", getCreateDate())
+                .append("note", getNote())
+                .append("region", getRegion())
+                .append("canLogin", getCanLogin())
+                .append("isMarketplace", getIsMarketplace())
+                .append("friendNumber", getFriendNumber())
+                .append("canAds", getCanAds())
+                .append("pageNumber", getPageNumber())
+                .append("bmNumber", getBmNumber())
+                .append("postsNumber", getPostsNumber())
+                .append("ua", getUa())
+                .append("browserStatus", getBrowserStatus())
+                .append("browserProfile", getBrowserProfile())
+                .append("filePath", getFilePath())
+                .append("lastPostsTime", getLastPostsTime())
+                .toString();
     }
 }
