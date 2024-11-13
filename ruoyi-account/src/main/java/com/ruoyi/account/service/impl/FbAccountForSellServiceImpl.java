@@ -234,10 +234,13 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                     webDriver.findElement(By.xpath("//div[@role='button']")).click();
                     Thread.sleep(1000);
                     webDriver.findElement(By.cssSelector("input[type='radio'][value='1']")).click();
-                    simulateKeyPress("KeyEvent.VK_TAB");
-                    simulateKeyPress("KeyEvent.VK_TAB");
-                    simulateKeyPress("KeyEvent.VK_ENTER");
-                    Thread.sleep(1000);
+                    Actions actions = new Actions(webDriver);
+                    actions.keyDown(Keys.TAB).perform();
+                    Thread.sleep(500);
+                    actions.keyDown(Keys.TAB).perform();
+                    Thread.sleep(500);
+                    actions.keyDown(Keys.ENTER).perform();
+                    Thread.sleep(500);
                     WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
                     approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
                     WebElement submitButton = webDriver.findElement(By.xpath("//div[@role='button'][1]"));
