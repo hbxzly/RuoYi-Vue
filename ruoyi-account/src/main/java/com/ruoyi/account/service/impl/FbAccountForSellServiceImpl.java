@@ -234,13 +234,12 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='button']"))).click();
                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("input[type='radio'][value='1']"))).click();
                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[4]/div[3]/div/div/div/div/div/div/div/div/div[1]/div/span/span"))).click();
-                    WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
+                    WebElement approvalsCode = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']")));
                     approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
                     WebElement submitButton = webDriver.findElement(By.xpath("//div[@role='button'][1]"));
                     submitButton.click();
                     Thread.sleep(1000);
                     webDriver.get("https://www.facebook.com");
-
                 }
                 if (document.select("#approvals_code").first() != null){
                     webDriver.findElement(By.id("approvals_code")).sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
