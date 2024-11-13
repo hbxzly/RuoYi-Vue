@@ -156,20 +156,7 @@ public class FbAccountForSellController extends BaseController
                     continue;
                 }
                 Thread.sleep(1000);
-                String accountLanguage = fbAccountForSellService.getAccountLanguage(webDriver, fbAccountForSell);
-                System.out.println("语言:"+accountLanguage);
-                if (accountLanguage.contains("English")) {
-                    fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInEnglish(webDriver, fbAccountForSell);
-                }else if (accountLanguage.contains("中文(台灣)")) {
-                    fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInTwTraditional(webDriver, fbAccountForSell);
-                }else if (accountLanguage.contains("中文(香港)")) {
-                    fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInHkTraditional(webDriver, fbAccountForSell);
-                }else if (accountLanguage.contains("中文(简体)")) {
-                    fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInSimplified(webDriver, fbAccountForSell);
-                }else {
-                    fbAccountForSell.setNote("未知语言");
-                    fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
-                }
+                fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInSimplified(webDriver, fbAccountForSell);
             } catch (Exception e) {
                 e.printStackTrace();
             }
