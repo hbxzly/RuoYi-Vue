@@ -230,6 +230,16 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                 System.out.println(size);
                 if (size == 1) {
                     webDriver.findElement(By.xpath("//div[@role='button']")).click();
+                    Thread.sleep(1000);
+                    webDriver.findElement(By.cssSelector("input[type='radio'][value='1']")).click();
+                    webDriver.findElement(By.xpath("//div[@role='button'][5]")).click();
+                    Thread.sleep(1000);
+                    WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
+                    approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
+                    WebElement submitButton = webDriver.findElement(By.xpath("//div[@role='button'][1]"));
+                    submitButton.click();
+                    Thread.sleep(1000);
+                    webDriver.get("https://www.facebook.com");
 
                 }
                 if (document.select("#approvals_code").first() != null){
