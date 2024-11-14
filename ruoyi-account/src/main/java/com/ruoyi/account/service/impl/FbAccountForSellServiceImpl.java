@@ -288,6 +288,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                 return "";
             }else {
                 fbAccountForSell.setNote("账号或密码无效");
+                fbAccountForSell.setCanLogin("0");
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
                 return "";
             }
