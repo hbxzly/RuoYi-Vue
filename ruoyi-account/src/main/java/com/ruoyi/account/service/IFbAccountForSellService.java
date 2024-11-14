@@ -85,27 +85,6 @@ public interface IFbAccountForSellService
      */
     public void getAccountMarketplaceAndNameAndFriendInSimplified(WebDriver webDriver, FbAccountForSell fbAccountForSell);
 
-    /**
-     * 获取信息（TW繁體）
-     * @param webDriver
-     * @param fbAccountForSell
-     */
-    public void getAccountMarketplaceAndNameAndFriendInTwTraditional(WebDriver webDriver, FbAccountForSell fbAccountForSell);
-
-
-    /**
-     * 获取信息（HK繁體）
-     * @param webDriver
-     * @param fbAccountForSell
-     */
-    public void getAccountMarketplaceAndNameAndFriendInHkTraditional(WebDriver webDriver, FbAccountForSell fbAccountForSell);
-
-    /**
-     * 获取信息（英语）
-     * @param webDriver
-     * @param fbAccountForSell
-     */
-    public void getAccountMarketplaceAndNameAndFriendInEnglish(WebDriver webDriver, FbAccountForSell fbAccountForSell);
 
     /**
      * 获取账号语言
