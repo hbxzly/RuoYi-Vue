@@ -1,7 +1,15 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="ID" prop="password">
+      <el-form-item label="序号" prop="keyId">
+        <el-input
+          v-model="queryParams.keyId"
+          placeholder="请输入序号"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="ID" prop="id">
         <el-input
           v-model="queryParams.id"
           placeholder="请输入ID"
@@ -470,6 +478,7 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
+        keyId: null,
         id: null,
         password: null,
         email: null,
@@ -662,7 +671,7 @@ export default {
     //检测账号
     handleCheckAccount(row){
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认检测选中的数据项？').then(function() {
+      this.$modal.confirm('是否确认检测选中的"'+ids.length+'"项数据？').then(function() {
         return checkAccount(ids);
       }).then(() => {
         this.getList();

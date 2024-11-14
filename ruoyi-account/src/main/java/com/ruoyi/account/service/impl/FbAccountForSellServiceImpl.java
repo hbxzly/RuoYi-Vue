@@ -315,16 +315,20 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         }
 
         if(webDriver.getCurrentUrl().contains("ineligible")){
+            fbAccountForSell.setCanLogin("1");
             fbAccountForSell.setIsMarketplace("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }else {
+            fbAccountForSell.setCanLogin("1");
             fbAccountForSell.setIsMarketplace("1");
+            fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
         webDriver.get("https://www.facebook.com/"+fbAccountForSell.getId());
         String target = "https://static.xx.fbcdn.net/rsrc.php/v3/yz/r/AqoGWewwdNN.png";
         waitingForContent(30,webDriver,target);
 
         String pageSource = webDriver.getPageSource();
+
         //账号名字
         String regex = "\"USER_ID\":\"" + fbAccountForSell.getId() + "\".*?\"NAME\":\"(.*?)\"";
         // 编译正则表达式

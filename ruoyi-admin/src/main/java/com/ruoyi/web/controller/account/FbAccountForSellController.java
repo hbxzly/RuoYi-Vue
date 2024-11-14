@@ -148,8 +148,9 @@ public class FbAccountForSellController extends BaseController
                 String loginStatus = fbAccountForSellService.isLogin(webDriver);
                 if (loginStatus != "true"){
                     webDriver.close();
-                    if (!fbAccountForSell.getNote().equals("账号或密码无效") && fbAccountForSell.getNote().equals("需要输入验证码")){
+                    if (!fbAccountForSell.getNote().equals("账号或密码无效") && !fbAccountForSell.getNote().equals("需要输入验证码")){
                         fbAccountForSell.setNote("无法登录-未知情况");
+                        fbAccountForSell.setCanLogin("0");
                         fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
                     }
                     continue;
