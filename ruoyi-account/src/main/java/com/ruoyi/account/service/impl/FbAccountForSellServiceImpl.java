@@ -291,9 +291,9 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
         webDriver.get("https://facebook.com/marketplace/?ref=bookmark");
         try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='/notifications/']")));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         if(webDriver.getCurrentUrl().contains("ineligible")){
@@ -430,9 +430,9 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
 
         webDriver.get("https://www.facebook.com/pages/?category=your_pages&ref=bookmarks");
         try {
-            Thread.sleep(15000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='/pages/?category=invites&ref=bookmarks']")));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         //主页数量
         pageSource = webDriver.getPageSource();
