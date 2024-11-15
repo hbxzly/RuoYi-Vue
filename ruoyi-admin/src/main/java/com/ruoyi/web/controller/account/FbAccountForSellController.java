@@ -170,6 +170,44 @@ public class FbAccountForSellController extends BaseController
         return success();
     }
 
+    /**
+     * 检测
+     */
+    @GetMapping("/checkAllAccount")
+    @ResponseBody
+    public AjaxResult checkAllAccount() {
+        List<FbAccountForSell> fbAccountForSells = fbAccountForSellService.selectFbAccountForSellList(new FbAccountForSell());
+        for (FbAccountForSell fbAccountForSell : fbAccountForSells) {
+            if (fbAccountForSell.getCanLogin() == null || fbAccountForSell.getCanLogin() == "") {
+                WebDriver webDriver = null;
+                try {
+                    webDriver = seleniumService.openBrowserForAccountSell(fbAccountForSell);
+                    fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell);
+                    String loginStatus = fbAccountForSellService.isLogin(webDriver);
+                    if (loginStatus != "true") {
+                        webDriver.close();
+                        if (!fbAccountForSell.getNote().equals("账号或密码无效") && !fbAccountForSell.getNote().equals("需要输入验证码")) {
+                            fbAccountForSell.setNote("无法登录-未知情况");
+                            fbAccountForSell.setCanLogin("0");
+                            fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                        }
+                        continue;
+                    }
+                    if (fbAccountForSell.getNote().contains("无法登录-未知情况")) {
+                        fbAccountForSell.setNote(fbAccountForSell.getNote().replace("无法登录-未知情况", ""));
+                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                    }
+                    Thread.sleep(1000);
+                    fbAccountForSellService.getAccountMarketplaceAndNameAndFriendInSimplified(webDriver, fbAccountForSell);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                webDriver.close();
+            }
+        }
+        return success();
+    }
+
 
 
 

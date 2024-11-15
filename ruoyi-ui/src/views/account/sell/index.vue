@@ -245,6 +245,15 @@
           @click="handleCheckAccount"
         >开始</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-edit"
+          size="mini"
+          @click="handleCheckAllAccount"
+        >检测所有</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -447,7 +456,7 @@
 </style>
 
 <script>
-import { listSell, getSell, delSell, addSell, updateSell, checkAccount } from "@/api/account/sell";
+import { listSell, getSell, delSell, addSell, updateSell, checkAccount, checkAllAccount } from "@/api/account/sell";
 import { getToken } from "@/utils/auth";
 
 export default {
@@ -677,7 +686,17 @@ export default {
         this.getList();
         this.$modal.msgSuccess("检测成功");
       }).catch(() => {});
-    }
+    },
+    //检测账号
+    handleCheckAllAccount(){
+      this.$modal.confirm('是否确认检测所有未检测的账号？').then(function() {
+        return checkAllAccount();
+      }).then(() => {
+        this.getList();
+        this.$modal.msgSuccess("检测成功");
+      }).catch(() => {});
+    },
+
   }
 };
 </script>

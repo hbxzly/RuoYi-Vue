@@ -50,3 +50,11 @@ export function checkAccount(ids) {
     method: 'get'
   })
 }
+
+  // 检测
+export function checkAllAccount() {
+  return request({
+    url: '/account/sell/checkAllAccount/',
+    method: 'get'
+  })
+}

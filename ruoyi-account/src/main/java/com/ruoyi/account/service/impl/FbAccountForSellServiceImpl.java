@@ -30,85 +30,78 @@ import com.ruoyi.account.service.IFbAccountForSellService;
 
 /**
  * 卖号Service业务层处理
- * 
+ *
  * @author ruoyi
  * @date 2024-11-01
  */
 @Service
-public class FbAccountForSellServiceImpl implements IFbAccountForSellService
-{
+public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
     @Autowired
     private FbAccountForSellMapper fbAccountForSellMapper;
 
     /**
      * 查询卖号
-     * 
+     *
      * @param keyId 卖号主键
      * @return 卖号
      */
     @Override
-    public FbAccountForSell selectFbAccountForSellByKeyId(Long keyId)
-    {
+    public FbAccountForSell selectFbAccountForSellByKeyId(Long keyId) {
         return fbAccountForSellMapper.selectFbAccountForSellByKeyId(keyId);
     }
 
     /**
      * 查询卖号列表
-     * 
+     *
      * @param fbAccountForSell 卖号
      * @return 卖号
      */
     @Override
-    public List<FbAccountForSell> selectFbAccountForSellList(FbAccountForSell fbAccountForSell)
-    {
+    public List<FbAccountForSell> selectFbAccountForSellList(FbAccountForSell fbAccountForSell) {
         return fbAccountForSellMapper.selectFbAccountForSellList(fbAccountForSell);
     }
 
     /**
      * 新增卖号
-     * 
+     *
      * @param fbAccountForSell 卖号
      * @return 结果
      */
     @Override
-    public int insertFbAccountForSell(FbAccountForSell fbAccountForSell)
-    {
+    public int insertFbAccountForSell(FbAccountForSell fbAccountForSell) {
         return fbAccountForSellMapper.insertFbAccountForSell(fbAccountForSell);
     }
 
     /**
      * 修改卖号
-     * 
+     *
      * @param fbAccountForSell 卖号
      * @return 结果
      */
     @Override
-    public int updateFbAccountForSell(FbAccountForSell fbAccountForSell)
-    {
+    public int updateFbAccountForSell(FbAccountForSell fbAccountForSell) {
         return fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
     }
 
     /**
      * 批量删除卖号
-     * 
+     *
      * @param keyIds 需要删除的卖号主键
      * @return 结果
      */
     @Override
-    public int deleteFbAccountForSellByKeyIds(Long[] keyIds)
-    {
+    public int deleteFbAccountForSellByKeyIds(Long[] keyIds) {
         return fbAccountForSellMapper.deleteFbAccountForSellByKeyIds(keyIds);
     }
 
     /**
      * 删除卖号信息
-     * 
+     *
      * @param keyId 卖号主键
      * @return 结果
      */
     @Override
-    public int deleteFbAccountForSellByKeyId(Long keyId)
-    {
+    public int deleteFbAccountForSellByKeyId(Long keyId) {
         return fbAccountForSellMapper.deleteFbAccountForSellByKeyId(keyId);
     }
 
@@ -130,8 +123,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         StringBuilder successMsg = new StringBuilder();
         StringBuilder failureMsg = new StringBuilder();
         for (FbAccountForSell fbAccountForSell : FbAccountForSellList) {
-            try
-            {
+            try {
                 // 验证是否存在这个用户
                 FbAccountForSell f = fbAccountForSellMapper.selectFbAccountForSellById(fbAccountForSell.getId());
                 if (StringUtils.isNull(f)) {
@@ -140,18 +132,15 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                     fbAccountForSellMapper.insertFbAccountForSell(fbAccountForSell);
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、数据 " + fbAccountForSell.getId() + " 导入成功");
-                }
-                else if (isUpdateSupport) {
+                } else if (isUpdateSupport) {
                     fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、数据 " + fbAccountForSell.getId() + " 更新成功");
-                }
-                else {
+                } else {
                     failureNum++;
                     failureMsg.append("<br/>" + failureNum + "、数据 " + fbAccountForSell.getId() + " 已存在");
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 failureNum++;
                 String msg = "<br/>" + failureNum + "、数据 " + fbAccountForSell.getId() + " 导入失败：";
                 failureMsg.append(msg + e.getMessage());
@@ -160,8 +149,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         if (failureNum > 0) {
             failureMsg.insert(0, "很抱歉，导入失败！共 " + failureNum + " 条数据格式不正确，错误如下：");
             throw new ServiceException(failureMsg.toString());
-        }
-        else {
+        } else {
             successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
         }
         return successMsg.toString();
@@ -222,17 +210,17 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
             }
             WebElement loginButton = webDriver.findElement(By.name("login"));
             loginButton.click();
-            waitingForContent(10,webDriver,"• Facebook");
+            waitingForContent(10, webDriver, "• Facebook");
             String pageSource = webDriver.getPageSource();
             Document document = Jsoup.parse(pageSource);
-            if (pageSource.contains("输入你看到的验证码")){
+            if (pageSource.contains("输入你看到的验证码")) {
                 fbAccountForSell.setNote("需要输入验证码");
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
                 return "";
             }
-            if (!pageSource.contains("账号或密码无效")){
+            if (!pageSource.contains("账号或密码无效")) {
                 //新版双重验证码输入
-                if (document.select("#approvals_code").first() != null){
+                if (document.select("#approvals_code").first() != null) {
                     webDriver.findElement(By.id("approvals_code")).sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
                     webDriver.findElement(By.id("checkpointSubmitButton")).click();
                     Thread.sleep(2000);
@@ -267,14 +255,14 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
                 }
 
                 return "";
-            }else {
+            } else {
                 fbAccountForSell.setNote("账号或密码无效");
                 fbAccountForSell.setCanLogin("0");
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
                 return "";
             }
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return "";
@@ -282,6 +270,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
 
     /**
      * 获取信息（简体）
+     *
      * @param webDriver
      * @param fbAccountForSell
      */
@@ -296,18 +285,18 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
             e.printStackTrace();
         }
 
-        if(webDriver.getCurrentUrl().contains("ineligible")){
+        if (webDriver.getCurrentUrl().contains("ineligible")) {
             fbAccountForSell.setCanLogin("1");
             fbAccountForSell.setIsMarketplace("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-        }else {
+        } else {
             fbAccountForSell.setCanLogin("1");
             fbAccountForSell.setIsMarketplace("1");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
-        webDriver.get("https://www.facebook.com/"+fbAccountForSell.getId());
+        webDriver.get("https://www.facebook.com/" + fbAccountForSell.getId());
         String target = "https://static.xx.fbcdn.net/rsrc.php/v3/yz/r/AqoGWewwdNN.png";
-        waitingForContent(30,webDriver,target);
+        waitingForContent(30, webDriver, target);
 
         String pageSource = webDriver.getPageSource();
 
@@ -342,7 +331,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
 
         //好有数量
         Document document = Jsoup.parse(pageSource);
-        Element element = document.select("h1:containsOwn("+fbAccountForSell.getName()+")").first();
+        Element element = document.select("h1:containsOwn(" + fbAccountForSell.getName() + ")").first();
         element = getNthParent(element, 5);
         element.select("a[href*='sk=friends']").first();
         if (element != null) {
@@ -361,80 +350,99 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         }
 
         //帖子数量
-        webDriver.get("https://www.facebook.com/"+fbAccountForSell.getId()+"/allactivity?activity_history=false&category_key=YOURACTIVITYPOSTSSCHEMA&manage_mode=false&should_load_landing_page=false");
         try {
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(text(),'"+fbAccountForSell.getName()+"')]")));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        pageSource = webDriver.getPageSource();
-        document = Jsoup.parse(pageSource);
-        element = document.select("a:containsOwn("+fbAccountForSell.getName()+")").first();
-        String lastsPostsTime = getNthParent(element, 18).children().first().text();
-        fbAccountForSell.setLastPostsTime(lastsPostsTime);
-        fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-
-        int countPosts = document.select("a:containsOwn("+fbAccountForSell.getName()+")").size();
-
-        if(countPosts>0){
-            fbAccountForSell.setPostsNumber(String.valueOf(countPosts));
+            webDriver.get("https://www.facebook.com/" + fbAccountForSell.getId() + "/allactivity?activity_history=false&category_key=YOURACTIVITYPOSTSSCHEMA&manage_mode=false&should_load_landing_page=false");
+            try {
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(text(),'" + fbAccountForSell.getName() + "')]")));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            pageSource = webDriver.getPageSource();
+            document = Jsoup.parse(pageSource);
+            element = document.select("a:containsOwn(" + fbAccountForSell.getName() + ")").first();
+            String lastsPostsTime = getNthParent(element, 18).children().first().text();
+            fbAccountForSell.setLastPostsTime(lastsPostsTime);
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-        }else {
+
+            int countPosts = document.select("a:containsOwn(" + fbAccountForSell.getName() + ")").size();
+
+            if (countPosts > 0) {
+                fbAccountForSell.setPostsNumber(String.valueOf(countPosts));
+                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+            } else {
+                fbAccountForSell.setPostsNumber("0");
+                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+            }
+        } catch (Exception e) {
             fbAccountForSell.setPostsNumber("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+            e.printStackTrace();
         }
 
         //BM数量
-        webDriver.get("https://www.facebook.com/business-support-home/?landing_page=overview&source=link");
         try {
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[text()='"+fbAccountForSell.getName()+"']")));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        String currentUrl = webDriver.getCurrentUrl();
-        if (!currentUrl.contains(fbAccountForSell.getId())) {
-            pageSource = webDriver.getPageSource();
-            // 使用 Jsoup 解析 HTML 源代码
-            document = Jsoup.parse(pageSource);
-            element = document.select("div:containsOwn("+fbAccountForSell.getName()+")").first();
-            element = getNthParent(element, 12);
-            Elements elements = element.siblingElements();
-            String html = elements.get(0).html();
-            pattern = Pattern.compile("business-support-home");
-            matcher = pattern.matcher(html);
-            int countBM = 0;
-            while (matcher.find()) {
-                countBM++;
+            webDriver.get("https://www.facebook.com/business-support-home/?landing_page=overview&source=link");
+            try {
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[text()='" + fbAccountForSell.getName() + "']")));
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            fbAccountForSell.setBmNumber(String.valueOf(countBM));
-            fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-        }else {
-            fbAccountForSell.setBmNumber("0");
+            String currentUrl = webDriver.getCurrentUrl();
+            if (!currentUrl.contains(fbAccountForSell.getId())) {
+                pageSource = webDriver.getPageSource();
+                // 使用 Jsoup 解析 HTML 源代码
+                document = Jsoup.parse(pageSource);
+                element = document.select("div:containsOwn(" + fbAccountForSell.getName() + ")").first();
+                element = getNthParent(element, 12);
+                Elements elements = element.siblingElements();
+                String html = elements.get(0).html();
+                pattern = Pattern.compile("business-support-home");
+                matcher = pattern.matcher(html);
+                int countBM = 0;
+                while (matcher.find()) {
+                    countBM++;
+                }
+                fbAccountForSell.setBmNumber(String.valueOf(countBM));
+                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+            } else {
+                fbAccountForSell.setBmNumber("0");
+                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+            }
+
+            webDriver.get("https://www.facebook.com/business-support-home/" + fbAccountForSell.getId());
+            try {
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[text()='" + fbAccountForSell.getName() + "']")));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             pageSource = webDriver.getPageSource();
             // 使用 Jsoup 解析 HTML 源代码
             document = Jsoup.parse(pageSource);
             // 查找具有特定 class 属性的 div 元素
-            element = document.select("div:containsOwn("+fbAccountForSell.getName()+")").first();
+            element = document.select("div:containsOwn(" + fbAccountForSell.getName() + ")").first();
             element = getNthParent(element, 4);
             List<String> list = new ArrayList<>();
             list = getAllText(element, list);
-            if (list.size()==3){
+            if (list.size() == 3) {
                 fbAccountForSell.setCanAds("0");
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
             }
-            if (list.size()==1){
+            if (list.size() == 1) {
                 fbAccountForSell.setCanAds("1");
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
+        //主页数量
         webDriver.get("https://www.facebook.com/pages/?category=your_pages&ref=bookmarks");
         try {
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='/pages/?category=invites&ref=bookmarks']")));
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //主页数量
         pageSource = webDriver.getPageSource();
         pattern = Pattern.compile("/latest/inbox/all");
         matcher = pattern.matcher(pageSource);
@@ -442,10 +450,10 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         while (matcher.find()) {
             countPage++;
         }
-        if (countPage>0){
+        if (countPage > 0) {
             fbAccountForSell.setPageNumber(String.valueOf(countPage));
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-        }else {
+        } else {
             fbAccountForSell.setPageNumber("0");
             fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
         }
@@ -454,6 +462,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
 
     /**
      * 获取账号语言
+     *
      * @param webDriver
      * @param fbAccountForSell
      * @return
@@ -470,15 +479,15 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
         Document document = Jsoup.parse(pageSource);
         String text = document.select("div[role=main]").first().text();
         //English  中文(台灣)  中文(香港)   中文(简体)
-        if (text.contains("English")){
+        if (text.contains("English")) {
             return "English";
-        }else if (text.contains("中文(台灣)")){
+        } else if (text.contains("中文(台灣)")) {
             return "中文(台灣)";
-        }else if (text.contains("中文(香港)")){
+        } else if (text.contains("中文(香港)")) {
             return "中文(香港)";
-        }else if (text.contains("中文(简体)")){
+        } else if (text.contains("中文(简体)")) {
             return "中文(简体)";
-        }else {
+        } else {
             return "未知语言";
         }
     }
@@ -551,9 +560,9 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
     }
 
     //等待页面加载
-    public void waitingForContent(int time,WebDriver webDriver, String content){
+    public void waitingForContent(int time, WebDriver webDriver, String content) {
         for (int i = 0; i < time; i++) {
-            if (webDriver.getPageSource().contains(content)){
+            if (webDriver.getPageSource().contains(content)) {
                 break;
             }
             try {
@@ -583,7 +592,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService
     public List<String> getAllText(Element parent, List<String> list) {
         for (Element child : parent.children()) {
             if (child.children().isEmpty()) {
-                if (!child.text().isEmpty()){
+                if (!child.text().isEmpty()) {
                     list.add(child.text());
                 }
             } else {
