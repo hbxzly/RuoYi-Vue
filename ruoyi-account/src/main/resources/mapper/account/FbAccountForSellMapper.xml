@@ -38,6 +38,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectFbAccountForSellList" parameterType="FbAccountForSell" resultMap="FbAccountForSellResult">
         <include refid="selectFbAccountForSellVo"/>
         <where>
+            <if test="keyId != null  and keyId != ''"> and key_id = #{keyId}</if>
             <if test="id != null  and id != ''"> and id = #{id}</if>
             <if test="password != null  and password != ''"> and password = #{password}</if>
             <if test="email != null  and email != ''"> and email = #{email}</if>
