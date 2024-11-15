@@ -234,6 +234,15 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
                     approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
                     WebElement submitButton = webDriver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span"));
                     submitButton.click();
+                    WebDriverWait wait = new WebDriverWait(webDriver, 2, 1);
+                    try {
+                        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//svg[@fill='currentColor']")));
+                        fbAccountForSell.setNote("无法登录-秘钥错误");
+                        fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                        return "";
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     Thread.sleep(5000);
                     webDriver.get("https://www.facebook.com");
                 }
@@ -431,7 +440,6 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
                 fbAccountForSell.setCanAds("1");
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
