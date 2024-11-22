@@ -130,7 +130,8 @@ public class FbAccountController extends BaseController {
     public AjaxResult openBrowser(@PathVariable String id) {
         FbAccount fbAccount = fbAccountService.selectOneByFbAccountId(id);
         seleniumService.openBrowser(fbAccount);
-        seleniumService.login(fbAccount);
+        FbAccount fb = fbAccountService.selectOneByFbAccountId(id);
+        seleniumService.login(fb);
         /*List<FbAccount> fbAccounts = fbAccountService.selectByFbAccount(new FbAccount());
         for (FbAccount fbAccount : fbAccounts) {
                 if (fbAccount.getNote() == null || !fbAccount.getNote().contains("成功")) {

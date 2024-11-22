@@ -193,8 +193,13 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
                         .perform();
                 Thread.sleep(500);
                 actions.sendKeys(Keys.DELETE).perform();
-                email.sendKeys(fbAccountForSell.getEmail());
-                Thread.sleep(1500);
+//                email.sendKeys(fbAccountForSell.getEmail());
+                for (char c : fbAccountForSell.getEmail().toCharArray()) {
+                    email.sendKeys(String.valueOf(c));
+                    // 可选：添加延迟，模拟更真实的逐字符输入
+                    Thread.sleep(100); // 延迟100毫秒
+                }
+                Thread.sleep(1000);
                 password.click();
                 // 模拟Ctrl+A组合键
                 actions.keyDown(Keys.CONTROL)
@@ -203,8 +208,13 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
                         .perform();
                 Thread.sleep(500);
                 actions.sendKeys(Keys.DELETE).perform();
-                password.sendKeys(fbAccountForSell.getPassword());
-                Thread.sleep(1500);
+//                password.sendKeys(fbAccountForSell.getPassword());
+                for (char c : fbAccountForSell.getPassword().toCharArray()) {
+                    password.sendKeys(String.valueOf(c));
+                    // 可选：添加延迟，模拟更真实的逐字符输入
+                    Thread.sleep(100); // 延迟100毫秒
+                }
+                Thread.sleep(2000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -214,7 +224,12 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
             String pageSource = webDriver.getPageSource();
             Document document = Jsoup.parse(pageSource);
             if (pageSource.contains("输入你看到的验证码")) {
-                fbAccountForSell.setNote("需要输入验证码");
+                fbAccountForSell.setNote("无法登录-需要输入验证码");
+                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                return "";
+            }
+            if(pageSource.contains("WhatsApp")){
+                fbAccountForSell.setNote("无法登录-需要WhatsApp验证码");
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
                 return "";
             }
@@ -234,16 +249,12 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
                     approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
                     WebElement submitButton = webDriver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span"));
                     submitButton.click();
-                    WebDriverWait wait = new WebDriverWait(webDriver, 2, 1);
-                    try {
-                        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//svg[@fill='currentColor']")));
+                    if (waitingForContent(2,webDriver,"currentColor")){
                         fbAccountForSell.setNote("无法登录-秘钥错误");
                         fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
                         return "";
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                    Thread.sleep(5000);
+                    Thread.sleep(3000);
                     webDriver.get("https://www.facebook.com");
                 }
                 int size = document.select("[role=button]").size();
@@ -255,7 +266,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
                     approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span"))).click();
                     for (int i = 0; i < 10; i++) {
-                        String login = isLogin(webDriver);
+                        String login = isLogin(webDriver, fbAccountForSell);
                         if (!login.equals("true")) {
                             Thread.sleep(1000);
                         }
@@ -539,10 +550,14 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
      * @return
      */
     @Override
-    public String isLogin(WebDriver webDriver) {
+    public String isLogin(WebDriver webDriver, FbAccountForSell fbAccountForSell) {
         boolean hasCUser = false;
         boolean hasPresence = false;
         Set<Cookie> cookies = webDriver.manage().getCookies();
+        if (webDriver.getCurrentUrl().contains("/checkpoint/")){
+            fbAccountForSell.setNote("无法登录-账号被锁");
+            fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+        }
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("c_user")) {
                 hasCUser = true; // 找到了c_user项
@@ -568,10 +583,10 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
     }
 
     //等待页面加载
-    public void waitingForContent(int time, WebDriver webDriver, String content) {
+    public boolean waitingForContent(int time, WebDriver webDriver, String content) {
         for (int i = 0; i < time; i++) {
             if (webDriver.getPageSource().contains(content)) {
-                break;
+                return true;
             }
             try {
                 Thread.sleep(1000);
@@ -579,6 +594,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
                 e.printStackTrace();
             }
         }
+        return false;
     }
 
 

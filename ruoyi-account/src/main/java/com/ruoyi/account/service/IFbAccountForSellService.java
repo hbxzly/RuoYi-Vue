@@ -106,5 +106,5 @@ public interface IFbAccountForSellService
      * @param webDriver
      * @return
      */
-    public String isLogin(WebDriver webDriver);
+    public String isLogin(WebDriver webDriver, FbAccountForSell fbAccountForSell);
 }

@@ -145,18 +145,20 @@ public class FbAccountForSellController extends BaseController
             try {
                 webDriver = seleniumService.openBrowserForAccountSell(fbAccountForSell);
                 fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell);
-                String loginStatus = fbAccountForSellService.isLogin(webDriver);
+                String loginStatus = fbAccountForSellService.isLogin(webDriver, fbAccountForSell);
                 if (loginStatus != "true"){
                     webDriver.close();
-                    if (!fbAccountForSell.getNote().equals("账号或密码无效") && !fbAccountForSell.getNote().equals("需要输入验证码")){
+                    if (!fbAccountForSell.getNote().equals("账号或密码无效") && !fbAccountForSell.getNote().equals("无法登录-需要输入验证码")
+                            && !fbAccountForSell.getNote().equals("无法登录-秘钥错误") && !fbAccountForSell.getNote().equals("无法登录-需要WhatsApp验证码")
+                            && !fbAccountForSell.getNote().equals("无法登录-账号被锁")){
                         fbAccountForSell.setNote("无法登录-未知情况");
                         fbAccountForSell.setCanLogin("0");
                         fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
                     }
                     continue;
                 }
-                if (fbAccountForSell.getNote().contains("无法登录-未知情况")){
-                    fbAccountForSell.setNote(fbAccountForSell.getNote().replace("无法登录-未知情况",""));
+                if (loginStatus == "true"){
+                    fbAccountForSell.setNote("");
                     fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
                 }
                 Thread.sleep(1000);
@@ -183,10 +185,12 @@ public class FbAccountForSellController extends BaseController
                 try {
                     webDriver = seleniumService.openBrowserForAccountSell(fbAccountForSell);
                     fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell);
-                    String loginStatus = fbAccountForSellService.isLogin(webDriver);
+                    String loginStatus = fbAccountForSellService.isLogin(webDriver, fbAccountForSell);
                     if (loginStatus != "true") {
                         webDriver.close();
-                        if (!fbAccountForSell.getNote().equals("账号或密码无效") && !fbAccountForSell.getNote().equals("需要输入验证码")) {
+                        if (!fbAccountForSell.getNote().equals("账号或密码无效") && !fbAccountForSell.getNote().equals("无法登录-需要输入验证码")
+                                && !fbAccountForSell.getNote().equals("无法登录-秘钥错误") && !fbAccountForSell.getNote().equals("无法登录-需要WhatsApp验证码")
+                                && !fbAccountForSell.getNote().equals("无法登录-账号被锁")) {
                             fbAccountForSell.setNote("无法登录-未知情况");
                             fbAccountForSell.setCanLogin("0");
                             fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
