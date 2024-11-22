@@ -1264,12 +1264,12 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         //创主页
         try {
             //主页名
-            String pageNameXpath = WebPageUtil.getXpathBySelector(pageSource, CreatePageConstants.CREATE_PAGE_PAGE_NAME_XPATH);
+            String pageNameXpath = "//input[@dir='ltr' and @autocomplete='off' and @type='text']";
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageNameXpath)))
                     .sendKeys(pageName);
             Thread.sleep(1000);
             //类别
-            String pageTypeXpath = WebPageUtil.getXpathBySelector(pageSource, CreatePageConstants.CREATE_PAGE_PAGE_TYPE_XPATH);
+            String pageTypeXpath = "//input[@style='width: 80px;']";
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageTypeXpath)))
                     .sendKeys("服装");
             Thread.sleep(2000);
