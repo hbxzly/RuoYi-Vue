@@ -164,5 +164,12 @@ public interface                        ISeleniumService {
      */
     void createPage(FbAccount fbAccount, String pageName, Avatar avatar, Background background, List<Posts> posts) throws InterruptedException;
 
+    /**
+     * 为邮箱打开浏览器
+     * @param email
+     * @return
+     */
+    WebDriver openBrowserForEmail(Email email);
+
 
 }

@@ -695,7 +695,7 @@ export default {
         this.getList();
         this.$modal.msgSuccess("检测成功");
       }).catch(() => {});
-    },
+    }
 
   }
 };

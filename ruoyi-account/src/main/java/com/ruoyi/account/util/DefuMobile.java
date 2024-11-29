@@ -34,6 +34,7 @@ public class DefuMobile {
             int responseCode = connection.getResponseCode();
             if (responseCode == 200){
                 String readResponse = readResponse(connection);
+                System.out.println(readResponse);
                 // 关闭连接
                 connection.disconnect();
                 return jsonExtractor(readResponse,"mobile");

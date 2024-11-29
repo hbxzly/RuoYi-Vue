@@ -193,4 +193,12 @@ export function createPage(ids,pageName) {
   })
 }
 
+//更新所有账号信息
+export function checkFbAccountInfo(ids){
+  return request({
+    url: '/account/fbAccount/checkFbAccountInfo/'+ids,
+    method: 'get'
+  })
+}
+
 

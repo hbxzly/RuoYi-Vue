@@ -36,7 +36,7 @@ export default {
     pageSizes: {
       type: Array,
       default() {
-        return [10, 20, 30, 40, 50, 60, 100]
+        return [5, 10, 20, 30, 40, 50, 60, 100, 200]
       }
     },
     // 移动端页码按钮的数量端默认值5

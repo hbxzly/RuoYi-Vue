@@ -195,6 +195,9 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         }
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
         if (isLogin(webDriver,fbAccount).equals("false") || isLogin(webDriver,fbAccount).equals("error")) {
+            if (fbAccount.getStatus() == "4" || fbAccount.getStatus() == "5") {
+                return false;
+            }
             try {
                 WebDriverWait wait = new WebDriverWait(webDriver, 10, 1);
                 WebElement email = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("email")));
@@ -273,7 +276,9 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                         }
                         Thread.sleep(3000);
                         webDriver.get("https://www.facebook.com");
-                        isLogin(webDriver,fbAccount);
+                        if (isLogin(webDriver,fbAccount) != "true"){
+                            return false;
+                        }
                     }
                     int size = document.select("[role=button]").size();
                     if (size == 1) {
@@ -514,24 +519,39 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 fbAccount.setStatus("4");
                 fbAccountMapper.updateFbAccount(fbAccount);
                 return "false";
-            }else{
+            }
+            if (webDriver.getPageSource().contains("https://static.xx.fbcdn.net/rsrc.php/v3/yP/r/vpsJBY0EYuI.png")){
                 fbAccount.setNote("无法登录-账号被封");
                 fbAccount.setStatus("5");
                 fbAccountMapper.updateFbAccount(fbAccount);
                 return "false";
             }
-
+            fbAccount.setStatus("4");
+            fbAccountMapper.updateFbAccount(fbAccount);
+            return "false";
         }
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("c_user")) {
+                if (fbAccount.getStatus() != "1"){
+                    fbAccount.setStatus("1");
+                    fbAccountMapper.updateFbAccount(fbAccount);
+                }
                 hasCUser = true; // 找到了c_user项
             }
             if (cookie.getName().equals("presence")) {
+                if (fbAccount.getStatus() != "1"){
+                    fbAccount.setStatus("1");
+                    fbAccountMapper.updateFbAccount(fbAccount);
+                }
                 hasPresence = true;
             }
         }
 
         if (hasCUser && hasPresence) {
+            if (fbAccount.getStatus() != "1"){
+                fbAccount.setStatus("1");
+                fbAccountMapper.updateFbAccount(fbAccount);
+            }
             return "true";
         }
         if (hasCUser && !hasPresence) {
@@ -727,9 +747,14 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                     e.printStackTrace();
                 }
                 String pageSource = webDriver.getPageSource();
-                String xpath = WebPageUtil.getXpathBySelector(pageSource, "div[aria-label=添加好友]");
-                System.out.println(xpath);
-                webDriver.findElement(By.xpath(xpath.replace("/#root[1]", ""))).click();
+                waitingForContent(10,webDriver,"https://static.xx.fbcdn.net/rsrc.php/v3/yK/r/r2FA830xjtI.png");
+                try {
+                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v3/yK/r/r2FA830xjtI.png']"))).click();
+                } catch (Exception e) {
+                    System.out.println("没添加成功");
+                    e.printStackTrace();
+                }
+
                /* if (!webDriverMap.get(fbAccount.getId()).getPageSource().contains("取消")) {
 
                     try {
@@ -1530,6 +1555,30 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         }
 
 
+    }
+
+    /**
+     * 为邮箱打开浏览器
+     * @param email
+     * @return
+     */
+    @Override
+    public WebDriver openBrowserForEmail(Email email) {
+        try {
+            //参数配置
+            System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
+            ChromeOptions option = new ChromeOptions();
+//            option.addArguments("--user-data-dir=" + fbAccountForSell.getFilePath() + fbAccountForSell.getBrowserProfile());
+            option.addArguments("--remote-allow-origins=*");
+            option.addArguments("--disable-notifications");//限制通知
+            option.setExperimentalOption("useAutomationExtension", false);
+            option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
+            WebDriver webDriver = new ChromeDriver(option);
+            return webDriver;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     //获取账号名称

@@ -13,11 +13,14 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
+import com.ruoyi.common.utils.poi.ExcelUtil;
+import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 /**
@@ -116,6 +119,19 @@ public class FbAccountController extends BaseController {
             }
         }
         return success();
+    }
+
+    /**
+     * 导出账号列表
+     */
+    @PreAuthorize("@ss.hasPermi('system:account:export')")
+    @Log(title = "账号", businessType = BusinessType.EXPORT)
+    @PostMapping("/export")
+    public void export(HttpServletResponse response, FbAccount fbAccount)
+    {
+        List<FbAccount> list = fbAccountService.selectFbAccountList(fbAccount);
+        ExcelUtil<FbAccount> util = new ExcelUtil<FbAccount>(FbAccount.class);
+        util.exportExcel(response, list, "账号");
     }
 
 
@@ -433,6 +449,20 @@ public class FbAccountController extends BaseController {
             }
         });
 
+        return success();
+    }
+
+    /**
+     * 检测
+     */
+    @GetMapping("/checkFbAccountInfo/{ids}")
+    @ResponseBody
+    public AjaxResult checkFbAccountInfo(@PathVariable String[] ids) {
+        for (String id : ids) {
+            FbAccount fbAccount = fbAccountService.selectOneByFbAccountId(id);
+            WebDriver webDriver = seleniumService.openBrowser(fbAccount);
+            fbAccountService.checkFbAccount(webDriver,fbAccount);
+        }
         return success();
     }
 

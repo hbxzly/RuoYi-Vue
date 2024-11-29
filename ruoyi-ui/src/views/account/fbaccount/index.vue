@@ -36,6 +36,14 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="地区" prop="region">
+        <el-input
+          v-model="queryParams.region"
+          placeholder="请输入地区"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="备注" prop="note">
         <el-input
           v-model="queryParams.note"
@@ -153,6 +161,26 @@
           @click="handleCreatePage"
         >创建主页</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="multiple"
+          @click="handleCheckFbAccountInfo"
+        >账号检测</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          plain
+          icon="el-icon-download"
+          size="mini"
+          @click="handleExport"
+          v-hasPermi="['account:fbAccount:export']"
+        >导出</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
     <!--  表格体  -->
@@ -165,6 +193,7 @@
       <el-table-column label="邮箱" align="center" prop="email" />
       <el-table-column label="邮箱密码" align="center" prop="emailPassword" />
       <el-table-column label="秘钥" align="center" prop="secretKey" />
+      <el-table-column label="地区" align="center" prop="region" />
       <el-table-column label="状态" align="center" prop="status" width="80px">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.account_status" :value="scope.row.status"/>
@@ -351,7 +380,7 @@
 import { listFbAccount, getAccount, updateAccount, addAccount, delFbaccount,
       openBrowser, moreOperate, collectAdsInfo, multipleOpenBrowser, closeBrowser, closeAllBrowser,
       showBrowser, createBM, checkBM, checkAccount, openAds,  batchAddFriend, checkAccountInfo, changePassword,
-      unlockAccount, createPage} from "@/api/account/fbAccount";
+      unlockAccount, createPage, checkFbAccountInfo} from "@/api/account/fbAccount";
 
 
 export default {
@@ -399,6 +428,8 @@ export default {
         keyId: undefined,
         id: undefined,
         email: undefined,
+        note: undefined,
+        region: undefined,
         status: undefined,
         browserStatus: undefined
       },
@@ -487,6 +518,8 @@ export default {
         emailPassword: undefined,
         status: "0",
         birthday: undefined,
+        note: undefined,
+        region: undefined,
         secretKey: undefined
       };
       this.resetForm("form");
@@ -640,7 +673,6 @@ export default {
       checkAccountInfo(ids).then(response => {
 
       });
-
     },
 
     //修改密码
@@ -727,8 +759,25 @@ export default {
         createPage(ids,formattedPageNames);
         this.cancelCreatePage();
       }
-    }
+    },
 
+    /**检测账号信息*/
+    handleCheckFbAccountInfo(row) {
+      const ids = row.id || this.ids
+      this.$modal.confirm('是否确认检测选中的账号？').then(function() {
+        return checkFbAccountInfo(ids);
+      }).then(() => {
+        this.getList();
+        this.$modal.msgSuccess("检测成功");
+      }).catch(() => {});
+    },
+
+    /** 导出按钮操作 */
+    handleExport() {
+      this.download('account/fbAccount/export', {
+        ...this.queryParams
+      }, `fbAccount_${new Date().getTime()}.xlsx`)
+    }
   }
 };
 </script>

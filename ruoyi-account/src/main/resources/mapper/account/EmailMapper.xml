@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.account.mapper.EmailMapper">
+
+    <resultMap type="Email" id="EmailResult">
+        <result property="keyId"    column="key_id"    />
+        <result property="email"    column="email"    />
+        <result property="password"    column="password"    />
+        <result property="accountId"    column="account_id"    />
+        <result property="status"    column="status"    />
+        <result property="note"    column="note"    />
+        <result property="lastTimeMessage"    column="last_time_message"    />
+    </resultMap>
+
+    <sql id="selectEmailVo">
+        select key_id, email, password, account_id, status, note, last_time_message from email
+    </sql>
+
+    <select id="selectEmailList" parameterType="Email" resultMap="EmailResult">
+        <include refid="selectEmailVo"/>
+        <where>
+            <if test="email != null  and email != ''"> and email = #{email}</if>
+            <if test="password != null  and password != ''"> and password = #{password}</if>
+            <if test="accountId != null  and accountId != ''"> and account_id = #{accountId}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+            <if test="lastTimeMessage != null  and lastTimeMessage != ''"> and last_time_message = #{lastTimeMessage}</if>
+        </where>
+        order by key_id DESC
+    </select>
+    
+    <select id="selectEmailByKeyId" parameterType="Long" resultMap="EmailResult">
+        <include refid="selectEmailVo"/>
+        where key_id = #{keyId}
+    </select>
+
+
+    <select id="selectEmailByEmail" parameterType="java.lang.String" resultMap="EmailResult">
+        <include refid="selectEmailVo"/>
+        where email = #{email}
+    </select>
+
+    <insert id="insertEmail" parameterType="Email" useGeneratedKeys="true" keyProperty="keyId">
+        insert into email
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="email != null">email,</if>
+            <if test="password != null">password,</if>
+            <if test="accountId != null">account_id,</if>
+            <if test="status != null">status,</if>
+            <if test="note != null">note,</if>
+            <if test="lastTimeMessage != null">last_time_message,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="email != null">#{email},</if>
+            <if test="password != null">#{password},</if>
+            <if test="accountId != null">#{accountId},</if>
+            <if test="status != null">#{status},</if>
+            <if test="note != null">#{note},</if>
+            <if test="lastTimeMessage != null">#{lastTimeMessage},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEmail" parameterType="Email">
+        update email
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="email != null">email = #{email},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="accountId != null">account_id = #{accountId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="note != null">note = #{note},</if>
+            <if test="lastTimeMessage != null">last_time_message = #{lastTimeMessage},</if>
+        </trim>
+        where key_id = #{keyId}
+    </update>
+
+    <delete id="deleteEmailByKeyId" parameterType="Long">
+        delete from email where key_id = #{keyId}
+    </delete>
+
+    <delete id="deleteEmailByKeyIds" parameterType="String">
+        delete from email where key_id in 
+        <foreach item="keyId" collection="array" open="(" separator="," close=")">
+            #{keyId}
+        </foreach>
+    </delete>
+</mapper>

@@ -125,8 +125,7 @@ public class FbAccountForSellController extends BaseController
      * @param response
      */
     @PostMapping("/importTemplate")
-    public void importTemplate(HttpServletResponse response)
-    {
+    public void importTemplate(HttpServletResponse response) {
         ExcelUtil<FbAccountForSell> util = new ExcelUtil<FbAccountForSell>(FbAccountForSell.class);
         util.importTemplateExcel(response, "帖子数据");
     }

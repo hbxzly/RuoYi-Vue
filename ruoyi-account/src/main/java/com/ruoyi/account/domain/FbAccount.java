@@ -1,6 +1,7 @@
 package com.ruoyi.account.domain;
 
 
+import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -11,34 +12,64 @@ public class FbAccount extends BaseEntity {
 
     private Integer keyId;
 
+    /** ID */
+    @Excel(name = "ID")
     private String id;
 
+    /** 密码 */
+    @Excel(name = "密码")
     private String password;
 
+    /** 邮箱 */
+    @Excel(name = "邮箱")
     private String email;
 
+    /** 邮箱密码 */
+    @Excel(name = "邮箱密码")
     private String emailPassword;
 
+    /** 生日 */
+    @Excel(name = "生日")
     private String birthday;
 
+    /** 名字 */
+    @Excel(name = "名字")
     private String name;
 
+    /** 秘钥 */
+    @Excel(name = "秘钥")
     private String secretKey;
 
+    /** 0,被封；1,正常；2,受限；3,永久受限；4,被锁；5,停用；6,受限申诉；7，停用申诉； */
+    @Excel(name = "0,被封；1,正常；2,受限；3,永久受限；4,被锁；5,停用；6,受限申诉；7，停用申诉；")
     private String status;
 
+    /** 创建日期 */
+    @Excel(name = "创建日期")
     private String createDate;
 
+    /** 备注 */
+    @Excel(name = "备注")
     private String note;
 
+    /** UA */
+    @Excel(name = "UA")
     private String ua;
 
+    /** 数据源 */
+    @Excel(name = "数据源")
     private String dataSource;
 
+    /** 地区 */
+    @Excel(name = "地区")
     private String region;
 
+    /** 0,关闭；1,打开 */
+    @Excel(name = "0,关闭；1,打开")
     private String browserStatus;
 
+    /** 浏览器文件 */
+    @Excel(name = "浏览器文件")
     private String browserProfile;
 
     public Integer getKeyId() {
