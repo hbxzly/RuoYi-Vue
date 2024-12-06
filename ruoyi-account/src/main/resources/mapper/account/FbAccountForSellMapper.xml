@@ -49,10 +49,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="gender != null  and gender != ''"> and gender = #{gender}</if>
             <if test="createDate != null  and createDate != ''"> and create_date = #{createDate}</if>
             <if test="note != null  and note != ''"> and note like concat('%', #{note}, '%')</if>
-            <if test="region != null  and region != ''"> and region = #{region}</if>
+            <if test="region != null  and region != ''"> and region like concat('%', #{region}, '%')</if>
             <if test="canLogin != null  and canLogin != ''"> and can_login = #{canLogin}</if>
             <if test="isMarketplace != null  and isMarketplace != ''"> and is_marketplace = #{isMarketplace}</if>
-            <if test="friendNumber != null  and friendNumber != ''"> and friend_number = #{friendNumber}</if>
+            <if test="friendNumber != null  and friendNumber != ''"> and friend_number > #{friendNumber}</if>
             <if test="canAds != null  and canAds != ''"> and can_ads = #{canAds}</if>
             <if test="pageNumber != null  and pageNumber != ''"> and page_number = #{pageNumber}</if>
             <if test="bmNumber != null  and bmNumber != ''"> and bm_number = #{bmNumber}</if>

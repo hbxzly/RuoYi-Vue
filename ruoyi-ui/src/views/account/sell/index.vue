@@ -254,6 +254,16 @@
           @click="handleCheckAllAccount"
         >检测所有</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="single"
+          @click="handleSellAccount"
+        >卖出</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -695,6 +705,10 @@ export default {
         this.getList();
         this.$modal.msgSuccess("检测成功");
       }).catch(() => {});
+    },
+
+    handleSellAccount(row){
+
     }
 
   }

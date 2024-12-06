@@ -139,7 +139,6 @@ public class FbAccountForSellController extends BaseController
     public AjaxResult checkAccount(@PathVariable Long[] ids) {
         List<FbAccountForSell> fbAccountForSells = fbAccountForSellService.selectFbAccountForSellListByAccountIds(ids);
         for (FbAccountForSell fbAccountForSell : fbAccountForSells) {
-
             WebDriver webDriver = null;
             try {
                 webDriver = seleniumService.openBrowserForAccountSell(fbAccountForSell);
@@ -147,13 +146,13 @@ public class FbAccountForSellController extends BaseController
                 String loginStatus = fbAccountForSellService.isLogin(webDriver, fbAccountForSell);
                 if (loginStatus != "true"){
                     webDriver.close();
-                    if (!fbAccountForSell.getNote().equals("账号或密码无效") && !fbAccountForSell.getNote().equals("无法登录-需要输入验证码")
+                    /*if (!fbAccountForSell.getNote().equals("账号或密码无效") && !fbAccountForSell.getNote().equals("无法登录-需要输入验证码")
                             && !fbAccountForSell.getNote().equals("无法登录-秘钥错误") && !fbAccountForSell.getNote().equals("无法登录-需要WhatsApp验证码")
                             && !fbAccountForSell.getNote().equals("无法登录-账号被锁")){
                         fbAccountForSell.setNote("无法登录-未知情况");
                         fbAccountForSell.setCanLogin("0");
                         fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
-                    }
+                    }*/
                     continue;
                 }
                 if (loginStatus == "true"){

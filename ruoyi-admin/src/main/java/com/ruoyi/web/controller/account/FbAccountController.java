@@ -462,6 +462,7 @@ public class FbAccountController extends BaseController {
             FbAccount fbAccount = fbAccountService.selectOneByFbAccountId(id);
             WebDriver webDriver = seleniumService.openBrowser(fbAccount);
             fbAccountService.checkFbAccount(webDriver,fbAccount);
+            seleniumService.closeBrowser(fbAccount);
         }
         return success();
     }

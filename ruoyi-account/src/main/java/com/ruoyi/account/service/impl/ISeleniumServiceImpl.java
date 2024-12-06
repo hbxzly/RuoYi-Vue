@@ -520,7 +520,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 fbAccountMapper.updateFbAccount(fbAccount);
                 return "false";
             }
-            if (webDriver.getPageSource().contains("https://static.xx.fbcdn.net/rsrc.php/v3/yP/r/vpsJBY0EYuI.png")){
+            if (webDriver.getPageSource().contains("https://static.xx.fbcdn.net/rsrc.php/v3/yX/r/ACJE6Qz3VpL.png")){
                 fbAccount.setNote("无法登录-账号被封");
                 fbAccount.setStatus("5");
                 fbAccountMapper.updateFbAccount(fbAccount);
@@ -728,17 +728,24 @@ public class ISeleniumServiceImpl implements ISeleniumService {
      */
     @Override
     public void batchAddFriend(String id, String[] accountIds) {
+        OperationLog operationLog = new OperationLog();
         if (!webDriverMap.containsKey(id)) {
             FbAccount fbAccount = fbAccountMapper.selectOneByFbAccountId(id);
             openBrowser(fbAccount);
-            login(fbAccount);
             WebDriver webDriver = webDriverMap.get(fbAccount.getId());
+            webDriver.manage().deleteAllCookies();
+            login(fbAccount);
+            String login = isLogin(webDriver, fbAccount);
             WebDriverWait wait = new WebDriverWait(webDriver, 30, 1);
-            if (webDriverMap.get(fbAccount.getId()).getPageSource().contains("永久停用")) {
-                closeBrowser(fbAccount);
-                return;
-            }
             for (String accountId : accountIds) {
+                if (login.equals("false") ) {
+                    operationLog.setOperationAccount(id);
+                    operationLog.setOperationContent("添加"+accountId+"好友");
+                    operationLog.setOperationStatus("失败");
+                    operationLog.setOperationTime(new Date());
+                    operationLogService.insertOperationLog(operationLog);
+                    closeBrowser(fbAccount);
+                }
                 try {
                     webDriverMap.get(fbAccount.getId()).get("https://www.facebook.com/" + accountId);
                     webDriverMap.get(fbAccount.getId()).manage().window().maximize();
@@ -751,41 +758,23 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 try {
                     wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v3/yK/r/r2FA830xjtI.png']"))).click();
                 } catch (Exception e) {
-                    System.out.println("没添加成功");
-                    e.printStackTrace();
-                }
-
-               /* if (!webDriverMap.get(fbAccount.getId()).getPageSource().contains("取消")) {
-
-                    try {
-                        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@aria-label='添加好友']")))
-                                .click();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-
-                    }
-                }
-                try {
-//                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[4]/div[1]/div/div/div[1]/div[2]/span/span")))
-                    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div[aria-label='添加好友'], div[aria-label='Add friend'], div[aria-label='加朋友']")))
-                            .click();
-                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
+                    wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v3/yo/r/Qg9sXPTnmFb.png']")));
+                    operationLog.setOperationAccount(id);
+                    operationLog.setOperationContent("添加"+accountId+"好友");
+                    operationLog.setOperationStatus("成功");
+                    operationLog.setOperationTime(new Date());
+                    operationLogService.insertOperationLog(operationLog);
+                }catch (Exception e){
+                    operationLog.setOperationAccount(id);
+                    operationLog.setOperationContent("添加"+accountId+"好友");
+                    operationLog.setOperationStatus("失败");
+                    operationLog.setOperationTime(new Date());
+                    operationLogService.insertOperationLog(operationLog);
                     e.printStackTrace();
                 }
-                String pageSource = webDriver.getPageSource();
-                if (!(pageSource.contains("取消邀請") || pageSource.contains("取消请求") || pageSource.contains("Cancel request"))){
-                    try {
-                        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("div[aria-label='加为好友'], div[aria-label='Add friend'], div[aria-label='加朋友']")))
-                                .click();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }*/
             }
             closeBrowser(fbAccount);
         }

@@ -233,54 +233,65 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
                 return "";
             }
-            if (!pageSource.contains("账号或密码无效")) {
-                //新版双重验证码输入
-                if (document.select("#approvals_code").first() != null) {
-                    webDriver.findElement(By.id("approvals_code")).sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
-                    webDriver.findElement(By.id("checkpointSubmitButton")).click();
-                    Thread.sleep(2000);
-                    webDriver.findElement(By.id("checkpointSubmitButton")).click();
-                    Thread.sleep(2000);
-                    webDriver.get("https://www.facebook.com");
-                }
-                Element element = document.select("input[type=text]").first();
-                if (element != null) {
-                    WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
-                    approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
-                    WebElement submitButton = webDriver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span"));
-                    submitButton.click();
-                    if (waitingForContent(2,webDriver,"currentColor")){
-                        fbAccountForSell.setNote("无法登录-秘钥错误");
-                        fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-                        return "";
-                    }
-                    Thread.sleep(3000);
-                    webDriver.get("https://www.facebook.com");
-                }
-                int size = document.select("[role=button]").size();
-                if (size == 1) {
-                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='button']"))).click();
-                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("input[type='radio'][value='1']"))).click();
-                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[4]/div[3]/div/div/div/div/div/div/div/div/div[1]/div/span/span"))).click();
-                    WebElement approvalsCode = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']")));
-                    approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
-                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span"))).click();
-                    for (int i = 0; i < 10; i++) {
-                        String login = isLogin(webDriver, fbAccountForSell);
-                        if (!login.equals("true")) {
-                            Thread.sleep(1000);
-                        }
-                    }
-                    webDriver.get("https://www.facebook.com");
-                }
-
-                return "";
-            } else {
-                fbAccountForSell.setNote("账号或密码无效");
+            if (pageSource.contains("账号或密码无效")){
+                fbAccountForSell.setNote("无法登录-账号或密码无效");
                 fbAccountForSell.setCanLogin("0");
                 fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
                 return "";
             }
+            if (pageSource.contains("你输入的是旧密码")){
+                fbAccountForSell.setNote("无法登录-密码无效");
+                fbAccountForSell.setCanLogin("0");
+                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                return "";
+            }
+
+            //新版双重验证码输入
+            if (document.select("#approvals_code").first() != null) {
+                webDriver.findElement(By.id("approvals_code")).sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
+                webDriver.findElement(By.id("checkpointSubmitButton")).click();
+                Thread.sleep(2000);
+                webDriver.findElement(By.id("checkpointSubmitButton")).click();
+                Thread.sleep(2000);
+                webDriver.get("https://www.facebook.com");
+            }
+            Element element = document.select("input[type=text]").first();
+            if (element != null) {
+                WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
+                approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
+                approvalsCode.sendKeys(Keys.ENTER);
+                if (waitingForContent(2, webDriver, "currentColor")) {
+                    fbAccountForSell.setNote("无法登录-秘钥错误");
+                    fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                    return "";
+                }
+                Thread.sleep(3000);
+                webDriver.get("https://www.facebook.com");
+            }
+            int size = document.select("[role=button]").size();
+            if (size == 1) {
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='button']"))).click();
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("input[type='radio'][value='1']"))).click();
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[4]/div[3]/div/div/div/div/div/div/div/div/div[1]/div/span/span"))).click();
+                WebElement approvalsCode = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']")));
+                approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
+                approvalsCode.sendKeys(Keys.ENTER);
+                if (waitingForContent(2, webDriver, "currentColor")) {
+                    fbAccountForSell.setNote("无法登录-秘钥错误");
+                    fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                    return "";
+                }
+                for (int i = 0; i < 10; i++) {
+                    String login = isLogin(webDriver, fbAccountForSell);
+                    if (!login.equals("true")) {
+                        Thread.sleep(1000);
+                    }
+                }
+                webDriver.get("https://www.facebook.com");
+            }
+
+            return "";
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -361,7 +372,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
 
             pattern = Pattern.compile(regex);
             matcher = pattern.matcher(friendCountText);
-            String number = "";
+            String number = "0";
             if (matcher.find()) {
                 number = matcher.group(1); // 提取数字部分
             }  // 获取 好友数量 部分

@@ -181,6 +181,16 @@
           v-hasPermi="['account:fbAccount:export']"
         >导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          plain
+          icon="el-icon-download"
+          size="mini"
+          @click="handleGetInfo"
+          :disabled="single"
+        >查看详情</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
     <!--  表格体  -->
@@ -343,23 +353,23 @@
       </div>
     </el-dialog>
 
-    <!--批量添加好友-->
-    <el-dialog :title="title" :visible.sync="openCreatePage" width="700px" append-to-body>
-      <el-form ref="elForm" :model="formData"  size="medium" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="主页名称" prop="pageName">
-              <el-input type="textarea" v-model="formData.pageName" placeholder="主页名称"  clearable :style="{width: '100%'}" :rows="5">
-              </el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
+    <!--展示信息-->
+    <el-dialog :title="title" :visible.sync="openAccountInfo" width="700px" append-to-body>
+      <el-form ref="form" :model="form" label-width="80px">
+        <p><strong>ID：</strong>{{ form.id }}</p>
+        <p><strong>密码：</strong>{{ form.password }}</p>
+        <p><strong>邮箱：</strong>{{ form.email }}</p>
+        <p><strong>邮箱密码：</strong>{{ form.emailPassword }}</p>
+        <p><strong>秘钥：</strong>{{ form.secretKey }}</p>
+        <p><strong>名字：</strong>{{ form.name }}</p>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitCreatePage">确 定</el-button>
-        <el-button @click="cancelCreatePage">取 消</el-button>
+        <el-button @click="cancelAccountInfo">取 消</el-button>
       </div>
     </el-dialog>
+
+
+
 
   </div>
 </template>
@@ -399,6 +409,8 @@ export default {
 
       openBatchAddFriend:false,
 
+      openAccountInfo:false,
+
       openCreatePage:false,
       // 遮罩层
       loading: true,
@@ -436,7 +448,7 @@ export default {
       // 表单参数
       form: {},
 
-      fbAccount:{},
+      fbAccount:{}
 
     };
   },
@@ -777,7 +789,22 @@ export default {
       this.download('account/fbAccount/export', {
         ...this.queryParams
       }, `fbAccount_${new Date().getTime()}.xlsx`)
+    },
+
+    handleGetInfo(row){
+      this.reset();
+      const id = row.id || this.ids
+      getAccount(id).then(response => {
+        this.form = response.data;
+        this.openAccountInfo = true;
+        this.title = "显示信息";
+      });
+    },
+
+    cancelAccountInfo(){
+      this.openAccountInfo = false;
     }
+
   }
 };
 </script>
