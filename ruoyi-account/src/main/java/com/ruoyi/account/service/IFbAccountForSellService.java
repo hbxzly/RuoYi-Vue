@@ -1,6 +1,8 @@
 package com.ruoyi.account.service;
 
 import java.util.List;
+
+import com.ruoyi.account.domain.FbAccount;
 import com.ruoyi.account.domain.FbAccountForSell;
 import org.openqa.selenium.WebDriver;
 
@@ -106,5 +108,20 @@ public interface IFbAccountForSellService
      * @param webDriver
      * @return
      */
-    public String isLogin(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+    public boolean isLogin(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 发贴
+     * @param fbAccountForSell
+     * @param webDriver
+     */
+    public void post(FbAccountForSell fbAccountForSell, WebDriver webDriver);
+
+    /**
+     * 添加好友
+     * @param fbAccountForSell
+     * @param id
+     * @param webDriver
+     */
+    public void addFriend(FbAccountForSell fbAccountForSell, String id, WebDriver webDriver);
 }

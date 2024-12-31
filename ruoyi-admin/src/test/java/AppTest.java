@@ -21,11 +21,11 @@ public class AppTest {
 
     @Test
     public void TestOne(){
-        List<FbAccountForSell> fbAccountForSellList = accountForSellService.selectFbAccountForSellList(new FbAccountForSell());
-        for (FbAccountForSell fbAccountForSell : fbAccountForSellList) {
-            if (fbAccountForSell.getRegion().equals("BM号")){
-                fbAccountForSell.setRegion("单BM号");
-                accountForSellService.updateFbAccountForSell(fbAccountForSell);
+        List<FbAccount> fbAccounts = accountService.selectFbAccountList(new FbAccount());
+        for (FbAccount fbAccount : fbAccounts) {
+            if (fbAccount.getKeyId()>1078){
+                fbAccount.setRegion("中文");
+                accountService.updateFbAccount(fbAccount);
             }
         }
     }

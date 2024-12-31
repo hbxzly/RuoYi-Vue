@@ -4,6 +4,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.WebDriver;
 
 public class WebPageUtil {
 
@@ -87,5 +88,20 @@ public class WebPageUtil {
             }
         }
         return index;
+    }
+
+    //等待页面加载
+    public static boolean waitingForContent(int time, WebDriver webDriver, String content) {
+        for (int i = 0; i < time; i++) {
+            if (webDriver.getPageSource().contains(content)) {
+                return true;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 }

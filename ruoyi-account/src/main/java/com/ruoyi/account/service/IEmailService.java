@@ -23,6 +23,13 @@ public interface IEmailService {
     public Email selectEmailByKeyId(Long keyId);
 
     /**
+     * 查询email
+     * @param email
+     * @return
+     */
+    public Email selectEmailByEmail(String email);
+
+    /**
      * 查询email列表
      * 
      * @param email email

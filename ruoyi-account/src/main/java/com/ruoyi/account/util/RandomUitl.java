@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class RandomUitl {
 
-    public static String generateRandomStringKey() {
+    public static String generateRandomFilename() {
         Random random = new Random();
         String characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         StringBuilder result = new StringBuilder(10);

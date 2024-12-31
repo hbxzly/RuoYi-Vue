@@ -58,6 +58,17 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     /**
+     * 查询email
+     *
+     * @param email
+     * @return
+     */
+    @Override
+    public Email selectEmailByEmail(String email) {
+        return emailMapper.selectEmailByEmail(email);
+    }
+
+    /**
      * 查询email列表
      * 
      * @param email email
@@ -76,8 +87,7 @@ public class EmailServiceImpl implements IEmailService {
      * @return 结果
      */
     @Override
-    public int insertEmail(Email email)
-    {
+    public int insertEmail(Email email) {
         return emailMapper.insertEmail(email);
     }
 

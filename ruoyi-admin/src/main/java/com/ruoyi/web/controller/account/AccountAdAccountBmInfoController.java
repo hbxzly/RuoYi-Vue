@@ -8,9 +8,6 @@ import com.ruoyi.account.domain.FbAccount;
 import com.ruoyi.account.service.IAccountAdAccountBmInfoService;
 import com.ruoyi.account.service.IFbAccountService;
 import com.ruoyi.account.service.ISeleniumService;
-import com.ruoyi.account.service.impl.IFbAccountServiceImpl;
-import com.ruoyi.account.service.impl.ISeleniumServiceImpl;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -102,8 +99,8 @@ public class AccountAdAccountBmInfoController extends BaseController
      */
     @PutMapping(value = "/openAds")
     public AjaxResult openAds(@RequestBody AccountAdAccountBmInfo accountAdAccountBmInfo) {
-        FbAccount fbAccount = fbAccountService.selectOneByFbAccountId(accountAdAccountBmInfo.getAccountId());
-        seleniumService.openAdvertise(fbAccount,accountAdAccountBmInfo.getAdAccountId());
+        /*FbAccount fbAccount = fbAccountService.selectOneByFbAccountId(accountAdAccountBmInfo.getAccountId());
+        seleniumService.openAdvertise(fbAccount,accountAdAccountBmInfo.getAdAccountId());*/
         return AjaxResult.success();
     }
 

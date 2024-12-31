@@ -69,4 +69,6 @@ public interface EmailMapper
      * @return 结果
      */
     public int deleteEmailByKeyIds(Long[] keyIds);
+
+    
 }

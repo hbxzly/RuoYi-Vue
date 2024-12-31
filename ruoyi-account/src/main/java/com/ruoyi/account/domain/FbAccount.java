@@ -1,16 +1,22 @@
 package com.ruoyi.account.domain;
 
-
-import com.ruoyi.common.annotation.Excel;
-import com.ruoyi.common.core.domain.BaseEntity;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import com.ruoyi.common.annotation.Excel;
+import com.ruoyi.common.core.domain.BaseEntity;
 
-public class FbAccount extends BaseEntity {
-
+/**
+ * 账号对象 fb_account
+ *
+ * @author ruoyi
+ * @date 2024-12-12
+ */
+public class FbAccount extends BaseEntity
+{
     private static final long serialVersionUID = 1L;
 
-    private Integer keyId;
+    /** 序号 */
+    private Long keyId;
 
     /** ID */
     @Excel(name = "ID")
@@ -40,8 +46,8 @@ public class FbAccount extends BaseEntity {
     @Excel(name = "秘钥")
     private String secretKey;
 
-    /** 0,被封；1,正常；2,受限；3,永久受限；4,被锁；5,停用；6,受限申诉；7，停用申诉； */
-    @Excel(name = "0,被封；1,正常；2,受限；3,永久受限；4,被锁；5,停用；6,受限申诉；7，停用申诉；")
+    /** 状态0：停用；1：正常；2：被锁；3：停用申诉 */
+    @Excel(name = "状态0：停用；1：正常；2：被锁；3：停用申诉")
     private String status;
 
     /** 创建日期 */
@@ -56,153 +62,196 @@ public class FbAccount extends BaseEntity {
     @Excel(name = "UA")
     private String ua;
 
-    /** 数据源 */
-    @Excel(name = "数据源")
+    /** 文件路径 */
+    @Excel(name = "文件路径")
     private String dataSource;
 
     /** 地区 */
     @Excel(name = "地区")
     private String region;
 
-    /** 0,关闭；1,打开 */
-    @Excel(name = "0,关闭；1,打开")
+    /** 浏览器0,关闭；1,打开 */
+    @Excel(name = "浏览器0,关闭；1,打开")
     private String browserStatus;
 
-    /** 浏览器文件 */
-    @Excel(name = "浏览器文件")
+    /** 文件名 */
+    @Excel(name = "文件名")
     private String browserProfile;
 
-    public Integer getKeyId() {
-        return keyId;
-    }
+    /** 好友数量 */
+    @Excel(name = "好友数量")
+    private Long friendNumber;
 
-    public void setKeyId(Integer keyId) {
+    /** 能否广告 */
+    @Excel(name = "能否广告")
+    private String canAds;
+
+    public void setKeyId(Long keyId)
+    {
         this.keyId = keyId;
     }
 
-    public String getId() {
+    public Long getKeyId()
+    {
+        return keyId;
+    }
+    public void setId(String id)
+    {
+        this.id = id;
+    }
+
+    public String getId()
+    {
         return id;
     }
-
-    public void setId(String id) {
-        this.id = id == null ? null : id.trim();
+    public void setPassword(String password)
+    {
+        this.password = password;
     }
 
-    public String getPassword() {
+    public String getPassword()
+    {
         return password;
     }
-
-    public void setPassword(String password) {
-        this.password = password == null ? null : password.trim();
+    public void setEmail(String email)
+    {
+        this.email = email;
     }
 
-    public String getEmail() {
+    public String getEmail()
+    {
         return email;
     }
-
-    public void setEmail(String email) {
-        this.email = email == null ? null : email.trim();
+    public void setEmailPassword(String emailPassword)
+    {
+        this.emailPassword = emailPassword;
     }
 
-    public String getEmailPassword() {
+    public String getEmailPassword()
+    {
         return emailPassword;
     }
-
-    public void setEmailPassword(String emailPassword) {
-        this.emailPassword = emailPassword == null ? null : emailPassword.trim();
+    public void setBirthday(String birthday)
+    {
+        this.birthday = birthday;
     }
 
-    public String getBirthday() {
+    public String getBirthday()
+    {
         return birthday;
     }
-
-    public void setBirthday(String birthday) {
-        this.birthday = birthday == null ? null : birthday.trim();
+    public void setName(String name)
+    {
+        this.name = name;
     }
 
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
-
-    public void setName(String name) {
-        this.name = name == null ? null : name.trim();
+    public void setSecretKey(String secretKey)
+    {
+        this.secretKey = secretKey;
     }
 
-    public String getSecretKey() {
+    public String getSecretKey()
+    {
         return secretKey;
     }
-
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey == null ? null : secretKey.trim();
+    public void setStatus(String status)
+    {
+        this.status = status;
     }
 
-    public String getStatus() {
+    public String getStatus()
+    {
         return status;
     }
-
-    public void setStatus(String status) {
-        this.status = status == null ? null : status.trim();
-    }
-
-    public String getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(String createDate) {
+    public void setCreateDate(String createDate)
+    {
         this.createDate = createDate;
     }
 
-    public String getNote() {
-        return note;
+    public String getCreateDate()
+    {
+        return createDate;
     }
-
-    public void setNote(String note) {
+    public void setNote(String note)
+    {
         this.note = note;
     }
 
-    public String getUa() {
-        return ua;
+    public String getNote()
+    {
+        return note;
     }
-
-    public void setUa(String ua) {
+    public void setUa(String ua)
+    {
         this.ua = ua;
     }
 
-    public String getDataSource() {
-        return dataSource;
+    public String getUa()
+    {
+        return ua;
     }
-
-    public void setDataSource(String dataSource) {
+    public void setDataSource(String dataSource)
+    {
         this.dataSource = dataSource;
     }
 
-    public String getRegion() {
-        return region;
+    public String getDataSource()
+    {
+        return dataSource;
     }
-
-    public void setRegion(String region) {
+    public void setRegion(String region)
+    {
         this.region = region;
     }
 
-    public String getBrowserStatus() {
-        return browserStatus;
+    public String getRegion()
+    {
+        return region;
     }
-
-    public void setBrowserStatus(String browserStatus) {
+    public void setBrowserStatus(String browserStatus)
+    {
         this.browserStatus = browserStatus;
     }
 
-    public String getBrowserProfile() {
-        return browserProfile;
+    public String getBrowserStatus()
+    {
+        return browserStatus;
+    }
+    public void setBrowserProfile(String browserProfile)
+    {
+        this.browserProfile = browserProfile;
     }
 
-    public void setBrowserProfile(String browserProfile) {
-        this.browserProfile = browserProfile;
+    public String getBrowserProfile()
+    {
+        return browserProfile;
+    }
+    public void setFriendNumber(Long friendNumber)
+    {
+        this.friendNumber = friendNumber;
+    }
+
+    public Long getFriendNumber()
+    {
+        return friendNumber;
+    }
+    public void setCanAds(String canAds)
+    {
+        this.canAds = canAds;
+    }
+
+    public String getCanAds()
+    {
+        return canAds;
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
+        return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
                 .append("keyId", getKeyId())
                 .append("id", getId())
                 .append("password", getPassword())
@@ -219,6 +268,8 @@ public class FbAccount extends BaseEntity {
                 .append("region", getRegion())
                 .append("browserStatus", getBrowserStatus())
                 .append("browserProfile", getBrowserProfile())
+                .append("friendNumber", getFriendNumber())
+                .append("canAds", getCanAds())
                 .toString();
     }
 }

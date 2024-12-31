@@ -113,9 +113,9 @@ public class AdvertiseController extends BaseController
     @PreAuthorize("@ss.hasPermi('accoun:advertise:query')")
     @PostMapping (value = "/openAd/{adAccountId}")
     public AjaxResult openAd(@PathVariable("adAccountId") String adAccountId){
-        Advertise advertise = advertiseService.selectAdvertiseByAdAccountId(adAccountId);
+        /*Advertise advertise = advertiseService.selectAdvertiseByAdAccountId(adAccountId);
         FbAccount fbAccount = iFbAccountService.selectOneByFbAccountId(advertise.getAuthorizedAccount());
-        iSeleniumService.openAdvertise(fbAccount, adAccountId);
+        iSeleniumService.openAdvertise(fbAccount, adAccountId);*/
         return success();
     }
 
@@ -128,7 +128,7 @@ public class AdvertiseController extends BaseController
     @GetMapping (value = "/multipleOpenScreenshotPage/{keyIds}")
     @ResponseBody
     public AjaxResult multipleOpenScreenshotPage(@PathVariable Long[] keyIds){
-       iSeleniumService.openScreenshotPage(keyIds);
+//       iSeleniumService.openScreenshotPage(keyIds);
        return success();
     }
 

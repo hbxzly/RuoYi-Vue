@@ -67,21 +67,27 @@ public class FbAccountForSell extends BaseEntity
     private String note;
 
     /** 能否登录 */
+    @Excel(name = "能否登录")
     private String canLogin;
 
     /** 好友数量 */
+    @Excel(name = "好友数量")
     private String friendNumber;
 
     /** 能否广告 */
+    @Excel(name = "能否广告")
     private String canAds;
 
     /** 主页数量 */
+    @Excel(name = "主页数量")
     private String pageNumber;
 
     /** bm数量 */
+    @Excel(name = "BM数量")
     private String bmNumber;
 
     /** 帖子数量 */
+    @Excel(name = "帖子数量")
     private String postsNumber;
 
     /** UA */
@@ -91,13 +97,24 @@ public class FbAccountForSell extends BaseEntity
     private String browserStatus;
 
     /** 浏览器文件 */
+    @Excel(name = "浏览器文件")
     private String browserProfile;
 
     /** 文件路径 */
     @Excel(name = "文件路径")
     private String filePath;
 
+    /** 最近发帖时间 */
+    @Excel(name = "最近发帖时间")
     private String lastPostsTime;
+
+    /** 是否上架 */
+    @Excel(name = "是否上架")
+    private String isShelf;
+
+    /** 邮箱状态 */
+    @Excel(name = "邮箱状态")
+    private String emailStatus;
 
     public void setKeyId(Long keyId) 
     {
@@ -317,6 +334,22 @@ public class FbAccountForSell extends BaseEntity
         return lastPostsTime;
     }
 
+    public void setIsShelf(String isShelf) {
+        this.isShelf = isShelf;
+    }
+
+    public String getIsShelf() {
+        return isShelf;
+    }
+
+    public void setEmailStatus(String emailStatus) {
+        this.emailStatus = emailStatus;
+    }
+
+    public String getEmailStatus() {
+        return emailStatus;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -334,6 +367,7 @@ public class FbAccountForSell extends BaseEntity
                 .append("region", getRegion())
                 .append("canLogin", getCanLogin())
                 .append("isMarketplace", getIsMarketplace())
+                .append("emailStatus", getEmailStatus())
                 .append("friendNumber", getFriendNumber())
                 .append("canAds", getCanAds())
                 .append("pageNumber", getPageNumber())
@@ -344,6 +378,7 @@ public class FbAccountForSell extends BaseEntity
                 .append("browserProfile", getBrowserProfile())
                 .append("filePath", getFilePath())
                 .append("lastPostsTime", getLastPostsTime())
+                .append("isShelf", getIsShelf())
                 .toString();
     }
 }

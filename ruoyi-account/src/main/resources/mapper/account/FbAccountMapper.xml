@@ -2,21 +2,25 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.account.mapper.FbAccountMapper">
 
-	<resultMap id="BaseResultMap" type="FbAccount">
-		<id column="key_id" jdbcType="INTEGER" property="keyId" />
-		<result column="id" jdbcType="VARCHAR" property="id" />
-		<result column="password" jdbcType="VARCHAR" property="password" />
-		<result column="email" jdbcType="VARCHAR" property="email" />
-		<result column="email_password" jdbcType="VARCHAR" property="emailPassword" />
-		<result column="birthday" jdbcType="VARCHAR" property="birthday" />
-		<result column="name" jdbcType="VARCHAR" property="name" />
-		<result column="secret_key" jdbcType="VARCHAR" property="secretKey" />
-		<result column="status" jdbcType="CHAR" property="status" />
-		<result column="ua" jdbcType="VARCHAR" property="ua" />
-		<result column="data_source" jdbcType="VARCHAR" property="dataSource" />
-		<result column="region" jdbcType="VARCHAR" property="region" />
-		<result column="browser_status" jdbcType="CHAR" property="browserStatus" />
-		<result column="browser_profile" jdbcType="VARCHAR" property="browserProfile" />
+	<resultMap type="FbAccount" id="FbAccountResult">
+		<result property="keyId"    column="key_id"    />
+		<result property="id"    column="id"    />
+		<result property="password"    column="password"    />
+		<result property="email"    column="email"    />
+		<result property="emailPassword"    column="email_password"    />
+		<result property="birthday"    column="birthday"    />
+		<result property="name"    column="name"    />
+		<result property="secretKey"    column="secret_key"    />
+		<result property="status"    column="status"    />
+		<result property="createDate"    column="create_date"    />
+		<result property="note"    column="note"    />
+		<result property="ua"    column="ua"    />
+		<result property="dataSource"    column="data_source"    />
+		<result property="region"    column="region"    />
+		<result property="browserStatus"    column="browser_status"    />
+		<result property="browserProfile"    column="browser_profile"    />
+		<result property="friendNumber"    column="friend_number"    />
+		<result property="canAds"    column="can_ads"    />
 	</resultMap>
 
 	<!-- 定义条件判断片段 -->
@@ -55,13 +59,12 @@
 	</sql>
 
 	<sql id="selectFbAccountVo">
-		select key_id, id, password, email, email_password, birthday, name, secret_key, status, create_date, note, ua, data_source, region, browser_status, browser_profile from fb_account
+		select key_id, id, password, email, email_password, birthday, name, secret_key, status, create_date, note, ua, data_source, region, browser_status, browser_profile, friend_number, can_ads from fb_account
 	</sql>
 
-	<select id="selectFbAccountList" parameterType="FbAccount" resultMap="BaseResultMap">
+	<select id="selectFbAccountList" parameterType="FbAccount" resultMap="FbAccountResult">
 		<include refid="selectFbAccountVo"/>
 		<where>
-			<if test="keyId != null and keyId != ''">key_id = #{keyId}</if>
 			<if test="id != null  and id != ''"> and id = #{id}</if>
 			<if test="password != null  and password != ''"> and password = #{password}</if>
 			<if test="email != null  and email != ''"> and email = #{email}</if>
@@ -77,15 +80,65 @@
 			<if test="region != null  and region != ''"> and region = #{region}</if>
 			<if test="browserStatus != null  and browserStatus != ''"> and browser_status = #{browserStatus}</if>
 			<if test="browserProfile != null  and browserProfile != ''"> and browser_profile = #{browserProfile}</if>
+			<if test="friendNumber != null "> and friend_number = #{friendNumber}</if>
+			<if test="canAds != null  and canAds != ''"> and can_ads = #{canAds}</if>
 		</where>
+		order by key_id DESC
 	</select>
 
+	<select id="selectFbAccountByKeyId" parameterType="Long" resultMap="FbAccountResult">
+		<include refid="selectFbAccountVo"/>
+		where key_id = #{keyId}
+	</select>
 
+	<select id="selectFbAccountByKeyIds" parameterType="String" resultMap="FbAccountResult">
+		<include refid="selectFbAccountVo"/>
+		where key_id in
+		<foreach item="keyId" collection="array" open="(" separator="," close=")">
+			#{keyId}
+		</foreach>
+	</select>
 
-	<!-- 插入操作 -->
-	<insert id="insert" parameterType="com.ruoyi.account.domain.FbAccount">
-		INSERT INTO fb_account (id, password, email, email_password, birthday, secret_key, status, data_source, ua, browser_profile, name)
-		VALUES (#{id}, #{password}, #{email}, #{emailPassword}, #{birthday}, #{secretKey}, #{status}, #{dataSource}, #{ua}, #{browserProfile}, #{name})
+	<insert id="insertFbAccount" parameterType="FbAccount" useGeneratedKeys="true" keyProperty="keyId">
+		insert into fb_account
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">id,</if>
+			<if test="password != null">password,</if>
+			<if test="email != null">email,</if>
+			<if test="emailPassword != null">email_password,</if>
+			<if test="birthday != null">birthday,</if>
+			<if test="name != null">name,</if>
+			<if test="secretKey != null">secret_key,</if>
+			<if test="status != null">status,</if>
+			<if test="createDate != null">create_date,</if>
+			<if test="note != null">note,</if>
+			<if test="ua != null">ua,</if>
+			<if test="dataSource != null">data_source,</if>
+			<if test="region != null">region,</if>
+			<if test="browserStatus != null">browser_status,</if>
+			<if test="browserProfile != null">browser_profile,</if>
+			<if test="friendNumber != null">friend_number,</if>
+			<if test="canAds != null">can_ads,</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">#{id},</if>
+			<if test="password != null">#{password},</if>
+			<if test="email != null">#{email},</if>
+			<if test="emailPassword != null">#{emailPassword},</if>
+			<if test="birthday != null">#{birthday},</if>
+			<if test="name != null">#{name},</if>
+			<if test="secretKey != null">#{secretKey},</if>
+			<if test="status != null">#{status},</if>
+			<if test="createDate != null">#{createDate},</if>
+			<if test="note != null">#{note},</if>
+			<if test="ua != null">#{ua},</if>
+			<if test="dataSource != null">#{dataSource},</if>
+			<if test="region != null">#{region},</if>
+			<if test="browserStatus != null">#{browserStatus},</if>
+			<if test="browserProfile != null">#{browserProfile},</if>
+			<if test="friendNumber != null">#{friendNumber},</if>
+			<if test="canAds != null">#{canAds},</if>
+		</trim>
 	</insert>
 
 	<!-- 删除操作 -->
@@ -95,13 +148,13 @@
 	</delete>
 
 	<!-- 查询操作 -->
-	<select id="selectOneByFbAccountId" resultMap="BaseResultMap" parameterType="java.lang.String">
+	<select id="selectFbAccountById" resultMap="FbAccountResult" parameterType="java.lang.String">
 		SELECT * FROM fb_account
 		WHERE id = #{id}
 	</select>
 
 	<!-- 使用条件判断片段进行查询 -->
-	<select id="selectByFbAccount" resultMap="BaseResultMap" parameterType="com.ruoyi.account.domain.FbAccount">
+	<select id="selectByFbAccount" resultMap="FbAccountResult" parameterType="com.ruoyi.account.domain.FbAccount">
 		SELECT * FROM fb_account
 		<where>
 			<include refid="conditionQuery"/>
@@ -117,12 +170,28 @@
 		</where>
 	</select>
 
-	<update id="updateFbAccount" parameterType="com.ruoyi.account.domain.FbAccount">
-	UPDATE fb_account
-	<set>
-		<include refid="conditionFragment"/>
-	</set>
-	where id = #{id}
+	<update id="updateFbAccount" parameterType="FbAccount">
+		update fb_account
+		<trim prefix="SET" suffixOverrides=",">
+			<if test="id != null">id = #{id},</if>
+			<if test="password != null">password = #{password},</if>
+			<if test="email != null">email = #{email},</if>
+			<if test="emailPassword != null">email_password = #{emailPassword},</if>
+			<if test="birthday != null">birthday = #{birthday},</if>
+			<if test="name != null">name = #{name},</if>
+			<if test="secretKey != null">secret_key = #{secretKey},</if>
+			<if test="status != null">status = #{status},</if>
+			<if test="createDate != null">create_date = #{createDate},</if>
+			<if test="note != null">note = #{note},</if>
+			<if test="ua != null">ua = #{ua},</if>
+			<if test="dataSource != null">data_source = #{dataSource},</if>
+			<if test="region != null">region = #{region},</if>
+			<if test="browserStatus != null">browser_status = #{browserStatus},</if>
+			<if test="browserProfile != null">browser_profile = #{browserProfile},</if>
+			<if test="friendNumber != null">friend_number = #{friendNumber},</if>
+			<if test="canAds != null">can_ads = #{canAds},</if>
+		</trim>
+		where key_id = #{keyId}
 	</update>
 
 
@@ -131,6 +200,17 @@
 		SET browser_status = #{status}
 		WHERE id = #{fbAccount.id}
 	</update>
+
+	<delete id="deleteFbAccountByKeyId" parameterType="Long">
+		delete from fb_account where key_id = #{keyId}
+	</delete>
+
+	<delete id="deleteFbAccountByKeyIds" parameterType="String">
+		delete from fb_account where key_id in
+		<foreach item="keyId" collection="array" open="(" separator="," close=")">
+			#{keyId}
+		</foreach>
+	</delete>
 
 
 </mapper>

@@ -51,10 +51,48 @@ export function checkAccount(ids) {
   })
 }
 
-  // 检测
-export function checkAllAccount() {
+// 卖号标记
+export function updateSellForSell(keyId) {
   return request({
-    url: '/account/sell/checkAllAccount/',
+    url: '/account/sell/updateSellForSell/'+keyId,
     method: 'get'
   })
 }
+
+//打开浏览器
+export function openBrowser(keyId){
+  return request({
+    url: "/account/sell/openBrowser/"+keyId,
+    method: 'get'
+  })
+}
+
+//打开浏览器
+export function closeBrowser(keyId){
+  return request({
+    url: "/account/sell/closeBrowser/"+keyId,
+    method: 'get'
+  })
+}
+
+//发帖
+export function accountPost(keyIds){
+  return request({
+    url: "account/sell/accountPost/"+keyIds,
+    method: "get"
+  })
+}
+
+
+// 添加好友
+export function addFriend(keyIds,id) {
+  return request({
+    url: `/account/sell/addFriend`,
+    method: 'get',
+    params: {
+      keyIds: keyIds.join(','),
+      id: id
+    }
+  })
+}
+

@@ -35,7 +35,7 @@ public class AccountUtil {
                 }
                 fbAccount.setDataSource(account[7]);
                 if (account[8].equals("空")){
-                    fbAccount.setBrowserProfile(RandomUitl.generateRandomStringKey());
+                    fbAccount.setBrowserProfile(RandomUitl.generateRandomFilename());
                 }else {
                     fbAccount.setBrowserProfile(account[8]);
                 }

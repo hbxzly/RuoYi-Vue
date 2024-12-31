@@ -29,10 +29,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="browserProfile"    column="browser_profile"    />
         <result property="filePath"    column="file_path"    />
         <result property="lastPostsTime"    column="last_posts_time"    />
+        <result property="isShelf"    column="is_shelf"    />
+        <result property="emailStatus"    column="email_status"    />
     </resultMap>
 
     <sql id="selectFbAccountForSellVo">
-        select key_id, id, password, email, email_password, birthday, name, secret_key, gender, create_date, note, region, can_login, is_marketplace, friend_number, can_ads, page_number, bm_number, posts_number, ua, browser_status, browser_profile, file_path, last_posts_time from fb_account_for_sell
+        select key_id, id, password, email, email_password, birthday, name, secret_key, gender, create_date, note, region, can_login, is_marketplace, friend_number, can_ads, page_number, bm_number, posts_number, ua, browser_status, browser_profile, file_path, last_posts_time, is_shelf, email_status from fb_account_for_sell
     </sql>
 
     <select id="selectFbAccountForSellList" parameterType="FbAccountForSell" resultMap="FbAccountForSellResult">
@@ -54,14 +56,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="isMarketplace != null  and isMarketplace != ''"> and is_marketplace = #{isMarketplace}</if>
             <if test="friendNumber != null  and friendNumber != ''"> and friend_number > #{friendNumber}</if>
             <if test="canAds != null  and canAds != ''"> and can_ads = #{canAds}</if>
-            <if test="pageNumber != null  and pageNumber != ''"> and page_number = #{pageNumber}</if>
-            <if test="bmNumber != null  and bmNumber != ''"> and bm_number = #{bmNumber}</if>
-            <if test="postsNumber != null  and postsNumber != ''"> and posts_number = #{postsNumber}</if>
+            <if test="pageNumber != null  and pageNumber != ''"> and page_number > #{pageNumber}</if>
+            <if test="bmNumber != null  and bmNumber != ''"> and bm_number > #{bmNumber}</if>
+            <if test="postsNumber != null  and postsNumber != ''"> and posts_number > #{postsNumber}</if>
             <if test="ua != null  and ua != ''"> and ua = #{ua}</if>
             <if test="browserStatus != null  and browserStatus != ''"> and browser_status = #{browserStatus}</if>
             <if test="browserProfile != null  and browserProfile != ''"> and browser_profile = #{browserProfile}</if>
             <if test="filePath != null  and filePath != ''"> and file_path = #{filePath}</if>
             <if test="lastPostsTime != null  and lastPostsTime != ''"> and last_posts_time = #{lastPostsTime}</if>
+            <if test="isShelf != null  and isShelf != ''"> and is_shelf = #{isShelf}</if>
+            <if test="emailStatus != null  and emailStatus != ''"> and email_status = #{emailStatus}</if>
         </where>
         order by key_id DESC
     </select>
@@ -97,6 +101,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="browserProfile != null">browser_profile,</if>
             <if test="filePath != null">file_path,</if>
             <if test="lastPostsTime != null">last_posts_time,</if>
+            <if test="isShelf != null">is_shelf,</if>
+            <if test="emailStatus != null">email_status,</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">#{id},</if>
@@ -122,6 +128,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="browserProfile != null">#{browserProfile},</if>
             <if test="filePath != null">#{filePath},</if>
             <if test="lastPostsTime != null">#{lastPostsTime},</if>
+            <if test="isShelf != null">#{isShelf},</if>
+            <if test="emailStatus != null">#{emailStatus},</if>
         </trim>
     </insert>
 
@@ -151,6 +159,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="browserProfile != null">browser_profile = #{browserProfile},</if>
             <if test="filePath != null">file_path = #{filePath},</if>
             <if test="lastPostsTime != null">last_posts_time = #{lastPostsTime},</if>
+            <if test="isShelf != null">is_shelf = #{isShelf},</if>
+            <if test="emailStatus != null">email_status = #{emailStatus},</if>
         </trim>
         where key_id = #{keyId}
     </update>

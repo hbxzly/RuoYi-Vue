@@ -41,14 +41,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="账户生日" prop="birthday">
+<!--      <el-form-item label="账户生日" prop="birthday">
         <el-input
           v-model="queryParams.birthday"
           placeholder="请输入账户生日"
           clearable
           @keyup.enter.native="handleQuery"
         />
-      </el-form-item>
+      </el-form-item>-->
       <el-form-item label="名字" prop="name">
         <el-input
           v-model="queryParams.name"
@@ -73,14 +73,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="创建日期" prop="createDate">
+<!--      <el-form-item label="创建日期" prop="createDate">
         <el-input
           v-model="queryParams.createDate"
           placeholder="请输入创建日期"
           clearable
           @keyup.enter.native="handleQuery"
         />
-      </el-form-item>
+      </el-form-item>-->
       <el-form-item label="备注" prop="note">
         <el-input
           v-model="queryParams.note"
@@ -117,14 +117,6 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="好友数量" prop="friendNumber">
-        <el-input
-          v-model="queryParams.friendNumber"
-          placeholder="请输入好友数量"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
       <el-form-item label="能否广告" prop="canAds">
         <el-select v-model="queryParams.canAds" placeholder="请选择能否广告" clearable>
           <el-option
@@ -134,6 +126,34 @@
             :value="dict.value"
           />
         </el-select>
+      </el-form-item>
+      <el-form-item label="邮箱状态" prop="emailStatus">
+        <el-select v-model="queryParams.emailStatus" placeholder="请选择邮箱状态" clearable>
+          <el-option
+            v-for="dict in dict.type.email_status"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="能否上架" prop="isShelf">
+        <el-select v-model="queryParams.isShelf" placeholder="请选择是否上架" clearable>
+          <el-option
+            v-for="dict in dict.type.is_shelf"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="好友数量" prop="friendNumber">
+        <el-input
+          v-model="queryParams.friendNumber"
+          placeholder="请输入好友数量"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
       </el-form-item>
       <el-form-item label="主页数量" prop="pageNumber">
         <el-input
@@ -169,14 +189,14 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="最近帖子时间" prop="lastPostsTime">
+<!--      <el-form-item label="最近帖子时间" prop="lastPostsTime">
         <el-input
           v-model="queryParams.lastPostsTime"
           placeholder="请输入最近帖子时间"
           clearable
           @keyup.enter.native="handleQuery"
         />
-      </el-form-item>
+      </el-form-item>-->
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -239,47 +259,67 @@
         <el-button
           type="success"
           plain
-          icon="el-icon-edit"
+          icon="el-icon-first-aid-kit"
           size="mini"
           :disabled="multiple"
           @click="handleCheckAccount"
-        >开始</el-button>
+        >开始检测</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
           type="success"
           plain
-          icon="el-icon-edit"
-          size="mini"
-          @click="handleCheckAllAccount"
-        >检测所有</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="el-icon-edit"
+          icon="el-icon-sell"
           size="mini"
           :disabled="single"
           @click="handleSellAccount"
         >卖出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-camera"
+          size="mini"
+          :disabled="multiple"
+          @click="handlePost"
+        >发帖</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-view"
+          size="mini"
+          :disabled="multiple"
+          @click="handleAddFriend"
+        >添加好友</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-search"
+          size="mini"
+          @click="handleBatchSearch"
+        >批量搜索</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="sellList" @selection-change="handleSelectionChange" style="height: calc(100vh - 300px); overflow-y: auto;">
+    <el-table v-loading="loading" :data="sellList" @selection-change="handleSelectionChange" >
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" align="center" prop="keyId" />
-      <el-table-column label="ID" align="center" prop="id" show-overflow-tooltip/>
-      <el-table-column label="密码" align="center" prop="password" show-overflow-tooltip/>
-      <el-table-column label="邮箱" align="center" prop="email" show-overflow-tooltip/>
-      <el-table-column label="邮箱密码" align="center" prop="emailPassword" show-overflow-tooltip/>
-      <el-table-column label="账户生日" align="center" prop="birthday" show-overflow-tooltip/>
-      <el-table-column label="名字" align="center" prop="name" show-overflow-tooltip/>
+      <el-table-column label="序号" align="center" width="60" prop="keyId" fixed/>
+      <el-table-column label="ID" align="center" width="155" prop="id" fixed/>
+      <el-table-column label="密码" align="center" width="155" prop="password" />
+      <el-table-column label="邮箱" align="center" width="155" prop="email" />
+      <el-table-column label="邮箱密码" align="center" width="100" prop="emailPassword" />
+<!--      <el-table-column label="账户生日" align="center" prop="birthday" show-overflow-tooltip/>-->
+      <el-table-column label="名字" align="center" width="100" prop="name" />
       <el-table-column label="秘钥" align="center" prop="secretKey" show-overflow-tooltip/>
       <el-table-column label="性别" align="center" prop="gender" show-overflow-tooltip/>
       <el-table-column label="创建日期" align="center" prop="createDate" show-overflow-tooltip/>
-      <el-table-column label="备注" align="center" prop="note" show-overflow-tooltip/>
+      <el-table-column label="备注" align="center" width="150" prop="note" />
       <el-table-column label="地区" align="center" prop="region" show-overflow-tooltip/>
       <el-table-column label="能否登录" align="center" prop="canLogin">
         <template slot-scope="scope">
@@ -291,17 +331,27 @@
           <dict-tag :options="dict.type.is_marketplace" :value="scope.row.isMarketplace"/>
         </template>
       </el-table-column>
-      <el-table-column label="好友数量" align="center" prop="friendNumber" show-overflow-tooltip/>
       <el-table-column label="能否广告" align="center" prop="canAds">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.can_ads" :value="scope.row.canAds"/>
         </template>
       </el-table-column>
+      <el-table-column label="是否上架" align="center" prop="isShelf">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.is_shelf" :value="scope.row.isShelf"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="邮箱状态" align="center" prop="emailStatus">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.email_status" :value="scope.row.emailStatus"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="好友数量" align="center" prop="friendNumber" show-overflow-tooltip/>
       <el-table-column label="主页数量" align="center" prop="pageNumber" show-overflow-tooltip/>
       <el-table-column label="bm数量" align="center" prop="bmNumber" show-overflow-tooltip/>
       <el-table-column label="帖子数量" align="center" prop="postsNumber" show-overflow-tooltip/>
       <el-table-column label="最近帖子时间" align="center" prop="lastPostsTime" show-overflow-tooltip/>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width" fixed="right" >
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -310,6 +360,20 @@
             @click="handleUpdate(scope.row)"
             v-hasPermi="['account:sell:edit']"
           >修改</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-switch-button"
+            @click="handleOpenBrowser(scope.row)"
+            v-hasPermi="['account:sell:edit']"
+          >打开</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-switch-button"
+            @click="handleCloseBrowser(scope.row)"
+            v-hasPermi="['account:sell:edit']"
+          >关闭</el-button>
           <el-button
             size="mini"
             type="text"
@@ -383,9 +447,6 @@
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="好友数量" prop="friendNumber">
-          <el-input v-model="form.friendNumber" placeholder="请输入好友数量" />
-        </el-form-item>
         <el-form-item label="能否广告" prop="canAds">
           <el-radio-group v-model="form.canAds">
             <el-radio
@@ -394,6 +455,27 @@
               :label="dict.value"
             >{{dict.label}}</el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item label="是否上架" prop="isShelf">
+          <el-radio-group v-model="form.isShelf">
+            <el-radio
+              v-for="dict in dict.type.is_shelf"
+              :key="dict.value"
+              :label="dict.value"
+            >{{dict.label}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="邮箱是否可用" prop="emailStatus">
+          <el-radio-group v-model="form.emailStatus">
+            <el-radio
+              v-for="dict in dict.type.email_status"
+              :key="dict.value"
+              :label="dict.value"
+            >{{dict.label}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="好友数量" prop="friendNumber">
+          <el-input v-model="form.friendNumber" placeholder="请输入好友数量" />
         </el-form-item>
         <el-form-item label="主页数量" prop="pageNumber">
           <el-input v-model="form.pageNumber" placeholder="请输入主页数量" />
@@ -452,26 +534,72 @@
         <el-button @click="upload.open = false">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!--展示信息-->
+    <el-dialog :title="title" :visible.sync="sellAccount" width="700px" append-to-body>
+      <el-form ref="form" :model="form" label-width="80px">
+        <p><strong>ID：</strong>{{ form.id }}</p>
+        <p><strong>密码：</strong>{{ form.password }}</p>
+        <p><strong>邮箱：</strong>{{ form.email }}</p>
+        <p><strong>邮箱密码：</strong>{{ form.emailPassword }}</p>
+        <p><strong>秘钥：</strong>{{ form.secretKey }}</p>
+        <p><strong>名字：</strong>{{ form.name }}</p>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitSellAccount">确 定</el-button>
+        <el-button @click="cancelSellAccount">取 消</el-button>
+      </div>
+    </el-dialog>
+
+    <!--添加好友-->
+    <el-dialog :title="title" :visible.sync="openAddFriend" width="500px" append-to-body>
+      <el-form ref="addFriendForm" :model="addFriendFormData" :rules="addFriendRules" size="medium" label-width="100px">
+        <el-form-item label="添加账号" prop="accountId">
+          <el-input v-model="addFriendFormData.accountId" placeholder="请输入好友账号ID" clearable :style="{width: '100%'}">
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="closeAddFriend">取消</el-button>
+        <el-button type="primary" @click="submitAddFriend">确定</el-button>
+      </div>
+    </el-dialog>
+
+    <!--批量搜索-->
+    <el-dialog :title="title" :visible.sync="openBatchSearch" width="500px" append-to-body>
+      <el-form ref="batchSearchForm" :model="batchSearchFormData" size="medium" label-width="100px">
+        <!-- 下拉框选择 -->
+        <el-form-item label="搜索类型" prop="searchType">
+          <el-select v-model="batchSearchFormData.searchType" placeholder="请选择搜索类型" clearable>
+            <el-option label="账号ID" value="id"></el-option>
+            <el-option label="账号邮箱" value="email"></el-option>
+          </el-select>
+        </el-form-item>
+        <!-- 输入框 -->
+        <el-form-item label="输入信息" prop="inputData">
+          <el-input-tag v-model="batchSearchFormData.inputData"  placeholder="Please input" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="closeBatchSearch">取消</el-button>
+        <el-button type="primary" @click="submitBatchSearch">确定</el-button>
+      </div>
+    </el-dialog>
   </div>
+
+
 </template>
 
-<style>
-/* 固定表头 */
-.el-table__header-wrapper {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background-color: #f5f7fa; /* 设置表头背景色 */
-}
-</style>
 
 <script>
-import { listSell, getSell, delSell, addSell, updateSell, checkAccount, checkAllAccount } from "@/api/account/sell";
+import { listSell, getSell, delSell, addSell, updateSell, checkAccount, updateSellForSell,
+  openBrowser, closeBrowser, accountPost, addFriend } from "@/api/account/sell";
 import { getToken } from "@/utils/auth";
+import posts from "@/views/account/posts/index.vue";
 
 export default {
   name: "Sell",
-  dicts: ['is_marketplace', 'can_login', 'can_ads', 'browser_status'],
+  dicts: ['is_marketplace', 'can_login', 'can_ads', 'browser_status', 'is_shelf', 'email_status'],
   data() {
     return {
       // 遮罩层
@@ -493,10 +621,16 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      //添加好友弹出层
+      openAddFriend: false,
+      //批量搜索弹出层
+      openBatchSearch: false,
+      //卖出账号
+      sellAccount: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
-        pageSize: 10,
+        pageSize: 5,
         keyId: null,
         id: null,
         password: null,
@@ -511,6 +645,7 @@ export default {
         region: null,
         canLogin: null,
         isMarketplace: null,
+        emailStatus: null,
         friendNumber: null,
         canAds: null,
         pageNumber: null,
@@ -520,12 +655,21 @@ export default {
         browserStatus: null,
         browserProfile: null,
         filePath: null,
-        lastPostsTime: null
+        lastPostsTime: null,
+        isShelf: null
       },
       // 表单参数
       form: {},
+      //添加好友表单参数
+      addFriendFormData: {},
+      //批量搜索数据
+      batchSearchFormData: {},
       // 表单校验
       rules: {
+      },
+      //添加好友校验
+      addFriendRules: {
+        accountId: [{ required: true, message: '请输入好友账号ID', trigger: 'blur' }],
       },
       // 导入参数
       upload: {
@@ -579,6 +723,7 @@ export default {
         region: null,
         canLogin: null,
         isMarketplace: null,
+        emailStatus: null,
         friendNumber: null,
         canAds: null,
         pageNumber: null,
@@ -587,9 +732,14 @@ export default {
         ua: null,
         browserStatus: null,
         browserProfile: null,
-        filePath: null
+        filePath: null,
+        isShelf: null
       };
       this.resetForm("form");
+    },
+    // 添加好友表单重置
+    resetAddFriendForm() {
+      this.$refs.addFriendForm.resetFields();
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -662,7 +812,7 @@ export default {
     },
     /** 导入按钮操作 */
     handleImport() {
-      this.upload.title = "用户导入";
+      this.upload.title = "数据导入";
       this.upload.open = true;
     },
 
@@ -687,6 +837,7 @@ export default {
     submitFileForm() {
       this.$refs.upload.submit();
     },
+
     //检测账号
     handleCheckAccount(row){
       const ids = row.id || this.ids;
@@ -697,20 +848,105 @@ export default {
         this.$modal.msgSuccess("检测成功");
       }).catch(() => {});
     },
-    //检测账号
-    handleCheckAllAccount(){
-      this.$modal.confirm('是否确认检测所有未检测的账号？').then(function() {
-        return checkAllAccount();
-      }).then(() => {
-        this.getList();
-        this.$modal.msgSuccess("检测成功");
-      }).catch(() => {});
+
+    //打开账号详细信息面板，复制卖出
+    handleSellAccount(row){
+      this.reset();
+      const keyId = row.keyId || this.keyIds
+      getSell(keyId).then(response => {
+        this.form = response.data;
+        this.sellAccount = true;
+        this.title = "卖出";
+      });
     },
 
-    handleSellAccount(row){
+    //提交卖出操作
+    submitSellAccount(row) {
+      const keyId = row.keyId || this.keyIds
+      updateSellForSell(keyId).then(response => {
+        this.$modal.msgSuccess("标记卖出成功");
+        this.sellAccount = false;
+        this.getList();
+      });
+    },
 
-    }
+    //关闭卖出浏览器
+    cancelSellAccount(){
+      this.sellAccount = false;
+    },
 
+    //打开浏览器
+    handleOpenBrowser(row){
+      const keyId = row.keyId
+      openBrowser(keyId).then(response => {
+
+      })
+    },
+
+    //关闭浏览器
+    handleCloseBrowser(row){
+      const keyId = row.keyId
+      closeBrowser(keyId).then(response => {
+
+      })
+    },
+
+    //发帖
+    handlePost(){
+      const keyIds = this.keyIds
+      accountPost(keyIds).then(response => {
+
+      })
+    },
+
+    /** 添加好友按钮 */
+    handleAddFriend(){
+      this.title = "添加好友";
+      this.openAddFriend = true;
+    },
+
+
+    /** 添加好友弹出窗取消按钮 */
+    closeAddFriend(){
+      this.openAddFriend = false;
+      this.resetAddFriendForm();
+    },
+
+    /** 添加好友弹出窗确定按钮 */
+    submitAddFriend(){
+      const operationAccount = this.ids;
+      const id = this.addFriendFormData.accountId;
+      this.$refs.addFriendForm.validate((valid) => {
+        if (valid) {
+          this.resetAddFriendForm();// 提交后重置表单
+          this.openAddFriend = false;
+          addFriend(operationAccount,id);
+        }
+      });
+    },
+
+    /**批量搜索*/
+    handleBatchSearch(){
+      this.title = "批量搜索";
+      this.openBatchSearch = true;
+    },
+
+    /**批量搜索取消*/
+    closeBatchSearch(){
+      this.openBatchSearch = false;
+    },
+
+    /**批量搜索确定*/
+    submitBatchSearch(){
+      const { searchType, inputData } = this.batchSearchFormData;
+      if (!searchType || !inputData) {
+        this.$message.error('请完整填写搜索类型和输入信息！');
+        return;
+      }
+      // 打印搜索类型和内容，供调试
+      console.log('搜索类型:', searchType);
+      console.log('输入内容:', inputData);
+    },
   }
 };
 </script>

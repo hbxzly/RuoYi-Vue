@@ -1,14 +1,9 @@
 package com.ruoyi.account.service;
 
 import com.ruoyi.account.domain.*;
-import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.WebDriver;
 
-import java.awt.*;
-import java.util.List;
-import java.util.Map;
-
-public interface                        ISeleniumService {
+public interface ISeleniumService {
 
     /**
      * 打开打单个浏览器
@@ -22,14 +17,15 @@ public interface                        ISeleniumService {
      * @param fbAccountForSell
      * @return
      */
-    WebDriver openBrowserForAccountSell(FbAccountForSell fbAccountForSell);
+    WebDriver openBrowserForAccountSellForTest(FbAccountForSell fbAccountForSell);
+
 
     /**
-     * 打开多个浏览器
-     * @param ids
+     * 打开打单个浏览器
+     * @param fbAccountForSell
      * @return
      */
-    String multipleOpenBrowser(String[] ids);
+    WebDriver openBrowserForAccountSell(FbAccountForSell fbAccountForSell);
 
     /**
      * 关闭单个浏览器
@@ -39,130 +35,11 @@ public interface                        ISeleniumService {
     String closeBrowser(FbAccount fbAccount);
 
     /**
-     * 关闭所有浏览器
-     * @return
-     */
-    String closeAllBrowser();
-
-    /**
-     * 登录账号
-     * @param fbAccount
-     */
-    boolean login(FbAccount fbAccount);
-
-    /**
      * 显示浏览器
      * @param fbAccount
      */
     void showBrowser(FbAccount fbAccount);
 
-    /**
-     * 创建BM
-     * @param fbAccount
-     */
-    void createBM(FbAccount fbAccount);
-
-    /**
-     * 打开广告，广告截图
-     * @param keyIds
-     */
-    void openScreenshotPage(Long[] keyIds);
-
-    /**
-     * 查看BM
-     * @param ids
-     */
-    void checkBM(String[] ids);
-
-    /**
-     * 查看账号品质
-     * @param ids
-     */
-    void checkAccount(String[] ids);
-
-
-    /**
-     * 批量添加好友
-     * @param id
-     * @param accountIds
-     */
-    void batchAddFriend(String id, String[] accountIds);
-
-    /**
-     * 打开广告管理工具页面
-     * @param fbAccount
-     */
-    void openAdvertise(FbAccount fbAccount,String adAccountId);
-
-    /**
-     * 修改浏览器名称
-     * @param id
-     */
-    void updateBrowserProfile(String id) throws AWTException;
-
-    /**
-     * 打开广告管理工具界面
-     * 读账户、BM信息
-     * @param id
-     */
-    void openAds(String id);
-
-    /**
-     * 获取广告账户信息
-     * @param id
-     */
-    void loadAdAccountInfo(String id);
-
-    /**
-     * 获取浏览器标签页句柄
-     * @param id
-     */
-    void getWindowHandles(String id);
-
-    /**
-     * 获取账号姓名
-     * @param ids
-     */
-    void getAccountName(String[] ids);
-
-    /**
-     *解限第一步
-     * @param ids
-     */
-    void unlimitedAccountOneStep(String[] ids);
-
-    /**
-     *解限第一步
-     * @param ids
-     */
-    void unlimitedAccountTwoStep(String[] ids);
-
-    /**
-     * 获取账号状态信息
-     * @param fbAccount
-     * @return
-     */
-    void checkAccountInfo(FbAccount fbAccount);
-
-    /**
-     * 修改账号密码
-     * @param fbAccount
-     * @return
-     */
-    FbAccount changePassword(FbAccount fbAccount);
-
-    /**
-     * 解锁账号
-     * @param fbAccount
-     */
-    void unlockAccount(FbAccount fbAccount);
-
-    /**
-     * 创主页
-     * @param fbAccount
-     * @param pageName
-     */
-    void createPage(FbAccount fbAccount, String pageName, Avatar avatar, Background background, List<Posts> posts) throws InterruptedException;
 
     /**
      * 为邮箱打开浏览器
@@ -171,5 +48,39 @@ public interface                        ISeleniumService {
      */
     WebDriver openBrowserForEmail(Email email);
 
+    /**
+     * 模拟按键，单键
+     * @param keyName
+     */
+    public void simulateKeyPress(int keyName);
 
+    /**
+     * 模拟按键，双键
+     * @param keyName1
+     * @param keyName2
+     */
+    public void simulateKeyPress(int keyName1, int keyName2);
+
+
+    /**
+     * 通过页面代码获取xpath
+     * @param pageSource
+     * @param sourceCode
+     * @return
+     */
+    public String getXpathBySourceCode(String pageSource, String sourceCode);
+
+    /**
+     * 模拟鼠标点击指定坐标位置
+     * @param driver
+     * @param x
+     * @param y
+     */
+    public void clickAtCoordinates(WebDriver driver, int x, int y);
+
+    /**
+     * 等待时间
+     * @param seconds
+     */
+    public void threadSleep(int seconds);
 }

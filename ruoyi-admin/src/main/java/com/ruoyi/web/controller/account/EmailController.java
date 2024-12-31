@@ -92,9 +92,13 @@ public class EmailController extends BaseController
     @PreAuthorize("@ss.hasPermi('account:email:add')")
     @Log(title = "email", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody Email email)
-    {
-        return toAjax(emailService.insertEmail(email));
+    public AjaxResult add(@RequestBody Email email) {
+        Email e = emailService.selectEmailByEmail(email.getEmail());
+        if (e == null) {
+            return toAjax(emailService.insertEmail(email));
+        }else {
+            return error("邮箱已经存在");
+        }
     }
 
     /**
