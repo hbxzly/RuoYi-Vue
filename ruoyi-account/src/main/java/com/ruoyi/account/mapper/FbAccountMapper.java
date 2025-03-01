@@ -38,6 +38,14 @@ public interface FbAccountMapper {
     public List<FbAccount> selectFbAccountList(FbAccount fbAccount);
 
     /**
+     * 查询账号列表
+     *
+     * @param fbAccount 账号
+     * @return 账号集合
+     */
+    public List<FbAccount> selectFbAccountListNoId(FbAccount fbAccount);
+
+    /**
      * 新增账号
      *
      * @param fbAccount 账号

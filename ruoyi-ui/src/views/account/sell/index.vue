@@ -65,14 +65,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="性别" prop="gender">
+<!--      <el-form-item label="性别" prop="gender">
         <el-input
           v-model="queryParams.gender"
           placeholder="请输入性别"
           clearable
           @keyup.enter.native="handleQuery"
         />
-      </el-form-item>
+      </el-form-item>-->
 <!--      <el-form-item label="创建日期" prop="createDate">
         <el-input
           v-model="queryParams.createDate"
@@ -121,6 +121,16 @@
         <el-select v-model="queryParams.canAds" placeholder="请选择能否广告" clearable>
           <el-option
             v-for="dict in dict.type.can_ads"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="是否卖出" prop="isSell">
+        <el-select v-model="queryParams.isSell" placeholder="请选择是否卖出" clearable>
+          <el-option
+            v-for="dict in dict.type.is_sell"
             :key="dict.value"
             :label="dict.label"
             :value="dict.value"
@@ -304,43 +314,88 @@
           @click="handleBatchSearch"
         >批量搜索</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-search"
+          size="mini"
+          @click="handleJumpPage"
+        >跳页</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-document"
+          size="mini"
+          :disabled="single"
+          @click="handleCreatePage"
+        >创建主页</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="multiple"
+          @click="handleCheckAccountActive"
+        >检测</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="sellList" @selection-change="handleSelectionChange" >
+    <el-table v-loading="loading" :data="sellList" @selection-change="handleSelectionChange" height="500">
+      <el-table-column type="expand">
+        <template v-slot="props">
+          <el-form label-position="top" class="demo-table-expand">
+            <div class="expand-container">
+              <p>账号密码： {{ props.row.password }}</p>
+              <p>邮箱密码：{{ props.row.emailPassword }}</p>
+              <p>秘钥：{{ props.row.secretKey }}</p>
+            </div>
+          </el-form>
+        </template>
+      </el-table-column>
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" align="center" width="60" prop="keyId" fixed/>
-      <el-table-column label="ID" align="center" width="155" prop="id" fixed/>
-      <el-table-column label="密码" align="center" width="155" prop="password" />
-      <el-table-column label="邮箱" align="center" width="155" prop="email" />
-      <el-table-column label="邮箱密码" align="center" width="100" prop="emailPassword" />
-<!--      <el-table-column label="账户生日" align="center" prop="birthday" show-overflow-tooltip/>-->
+      <el-table-column label="序号" align="center" width="60" prop="keyId" />
+      <el-table-column label="ID" align="center" width="100" prop="id" show-overflow-tooltip/>
+      <el-table-column label="邮箱" align="center" width="100" prop="email" show-overflow-tooltip/>
+<!--      <el-table-column  label="密码" align="center" width="155" prop="password" />
+      <el-table-column  label="邮箱密码" align="center" width="100" prop="emailPassword" />-->
       <el-table-column label="名字" align="center" width="100" prop="name" />
-      <el-table-column label="秘钥" align="center" prop="secretKey" show-overflow-tooltip/>
+<!--      <el-table-column  label="秘钥" align="center" prop="secretKey" show-overflow-tooltip/>
       <el-table-column label="性别" align="center" prop="gender" show-overflow-tooltip/>
-      <el-table-column label="创建日期" align="center" prop="createDate" show-overflow-tooltip/>
-      <el-table-column label="备注" align="center" width="150" prop="note" />
+      <el-table-column  label="创建日期" align="center" prop="createDate" show-overflow-tooltip/>-->
+      <el-table-column label="备注" align="center" width="100" prop="note" show-overflow-tooltip/>
       <el-table-column label="地区" align="center" prop="region" show-overflow-tooltip/>
-      <el-table-column label="能否登录" align="center" prop="canLogin">
+      <el-table-column  label="能否登录" align="center" prop="canLogin">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.can_login" :value="scope.row.canLogin"/>
         </template>
       </el-table-column>
-      <el-table-column label="是否商城" align="center" prop="isMarketplace">
+      <el-table-column  label="是否商城" align="center" prop="isMarketplace">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.is_marketplace" :value="scope.row.isMarketplace"/>
         </template>
       </el-table-column>
-      <el-table-column label="能否广告" align="center" prop="canAds">
+      <el-table-column  label="能否广告" align="center" prop="canAds">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.can_ads" :value="scope.row.canAds"/>
         </template>
       </el-table-column>
-      <el-table-column label="是否上架" align="center" prop="isShelf">
+<!--      <el-table-column label="是否上架" align="center" prop="isShelf">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.is_shelf" :value="scope.row.isShelf"/>
         </template>
+      </el-table-column>-->
+      <el-table-column label="是否卖出" align="center" prop="isSell">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.is_sell" :value="scope.row.isSell"/>
+        </template>
       </el-table-column>
+      <el-table-column label="卖出日期" align="center" width="100" prop="sellDate" />
       <el-table-column label="邮箱状态" align="center" prop="emailStatus">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.email_status" :value="scope.row.emailStatus"/>
@@ -465,6 +520,15 @@
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
+        <el-form-item label="是否卖出" prop="isSell">
+          <el-radio-group v-model="form.isSell">
+            <el-radio
+              v-for="dict in dict.type.is_sell"
+              :key="dict.value"
+              :label="dict.value"
+            >{{dict.label}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item label="邮箱是否可用" prop="emailStatus">
           <el-radio-group v-model="form.emailStatus">
             <el-radio
@@ -537,15 +601,17 @@
 
     <!--展示信息-->
     <el-dialog :title="title" :visible.sync="sellAccount" width="700px" append-to-body>
-      <el-form ref="form" :model="form" label-width="80px">
-        <p><strong>ID：</strong>{{ form.id }}</p>
-        <p><strong>密码：</strong>{{ form.password }}</p>
-        <p><strong>邮箱：</strong>{{ form.email }}</p>
-        <p><strong>邮箱密码：</strong>{{ form.emailPassword }}</p>
-        <p><strong>秘钥：</strong>{{ form.secretKey }}</p>
-        <p><strong>名字：</strong>{{ form.name }}</p>
+      <el-form ref="sellForm" :model="sellForm" label-width="80px">
+        <!-- 动态渲染字段内容 -->
+        <p><strong>ID：</strong>{{ sellForm.id }}</p>
+        <p><strong>{{ labels.password }}：</strong>{{ sellForm.password }}</p>
+        <p><strong>{{ labels.email }}：</strong>{{ sellForm.email }}</p>
+        <p><strong>{{ labels.emailPassword }}：</strong>{{ sellForm.emailPassword }}</p>
+        <p><strong>{{ labels.secretKey }}：</strong>{{ sellForm.secretKey }}</p>
+        <p><strong>{{ labels.name }}：</strong>{{ sellForm.name }}</p>
       </el-form>
       <div slot="footer" class="dialog-footer">
+        <el-button @click="toggleLabels">切换语言</el-button>
         <el-button type="primary" @click="submitSellAccount">确 定</el-button>
         <el-button @click="cancelSellAccount">取 消</el-button>
       </div>
@@ -577,7 +643,12 @@
         </el-form-item>
         <!-- 输入框 -->
         <el-form-item label="输入信息" prop="inputData">
-          <el-input-tag v-model="batchSearchFormData.inputData"  placeholder="Please input" />
+          <el-input
+            v-model="batchSearchFormData.inputData"
+            type="textarea"
+            placeholder="每行一个信息"
+            rows="5"
+          ></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer">
@@ -593,13 +664,12 @@
 
 <script>
 import { listSell, getSell, delSell, addSell, updateSell, checkAccount, updateSellForSell,
-  openBrowser, closeBrowser, accountPost, addFriend } from "@/api/account/sell";
+  openBrowser, closeBrowser, accountPost, addFriend, jumpPage, checkAccountActive } from "@/api/account/sell";
 import { getToken } from "@/utils/auth";
-import posts from "@/views/account/posts/index.vue";
 
 export default {
   name: "Sell",
-  dicts: ['is_marketplace', 'can_login', 'can_ads', 'browser_status', 'is_shelf', 'email_status'],
+  dicts: ['is_marketplace', 'can_login', 'can_ads', 'browser_status', 'is_shelf', 'email_status', 'is_sell'],
   data() {
     return {
       // 遮罩层
@@ -645,6 +715,7 @@ export default {
         region: null,
         canLogin: null,
         isMarketplace: null,
+        isSell: null,
         emailStatus: null,
         friendNumber: null,
         canAds: null,
@@ -660,10 +731,26 @@ export default {
       },
       // 表单参数
       form: {},
+      //销售表单
+      sellForm: {},
+
+      isSimplified: true,
+
+      labels: {
+        password: "密码",
+        email: "邮箱",
+        emailPassword: "邮箱密码",
+        secretKey: "秘钥",
+        name: "名字",
+      },
       //添加好友表单参数
       addFriendFormData: {},
       //批量搜索数据
-      batchSearchFormData: {},
+      batchSearchFormData: {
+        searchType: "",
+        inputData: "",
+        tags: [], // 用于存储生成的标签
+      },
       // 表单校验
       rules: {
       },
@@ -685,7 +772,7 @@ export default {
         headers: { Authorization: "Bearer " + getToken() },
         // 上传的地址
         url: process.env.VUE_APP_BASE_API + "/account/sell/importData"
-      }
+      },
     };
   },
   created() {
@@ -723,6 +810,7 @@ export default {
         region: null,
         canLogin: null,
         isMarketplace: null,
+        isSell: null,
         emailStatus: null,
         friendNumber: null,
         canAds: null,
@@ -737,6 +825,16 @@ export default {
       };
       this.resetForm("form");
     },
+
+    //跳页清除Id
+    resetId(){
+      this.form = {
+        keyId: null,
+        id: null
+      };
+      this.resetForm("form");
+    },
+
     // 添加好友表单重置
     resetAddFriendForm() {
       this.$refs.addFriendForm.resetFields();
@@ -854,7 +952,7 @@ export default {
       this.reset();
       const keyId = row.keyId || this.keyIds
       getSell(keyId).then(response => {
-        this.form = response.data;
+        this.sellForm = response.data;
         this.sellAccount = true;
         this.title = "卖出";
       });
@@ -934,6 +1032,8 @@ export default {
     /**批量搜索取消*/
     closeBatchSearch(){
       this.openBatchSearch = false;
+      this.batchSearchFormData.searchType = null;
+      this.batchSearchFormData.inputData = null;
     },
 
     /**批量搜索确定*/
@@ -943,10 +1043,63 @@ export default {
         this.$message.error('请完整填写搜索类型和输入信息！');
         return;
       }
-      // 打印搜索类型和内容，供调试
-      console.log('搜索类型:', searchType);
-      console.log('输入内容:', inputData);
+      // 处理输入内容，按行分割并去除前后空格
+      const processedInputData = inputData
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line); // 去除空行
+      if (searchType === "id"){
+        console.log('输入id:', processedInputData);
+      }
+      if (searchType === "email"){
+        console.log('输入邮箱:', processedInputData);
+      }
+
+      this.closeBatchSearch();
     },
+    //切换语言
+    toggleLabels() {
+      if (this.isChinese) {
+        this.labels = {
+          password: "密碼",
+          email: "信箱",
+          emailPassword: "信箱密碼",
+          secretKey: "2FA",
+          name: "名字",
+        };
+      } else {
+        this.labels = {
+          password: "密码",
+          email: "邮箱",
+          emailPassword: "邮箱密码",
+          secretKey: "秘钥",
+          name: "名字",
+        };
+      }
+      this.isChinese = !this.isChinese;
+    },
+    //跳转页面
+    handleJumpPage(){
+      jumpPage(this.queryParams).then(response => {
+        if (response.data === -1){
+        }else {
+          console.log(response.data);
+          this.$message.info(Math.ceil((response.data+1)/this.queryParams.pageSize));
+        }
+      });
+    },
+    //创建主页
+    handleCreatePage(){
+
+    },
+    //检测
+    handleCheckAccountActive(row) {
+      const keyIds = row.keyId || this.ids
+      checkAccountActive(keyIds).then(response => {
+        this.$modal.msgSuccess("检测完毕");
+        this.getList();
+      });
+    }
   }
 };
 </script>

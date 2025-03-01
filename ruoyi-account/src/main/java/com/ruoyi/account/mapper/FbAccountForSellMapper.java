@@ -2,6 +2,7 @@ package com.ruoyi.account.mapper;
 
 import java.util.List;
 import com.ruoyi.account.domain.FbAccountForSell;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 卖号Mapper接口
@@ -26,6 +27,14 @@ public interface FbAccountForSellMapper
      * @return 卖号集合
      */
     public List<FbAccountForSell> selectFbAccountForSellList(FbAccountForSell fbAccountForSell);
+
+    /**
+     * 查询卖号列表
+     *
+     * @param fbAccountForSell 卖号
+     * @return 卖号集合
+     */
+    public List<FbAccountForSell> selectFbAccountForSellListNoId(FbAccountForSell fbAccountForSell);
 
     /**
      * 新增卖号
@@ -72,4 +81,12 @@ public interface FbAccountForSellMapper
      * @return
      */
     public List<FbAccountForSell> selectFbAccountForSellListByAccountIds(Long[] ids);
+
+    /**
+     * 修改账号浏览器状态
+     * @param fbAccountForSell
+     * @param status
+     * @return
+     */
+    public int updateFbAccountForSellBrowserStatus(@Param("fbAccountForSell") FbAccountForSell fbAccountForSell, @Param("status") String status);
 }

@@ -5,6 +5,9 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
+import java.time.LocalDate;
+import java.util.Objects;
+
 /**
  * 卖号对象 fb_account_for_sell
  * 
@@ -116,7 +119,16 @@ public class FbAccountForSell extends BaseEntity
     @Excel(name = "邮箱状态")
     private String emailStatus;
 
-    public void setKeyId(Long keyId) 
+    /** 是否卖出 */
+    @Excel(name = "是否卖出")
+    private String isSell;
+
+    /** 卖出日期 */
+    @Excel(name = "卖出日期", width = 30, dateFormat = "yyyy-MM-dd")
+    private LocalDate sellDate;
+
+
+    public void setKeyId(Long keyId)
     {
         this.keyId = keyId;
     }
@@ -350,6 +362,22 @@ public class FbAccountForSell extends BaseEntity
         return emailStatus;
     }
 
+    public String getIsSell() {
+        return isSell;
+    }
+
+    public void setIsSell(String isSell) {
+        this.isSell = isSell;
+    }
+
+    public LocalDate getSellDate() {
+        return sellDate;
+    }
+
+    public void setSellDate(LocalDate sellDate) {
+        this.sellDate = sellDate;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -379,6 +407,21 @@ public class FbAccountForSell extends BaseEntity
                 .append("filePath", getFilePath())
                 .append("lastPostsTime", getLastPostsTime())
                 .append("isShelf", getIsShelf())
+                .append("isSell", getIsSell())
+                .append("sellDate", getSellDate())
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        FbAccountForSell that = (FbAccountForSell) obj;
+        return Objects.equals(id, that.id); // 假设使用 id 作为唯一标识
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

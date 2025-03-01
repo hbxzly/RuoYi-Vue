@@ -1,6 +1,7 @@
 package com.ruoyi.account.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.ruoyi.account.domain.FbAccount;
 import com.ruoyi.account.domain.FbAccountForSell;
@@ -29,6 +30,14 @@ public interface IFbAccountForSellService
      * @return 卖号集合
      */
     public List<FbAccountForSell> selectFbAccountForSellList(FbAccountForSell fbAccountForSell);
+
+    /**
+     * 查询卖号列表
+     *
+     * @param fbAccountForSell 卖号
+     * @return 卖号集合
+     */
+    public List<FbAccountForSell> selectFbAccountForSellListNoId(FbAccountForSell fbAccountForSell);
 
     /**
      * 新增卖号
@@ -124,4 +133,18 @@ public interface IFbAccountForSellService
      * @param webDriver
      */
     public void addFriend(FbAccountForSell fbAccountForSell, String id, WebDriver webDriver);
+
+    /**
+     * 打开浏览器
+     * @param fbAccountForSell
+     * @return
+     */
+    public WebDriver openBrowser(FbAccountForSell fbAccountForSell);
+
+    /**
+     * 显示浏览器
+     * @param fbAccountForSell
+     */
+    public void showBrowser(FbAccountForSell fbAccountForSell);
+
 }

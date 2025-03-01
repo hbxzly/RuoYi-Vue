@@ -3,6 +3,7 @@ package com.ruoyi.web.controller.account;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -10,8 +11,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ruoyi.account.domain.CreateInfo;
 import com.ruoyi.account.domain.FbAccount;
 import com.ruoyi.account.service.ISeleniumService;
+import com.ruoyi.account.util.FBAccountUtil;
 import org.openqa.selenium.WebDriver;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -207,7 +210,7 @@ public class FbAccountForSellController extends BaseController {
     }
 
     /**
-     * 修改卖号
+     * 卖出
      */
     @PreAuthorize("@ss.hasPermi('account:sell:edit')")
     @Log(title = "卖号", businessType = BusinessType.UPDATE)
@@ -215,8 +218,8 @@ public class FbAccountForSellController extends BaseController {
     @ResponseBody
     public AjaxResult updateSellForSell(@PathVariable Long keyId) {
         FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
-        String newNote = fbAccountForSell.getNote()+ LocalDate.now()+"卖出";
-        fbAccountForSell.setNote(newNote);
+        fbAccountForSell.setIsSell("1");
+        fbAccountForSell.setSellDate(LocalDate.now());
         fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
         return success();
     }
@@ -272,9 +275,15 @@ public class FbAccountForSellController extends BaseController {
         List<FbAccountForSell> fbAccountForSellList = fbAccountForSellService.selectFbAccountForSellListByAccountIds(keyIds.toArray(new Long[0]));
         for (FbAccountForSell fbAccountForSell : fbAccountForSellList) {
             WebDriver webDriver = seleniumService.openBrowserForAccountSell(fbAccountForSell);
-            webDriver.manage().deleteAllCookies();
-            fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell );
-            if (fbAccountForSellService.isLogin(webDriver,fbAccountForSell)){
+            webDriver.get("https://www.facebook.com/");
+            boolean login = fbAccountForSellService.isLogin(webDriver, fbAccountForSell);
+            System.out.println("判断登录:"+ login);
+            if (!login){
+                fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell );
+            }
+            login = fbAccountForSellService.isLogin(webDriver, fbAccountForSell);
+            System.out.println("判断登录2:"+ login);
+            if (login){
                 fbAccountForSellService.addFriend(fbAccountForSell,id,webDriver);
             }
             webDriver.quit();
@@ -283,5 +292,46 @@ public class FbAccountForSellController extends BaseController {
         return success();
     }
 
+    /**
+     * 计算页面
+     */
+    @GetMapping("/jumpPage")
+    @ResponseBody
+    public AjaxResult jumpPage(FbAccountForSell fbAccountForSell){
+        List<FbAccountForSell> list = fbAccountForSellService.selectFbAccountForSellList(fbAccountForSell);
+        if (list.size() == 1){
+            FbAccountForSell targetAccount = list.get(0);
+            // 查询数据库中所有的记录（这里假设数据库中记录的顺序就是你所需要的顺序）
+            List<FbAccountForSell> allAccounts = fbAccountForSellService.selectFbAccountForSellListNoId(fbAccountForSell);
+            // 通过 indexOf 方法获取 targetAccount 在所有记录中的位置
+            int index = allAccounts.indexOf(targetAccount);
+            return success(index); // 返回成功结果，包含位置
+
+        }
+        return success(-1);
+    }
+
+    @GetMapping("/checkAccountActive/{keyIds}")
+    @ResponseBody
+    public AjaxResult checkAccountActive(@PathVariable Long[] keyIds){
+        // 创建固定大小的线程池（可以根据 CPU 核心数调整）
+        int threadCount = Runtime.getRuntime().availableProcessors(); // 获取 CPU 核心数
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        for (Long keyId : keyIds){
+            executor.submit(() -> {  // 提交任务到线程池
+                try {
+                    FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+                    boolean b = FBAccountUtil.checkAccountActive(fbAccountForSell.getId());
+                    if (!b) {
+                        fbAccountForSell.setCanLogin("0");
+                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        return success();
+    }
 
 }

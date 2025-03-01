@@ -3,6 +3,9 @@ package com.ruoyi.account.service.impl;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,6 +14,8 @@ import com.ruoyi.account.domain.Posts;
 import com.ruoyi.account.service.IOperationLogService;
 import com.ruoyi.account.service.IPostsService;
 import com.ruoyi.account.service.ISeleniumService;
+import com.ruoyi.account.util.BrowserConfig;
+import com.ruoyi.account.util.FBAccountUtil;
 import com.ruoyi.account.util.RandomUitl;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
@@ -23,12 +28,13 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import com.ruoyi.account.mapper.FbAccountMapper;
 import com.ruoyi.account.domain.FbAccount;
 import com.ruoyi.account.service.IFbAccountService;
 
-import static com.ruoyi.account.util.WebPageUtil.waitingForContent;
 
 /**
  * 账号Service业务层处理
@@ -37,6 +43,7 @@ import static com.ruoyi.account.util.WebPageUtil.waitingForContent;
  * @date 2024-12-12
  */
 @Service
+@Component
 public class FbAccountServiceImpl implements IFbAccountService {
 
     @Autowired
@@ -50,6 +57,51 @@ public class FbAccountServiceImpl implements IFbAccountService {
 
     @Autowired
     private IPostsService postsService;
+
+    //webDriver集合
+    HashMap<String,WebDriver> webDriverMap = new HashMap<>();
+
+    //进程集合
+    Map<String, Integer> processMap = new HashMap<>();
+
+    @Scheduled(cron = "*/1 * * * * ?")
+    public void cleanUpWebDrivers() {
+
+        webDriverMap.entrySet().removeIf(entry -> {
+            String id = entry.getKey();
+            WebDriver webDriver = entry.getValue();
+            try {
+                webDriver.getTitle(); // 尝试调用以检测浏览器是否仍然活动
+                return false;
+            } catch (Exception e) {
+                try {
+                    FbAccount fbAccount = fbAccountMapper.selectFbAccountById(id);
+                    fbAccountMapper.updateBrowserStatus(fbAccount,"0");
+                    webDriver.quit(); // 确保关闭已挂的浏览器实例
+                } catch (Exception ignored) {
+
+                }
+                return true; // 如果调用失败，移除该实例
+            }
+        });
+
+        // 清理 processMap
+        processMap.entrySet().removeIf(entry -> {
+            String id = entry.getKey();
+            Integer processId = entry.getValue();
+            try {
+                // 检测进程是否仍然有效，例如通过系统调用
+                if (seleniumService.isProcessAlive(processId)) {
+                    return false; // 进程仍然有效
+                }
+            } catch (Exception ignored) {
+            }
+            fbAccountMapper.updateBrowserStatus(fbAccountMapper.selectFbAccountById(id),"0");
+            return true; // 移除无效进程
+        });
+
+    }
+
 
     /**
      * 查询账号
@@ -81,6 +133,17 @@ public class FbAccountServiceImpl implements IFbAccountService {
     @Override
     public List<FbAccount> selectFbAccountList(FbAccount fbAccount) {
         return fbAccountMapper.selectFbAccountList(fbAccount);
+    }
+
+    /**
+     * 查询账号列表
+     *
+     * @param fbAccount 账号
+     * @return 账号集合
+     */
+    @Override
+    public List<FbAccount> selectFbAccountListNoId(FbAccount fbAccount) {
+        return fbAccountMapper.selectFbAccountListNoId(fbAccount);
     }
 
     /**
@@ -210,7 +273,7 @@ public class FbAccountServiceImpl implements IFbAccountService {
                 }
                 WebElement loginButton = webDriver.findElement(By.name("login"));
                 loginButton.click();
-                waitingForContent(10, webDriver, "• Facebook");
+                seleniumService.waitingForContent(10, webDriver, "• Facebook");
                 String pageSource = webDriver.getPageSource();
                 Document document = Jsoup.parse(pageSource);
                 if (pageSource.contains("输入你看到的验证码")) {
@@ -226,7 +289,7 @@ public class FbAccountServiceImpl implements IFbAccountService {
                 if (!pageSource.contains("账号或密码无效")) {
                     //新版双重验证码输入
                     if (document.select("#approvals_code").first() != null) {
-                        webDriver.findElement(By.id("approvals_code")).sendKeys(getGoogleVerificationCode(fbAccount.getSecretKey()));
+                        webDriver.findElement(By.id("approvals_code")).sendKeys(FBAccountUtil.getGoogleVerificationCode(fbAccount.getSecretKey()));
                         webDriver.findElement(By.id("checkpointSubmitButton")).click();
                         Thread.sleep(2000);
                         webDriver.findElement(By.id("checkpointSubmitButton")).click();
@@ -236,10 +299,10 @@ public class FbAccountServiceImpl implements IFbAccountService {
                     Element element = document.select("input[type=text]").first();
                     if (element != null) {
                         WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
-                        approvalsCode.sendKeys(getGoogleVerificationCode(fbAccount.getSecretKey()));
+                        approvalsCode.sendKeys(FBAccountUtil.getGoogleVerificationCode(fbAccount.getSecretKey()));
                         WebElement submitButton = webDriver.findElement(By.xpath("(//div[@role='button'])[2]"));
                         submitButton.click();
-                        if (waitingForContent(2, webDriver, "currentColor")) {
+                        if (seleniumService.waitingForContent(2, webDriver, "currentColor")) {
                             fbAccount.setNote("无法登录-秘钥错误");
                             fbAccountMapper.updateFbAccount(fbAccount);
                             return false;
@@ -256,7 +319,7 @@ public class FbAccountServiceImpl implements IFbAccountService {
                         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("input[type='radio'][value='1']"))).click();
                         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[4]/div[3]/div/div/div/div/div/div/div/div/div[1]/div/span/span"))).click();
                         WebElement approvalsCode = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']")));
-                        approvalsCode.sendKeys(getGoogleVerificationCode(fbAccount.getSecretKey()));
+                        approvalsCode.sendKeys(FBAccountUtil.getGoogleVerificationCode(fbAccount.getSecretKey()));
                         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[2]/div[2]/div/div/div/div/div[3]/div/div[1]/div/div/div/div[1]/div/span/span"))).click();
                         for (int i = 0; i < 10; i++) {
                             if (!isLogin(fbAccount,webDriver)) {
@@ -281,26 +344,6 @@ public class FbAccountServiceImpl implements IFbAccountService {
         return true;
     }
 
-
-    private void handleTwoFactorAuth(FbAccount fbAccount, WebDriver webDriver) throws InterruptedException {
-        WebElement approvalsCode = webDriver.findElement(By.id("approvals_code"));
-        approvalsCode.sendKeys(getGoogleVerificationCode(fbAccount.getSecretKey()));
-        webDriver.findElement(By.id("checkpointSubmitButton")).click();
-        Thread.sleep(2000);
-        webDriver.findElement(By.id("checkpointSubmitButton")).click();
-        Thread.sleep(2000);
-        webDriver.get("https://www.facebook.com");
-    }
-
-    private void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-
     /**
      * 判断账号是否已经登录
      *
@@ -321,20 +364,20 @@ public class FbAccountServiceImpl implements IFbAccountService {
 
         // 检查是否处于检查点页面
         if (webDriver.getCurrentUrl().contains("/checkpoint/")) {
-            waitingForContent(5, webDriver, "xlink:href=\"https://scontent-tpe1-1.xx.fbcdn.net");
+            seleniumService.waitingForContent(5, webDriver, "xlink:href=\"https://scontent-tpe1-1.xx.fbcdn.net");
 
             // 处理检查点对应的情况
             if (pageSource.contains("/images/checkpoint/epsilon/comet/intro.png")) {
-                updateFbAccountStatus(fbAccount, "", STATUS_LOCKED);
+                updateFbAccountStatus(fbAccount, STATUS_LOCKED);
                 return false;
             }
             if (pageSource.contains("https://static.xx.fbcdn.net/rsrc.php/v4/yX/r/ACJE6Qz3VpL.png")) {
-                updateFbAccountStatus(fbAccount, "", STATUS_BANNED);
+                updateFbAccountStatus(fbAccount, STATUS_BANNED);
                 return false;
             }
 
             // 默认标记为锁定状态
-            updateFbAccountStatus(fbAccount, "", STATUS_LOCKED);
+            updateFbAccountStatus(fbAccount,  STATUS_LOCKED);
             return false;
         }
 
@@ -344,7 +387,7 @@ public class FbAccountServiceImpl implements IFbAccountService {
 
         if (hasCUser) {
             if (!STATUS_ACTIVE.equals(fbAccount.getStatus())) {
-                updateFbAccountStatus(fbAccount, null, STATUS_ACTIVE);
+                updateFbAccountStatus(fbAccount, STATUS_ACTIVE);
             }
             return hasPresence;
         }
@@ -366,7 +409,7 @@ public class FbAccountServiceImpl implements IFbAccountService {
         WebDriverWait wait = new WebDriverWait(webDriver, 30, 1);
         webDriver.get("https://www.facebook.com/" + id);
         webDriver.manage().window().maximize();
-        waitingForContent(10,webDriver,"https://static.xx.fbcdn.net/rsrc.php/v4/yK/r/r2FA830xjtI.png");
+        seleniumService.waitingForContent(10,webDriver,"https://static.xx.fbcdn.net/rsrc.php/v4/yK/r/r2FA830xjtI.png");
         try {
             wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v4/yK/r/r2FA830xjtI.png']"))).click();
         } catch (Exception e) {
@@ -451,7 +494,7 @@ public class FbAccountServiceImpl implements IFbAccountService {
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
         webDriver.get("https://www.facebook.com/" + fbAccount.getId());
         String target = "https://static.xx.fbcdn.net/rsrc.php/v4/yz/r/AqoGWewwdNN.png";
-        waitingForContent(30, webDriver, target);
+        seleniumService.waitingForContent(30, webDriver, target);
 
         String pageSource = webDriver.getPageSource();
 
@@ -598,36 +641,87 @@ public class FbAccountServiceImpl implements IFbAccountService {
     }
 
     /**
+     * 打开浏览器
+     * @param fbAccount
+     * @return
+     */
+    @Override
+    public WebDriver openBrowser(FbAccount fbAccount) {
+        if (!processMap.containsKey(fbAccount.getId())){
+            List<Integer> beforeListWindows = seleniumService.getListWindows();
+            WebDriver webDriver = seleniumService.openBrowser(BrowserConfig.getFbAccountBrowserConfig(fbAccount));
+            fbAccountMapper.updateBrowserStatus(fbAccount,"1");
+            List<Integer> afterListWindows = seleniumService.getListWindows();
+            Integer extraProcessId = seleniumService.findExtraProcessId(beforeListWindows, afterListWindows);
+            webDriverMap.put(fbAccount.getId(),webDriver);
+            processMap.put(fbAccount.getId(),extraProcessId);
+            return webDriver;
+        }
+        if (processMap.containsKey(fbAccount.getId())){
+            showBrowser(fbAccount);
+            return null;
+        }
+        return null;
+    }
+
+    /**
+     * 关闭浏览器
+     * @param fbAccount
+     */
+    @Override
+    public void closeBrowser(FbAccount fbAccount) {
+        fbAccountMapper.updateBrowserStatus(fbAccount,"0");
+        if (processMap.containsKey(fbAccount.getId())){
+            processMap.remove(fbAccount.getId());
+        }
+        if (webDriverMap.containsKey(fbAccount.getId())){
+            webDriverMap.get(fbAccount.getId()).quit();
+            webDriverMap.remove(fbAccount.getId());
+        }
+    }
+
+    /**
+     * 显示浏览器
+     *
+     * @param fbAccount
+     */
+    @Override
+    public void showBrowser(FbAccount fbAccount) {
+        seleniumService.showBrowser(processMap.get(fbAccount.getId()));
+    }
+
+    /**
+     * 关闭全部浏览器
+     */
+    @Override
+    public void closeAllBrowser() {
+        Iterator<Map.Entry<String, WebDriver>> iterator = webDriverMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, WebDriver> entry = iterator.next();
+            String key = entry.getKey();
+            WebDriver value = entry.getValue();
+
+            try {
+                value.quit(); // 关闭浏览器
+                fbAccountMapper.updateBrowserStatus(fbAccountMapper.selectFbAccountById(key), "0");
+            } catch (Exception e) {
+                e.printStackTrace(); // 打印异常日志
+            }
+
+           iterator.remove(); // 安全移除元素
+        }
+    }
+
+    /**
      * 更新 FbAccount 状态的工具方法
      */
-    private void updateFbAccountStatus(FbAccount fbAccount, String note, String status) {
-        if (note != null) {
-            fbAccount.setNote(note);
-        }
+    private void updateFbAccountStatus(FbAccount fbAccount, String status) {
         if (status != null) {
             fbAccount.setStatus(status);
         }
         fbAccountMapper.updateFbAccount(fbAccount);
     }
 
-    /**
-     * 获取双重验证
-     *
-     * @param secretKey
-     * @return
-     */
-    public String getGoogleVerificationCode(String secretKey) {
-        // 创建Google Authenticator实例
-        GoogleAuthenticator gAuth = new GoogleAuthenticator();
-
-        // 生成当前时间对应的TOTP密码
-        int totpPassword = gAuth.getTotpPassword(secretKey);
-
-        // 将TOTP密码格式化为字符串，确保不以0开头
-        String formattedCode = String.format("%06d", totpPassword);
-
-        return formattedCode;
-    }
 
     // 获取第 n 级父元素的方法
     public Element getNthParent(Element element, int levels) {
@@ -656,5 +750,6 @@ public class FbAccountServiceImpl implements IFbAccountService {
         }
         return list;
     }
+
 }
 

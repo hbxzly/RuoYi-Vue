@@ -1,20 +1,14 @@
 package com.ruoyi.account.service.impl;
 
 import com.ruoyi.account.domain.*;
-import com.ruoyi.account.service.IOperationLogService;
-import com.ruoyi.account.util.CreatePageConstants;
 import com.ruoyi.account.mapper.FbAccountMapper;
-import com.ruoyi.account.service.IAccountAdAccountBmInfoService;
-import com.ruoyi.account.service.IAdvertiseService;
 import com.ruoyi.account.service.ISeleniumService;
-import com.ruoyi.account.util.*;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
-import com.warrenstrange.googleauth.GoogleAuthenticator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,18 +17,12 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.KeyEvent;
-import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.*;
 
@@ -71,9 +59,9 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 option.addArguments("--user-agent=" + fbAccount.getUa());
                 option.setExperimentalOption("useAutomationExtension", false);
                 option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
-                List<Integer> beforeProcessIdList = listWindows();
+                List<Integer> beforeProcessIdList = getListWindows();
                 WebDriver webDriver = new ChromeDriver(option);
-                List<Integer> afterProcessIdList = listWindows();
+                List<Integer> afterProcessIdList = getListWindows();
                 changeBrowserStatus(fbAccount, "1");
                 processMap.put(fbAccount.getId(), findExtraProcessId(beforeProcessIdList, afterProcessIdList));
                 webDriverMap.put(fbAccount.getId(), webDriver);
@@ -83,10 +71,40 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 return null;
             }
         } else {
-            showBrowser(fbAccount);
+            showBrowser(processMap.get(fbAccount.getId()));
             return null;
         }
 
+    }
+
+    /**
+     * 打开打单个浏览器
+     *
+     * @param configMap
+     * @return
+     */
+    @Override
+    public WebDriver openBrowser(Map<String, String> configMap) {
+        try {
+            //参数配置
+            System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
+            ChromeOptions option = new ChromeOptions();
+            option.addArguments("--remote-allow-origins=*");
+            option.addArguments("--disable-notifications");//限制通知
+            option.setExperimentalOption("useAutomationExtension", false);
+            option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
+            if (configMap.containsKey("userDataDir")) {
+                option.addArguments("--user-data-dir=" + configMap.get("userDataDir"));
+            }
+            if (configMap.containsKey("userAgent")) {
+                option.addArguments("--user-agent=" + configMap.get("userAgent"));
+            }
+            WebDriver webDriver = new ChromeDriver(option);
+            return webDriver;
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -161,7 +179,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             webDriverMap.remove(fbAccount.getId());
             changeBrowserStatus(fbAccount, "0");
         }
-
         return "ok";
 
 
@@ -169,27 +186,20 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
 
     @Override
-    public void showBrowser(FbAccount fbAccount) {
-
-        Integer id = processMap.get(fbAccount.getId());
+    public void showBrowser(Integer pId) {
         User32 user32 = User32.INSTANCE;
-
         user32.EnumWindows((hWnd, arg1) -> {
             IntByReference processId = new IntByReference();
             user32.GetWindowThreadProcessId(hWnd, processId);
             int windowProcessId = processId.getValue();
-
-            if (user32.IsWindowVisible(hWnd) && windowProcessId == id) {
+            if (user32.IsWindowVisible(hWnd) && windowProcessId == pId) {
                 user32.ShowWindow(hWnd, User32.SW_MINIMIZE);
                 user32.ShowWindow(hWnd, User32.SW_RESTORE);
                 user32.SetForegroundWindow(hWnd);
             }
             return true;
         }, null);
-
     }
-
-
 
     /**
      * 模拟按键(单键）
@@ -199,11 +209,9 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     public void simulateKeyPress(int keyName) {
         try {
             Robot robot = new Robot();
-
             // 模拟按下和释放键
             robot.keyPress(keyName);
             robot.keyRelease(keyName);
-
         } catch ( AWTException e) {
             System.out.println("Invalid key name: " + keyName);
             e.printStackTrace();
@@ -219,13 +227,11 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     public void simulateKeyPress(int keyName1, int keyName2) {
         try {
             Robot robot = new Robot();
-
             // 模拟按下和释放键
             robot.keyPress(keyName1);
             robot.keyPress(keyName2);
             robot.keyRelease(keyName1);
             robot.keyRelease(keyName2);
-
         } catch ( AWTException e) {
             System.out.println("模拟按键失败");
             e.printStackTrace();
@@ -234,11 +240,11 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 
 
     /**
-     * 获取任务栏窗口
-     *
+     * 获取任务栏窗口进程ID
      * @return
      */
-    public static List<Integer> listWindows() {
+    @Override
+    public List<Integer> getListWindows() {
         List<Integer> processIdList = new ArrayList<>();
         User32.INSTANCE.EnumWindows(new WinUser.WNDENUMPROC() {
             @Override
@@ -247,8 +253,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 char[] windowText = new char[512];
                 User32.INSTANCE.GetWindowText(hWnd, windowText, 512);
                 String wText = Native.toString(windowText);
-
-
                 // 获取窗口所属进程ID
                 IntByReference processId = new IntByReference();
                 User32.INSTANCE.GetWindowThreadProcessId(hWnd, processId);
@@ -265,13 +269,41 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     }
 
     /**
-     * 返回新开浏览器的进程ID
+     * 检查进程ID是否活跃
      *
+     * @param processId
+     * @return
+     */
+    @Override
+    public boolean isProcessAlive(Integer processId) {
+        try {
+            // 根据操作系统执行检测，例如：
+            // - Windows: 使用 `tasklist` 或 `wmic`
+            // - Linux: 使用 `ps` 或直接检查 `/proc`
+            Process process = Runtime.getRuntime().exec("tasklist /FI \"PID eq " + processId + "\"");
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains(String.valueOf(processId))) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            return false; // 如果检测失败，认为进程已结束
+        }
+    }
+
+
+    /**
+     * 返回新开浏览器的进程ID
      * @param beforeProcessIdList 打开之前的进程
      * @param afterProcessIdList  打开之后的进程
      * @return
      */
-    private static Integer findExtraProcessId(List<Integer> beforeProcessIdList, List<Integer> afterProcessIdList) {
+    @Override
+    public Integer findExtraProcessId(List<Integer> beforeProcessIdList, List<Integer> afterProcessIdList) {
 
         Set<Integer> set = new HashSet<>(beforeProcessIdList);
 
@@ -294,7 +326,27 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         fbAccountMapper.updateBrowserStatus(fbAccount, status);
     }
 
-
+    /**
+     * 等待内容
+     * @param time
+     * @param webDriver
+     * @param content
+     * @return
+     */
+    @Override
+    public boolean waitingForContent(int time, WebDriver webDriver, String content) {
+        for (int i = 0; i < time; i++) {
+            if (webDriver.getPageSource().contains(content)) {
+                return true;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
 
     /**
      * 为邮箱打开浏览器

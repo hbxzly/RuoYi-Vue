@@ -5,6 +5,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
+import java.util.Objects;
+
 /**
  * 账号对象 fb_account
  *
@@ -271,5 +273,18 @@ public class FbAccount extends BaseEntity
                 .append("friendNumber", getFriendNumber())
                 .append("canAds", getCanAds())
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        FbAccount that = (FbAccount) obj;
+        return Objects.equals(id, that.id); // 假设使用 id 作为唯一标识
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

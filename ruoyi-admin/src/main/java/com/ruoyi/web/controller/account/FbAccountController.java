@@ -105,7 +105,7 @@ public class FbAccountController extends BaseController
     public AjaxResult openBrowser(@PathVariable Long[] keyIds){
         List<FbAccount> fbAccounts = fbAccountService.selectFbAccountByKeyIds(keyIds);
         for (FbAccount fbAccount : fbAccounts) {
-            WebDriver webDriver = seleniumService.openBrowser(fbAccount);
+            WebDriver webDriver = fbAccountService.openBrowser(fbAccount);
             fbAccountService.login(fbAccount, webDriver);
         }
 
@@ -113,14 +113,14 @@ public class FbAccountController extends BaseController
     }
 
     /**
-     * 打开账号
+     * 关闭浏览器
      */
     @GetMapping("/closeBrowser/{keyIds}")
     @ResponseBody
     public AjaxResult closeBrowser(@PathVariable Long[] keyIds){
         List<FbAccount> fbAccounts = fbAccountService.selectFbAccountByKeyIds(keyIds);
         for (FbAccount fbAccount : fbAccounts) {
-            seleniumService.closeBrowser(fbAccount);
+            fbAccountService.closeBrowser(fbAccount);
         }
         return success();
     }
@@ -134,7 +134,6 @@ public class FbAccountController extends BaseController
         List<FbAccount> fbAccounts = fbAccountService.selectFbAccountByKeyIds(keyIds.toArray(new Long[0]));
         for (FbAccount fbAccount : fbAccounts) {
             WebDriver webDriver = seleniumService.openBrowser(fbAccount);
-            webDriver.manage().deleteAllCookies();
             fbAccountService.login(fbAccount, webDriver);
             if (fbAccountService.isLogin(fbAccount,webDriver)){
                 fbAccountService.addFriend(fbAccount,id,webDriver);
@@ -199,5 +198,26 @@ public class FbAccountController extends BaseController
         }
     }
 
+    @GetMapping("/closeAllBrowser")
+    @ResponseBody
+    public void closeAllBrowser(){
+        fbAccountService.closeAllBrowser();
+    }
+
+    /**
+     * 计算页面
+     */
+    @GetMapping("/jumpPage")
+    @ResponseBody
+    public AjaxResult jumpPage(FbAccount fbAccount){
+        List<FbAccount> list = fbAccountService.selectFbAccountList(fbAccount);
+        if (list.size() == 1){
+            FbAccount targetFbAccount = list.get(0);
+            List<FbAccount> allFbAccount = fbAccountService.selectFbAccountListNoId(fbAccount);
+            int i = allFbAccount.indexOf(targetFbAccount);
+            return success(i);
+        }
+        return success(-1);
+    }
 
 }

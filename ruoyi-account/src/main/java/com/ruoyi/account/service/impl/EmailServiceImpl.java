@@ -7,6 +7,7 @@ import com.ruoyi.account.service.IEmailService;
 import com.ruoyi.account.service.ISeleniumService;
 import com.ruoyi.account.util.DefuUtil;
 import com.ruoyi.account.util.EmailUtil;
+import com.ruoyi.account.util.HttpClientUtil;
 import com.ruoyi.account.util.RandomUitl;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
@@ -194,8 +195,14 @@ public class EmailServiceImpl implements IEmailService {
      */
     @Override
     public String getMessage(Email email) {
-
-        return "EmailUtil.getMessage(email)";
+        String url = "https://bsh.bhdata.com:30015/bhmailer?uid=492746380&sign=99277cf10db6483c92e3c6e142bb8db1&act=checkMail&email="+email.getEmail()+"&sent=-10000&t=-100000";
+        String message = "";
+        try {
+            message = HttpClientUtil.sendGet(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return message;
     }
 
     @Override
@@ -213,6 +220,13 @@ public class EmailServiceImpl implements IEmailService {
             boolean b = waitingForContent(5, webDriver, "你的帐户或密码不正确");
             if (b){
                 email.setNote("账号密码不正确");
+                emailMapper.updateEmail(email);
+                webDriver.quit();
+                return email;
+            }
+            String pageSource = webDriver.getPageSource();
+            if (pageSource.contains("该 Microsoft 帐户不存在")){
+                email.setStatus("0");
                 emailMapper.updateEmail(email);
                 webDriver.quit();
                 return email;

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.account.mapper.ProxyIpMapper">
+
+    <resultMap type="ProxyIp" id="ProxyIpResult">
+        <result property="keyId"    column="key_id"    />
+        <result property="hostname"    column="hostname"    />
+        <result property="port"    column="port"    />
+        <result property="username"    column="username"    />
+        <result property="password"    column="password"    />
+        <result property="status"    column="status"    />
+        <result property="note"    column="note"    />
+        <result property="importTime"    column="import_time"    />
+    </resultMap>
+
+    <sql id="selectProxyIpVo">
+        select key_id, hostname, port, username, password, status, note, import_time from proxy_ip
+    </sql>
+
+    <select id="selectProxyIpList" parameterType="ProxyIp" resultMap="ProxyIpResult">
+        <include refid="selectProxyIpVo"/>
+        <where>
+            <if test="hostname != null  and hostname != ''"> and hostname like concat('%', #{hostname}, '%')</if>
+            <if test="port != null  and port != ''"> and port = #{port}</if>
+            <if test="username != null  and username != ''"> and username like concat('%', #{username}, '%')</if>
+            <if test="password != null  and password != ''"> and password = #{password}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+            <if test="importTime != null "> and import_time = #{importTime}</if>
+        </where>
+    </select>
+
+    <select id="selectProxyIpByKeyId" parameterType="Long" resultMap="ProxyIpResult">
+        <include refid="selectProxyIpVo"/>
+        where key_id = #{keyId}
+    </select>
+
+    <select id="selectProxyIpByUsername" parameterType="String" resultMap="ProxyIpResult">
+        <include refid="selectProxyIpVo"/>
+        where username = #{username}
+    </select>
+
+    <insert id="insertProxyIp" parameterType="ProxyIp" useGeneratedKeys="true" keyProperty="keyId">
+        insert into proxy_ip
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="hostname != null">hostname,</if>
+            <if test="port != null">port,</if>
+            <if test="username != null">username,</if>
+            <if test="password != null">password,</if>
+            <if test="status != null">status,</if>
+            <if test="note != null">note,</if>
+            <if test="importTime != null">import_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="hostname != null">#{hostname},</if>
+            <if test="port != null">#{port},</if>
+            <if test="username != null">#{username},</if>
+            <if test="password != null">#{password},</if>
+            <if test="status != null">#{status},</if>
+            <if test="note != null">#{note},</if>
+            <if test="importTime != null">#{importTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateProxyIp" parameterType="ProxyIp">
+        update proxy_ip
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="hostname != null">hostname = #{hostname},</if>
+            <if test="port != null">port = #{port},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="note != null">note = #{note},</if>
+            <if test="importTime != null">import_time = #{importTime},</if>
+        </trim>
+        where key_id = #{keyId}
+    </update>
+
+    <delete id="deleteProxyIpByKeyId" parameterType="Long">
+        delete from proxy_ip where key_id = #{keyId}
+    </delete>
+
+    <delete id="deleteProxyIpByKeyIds" parameterType="String">
+        delete from proxy_ip where key_id in
+        <foreach item="keyId" collection="array" open="(" separator="," close=")">
+            #{keyId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,6 +1,8 @@
 package com.ruoyi.account.util;
 
-public final class CreatePageConstants {
+public final class ElementConstants {
+
+    public static final String CAMERA_i = "https://static.xx.fbcdn.net/rsrc.php/v4/y5/r/hfjAwSdyy_q.png";
 
     public static final String CREATE_PAGE_WEBSITE = "https://www.facebook.com/pages/creation/?ref_type=launch_point";
 

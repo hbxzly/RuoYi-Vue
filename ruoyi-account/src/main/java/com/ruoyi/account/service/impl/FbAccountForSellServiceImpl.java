@@ -3,6 +3,9 @@ package com.ruoyi.account.service.impl;
 
 import java.awt.event.KeyEvent;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,6 +15,8 @@ import com.ruoyi.account.domain.Posts;
 import com.ruoyi.account.service.IOperationLogService;
 import com.ruoyi.account.service.IPostsService;
 import com.ruoyi.account.service.ISeleniumService;
+import com.ruoyi.account.util.BrowserConfig;
+import com.ruoyi.account.util.FBAccountUtil;
 import com.ruoyi.account.util.RandomUitl;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
@@ -25,12 +30,14 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import com.ruoyi.account.mapper.FbAccountForSellMapper;
 import com.ruoyi.account.domain.FbAccountForSell;
 import com.ruoyi.account.service.IFbAccountForSellService;
 
-import static com.ruoyi.account.util.WebPageUtil.waitingForContent;
+
 
 /**
  * 卖号Service业务层处理
@@ -38,8 +45,10 @@ import static com.ruoyi.account.util.WebPageUtil.waitingForContent;
  * @author ruoyi
  * @date 2024-11-01
  */
+@Component
 @Service
 public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
+
     @Autowired
     private FbAccountForSellMapper fbAccountForSellMapper;
 
@@ -53,7 +62,46 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
     private IOperationLogService operationLogService;
 
 
+    //webDriver集合
+    HashMap<String,WebDriver> webDriverMap = new HashMap<>();
 
+    //进程集合
+    Map<String, Integer> processMap = new HashMap<>();
+
+    @Scheduled(cron = "*/1 * * * * ?")
+    public void cleanUpWebDrivers() {
+
+        webDriverMap.entrySet().removeIf(entry -> {
+            String id = entry.getKey();
+            WebDriver webDriver = entry.getValue();
+            try {
+                webDriver.getTitle(); // 尝试调用以检测浏览器是否仍然活动
+                return false;
+            } catch (Exception e) {
+                try {
+                    webDriver.quit(); // 确保关闭已挂的浏览器实例
+                } catch (Exception ignored) {
+
+                }
+                return true; // 如果调用失败，移除该实例
+            }
+        });
+
+        // 清理 processMap
+        processMap.entrySet().removeIf(entry -> {
+            String id = entry.getKey();
+            Integer processId = entry.getValue();
+            try {
+                // 检测进程是否仍然有效，例如通过系统调用
+                if (seleniumService.isProcessAlive(processId)) {
+                    return false; // 进程仍然有效
+                }
+            } catch (Exception ignored) {
+            }
+            return true; // 移除无效进程
+        });
+
+    }
 
     /**
      * 查询卖号
@@ -75,6 +123,17 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
     @Override
     public List<FbAccountForSell> selectFbAccountForSellList(FbAccountForSell fbAccountForSell) {
         return fbAccountForSellMapper.selectFbAccountForSellList(fbAccountForSell);
+    }
+
+    /**
+     * 查询卖号列表
+     *
+     * @param fbAccountForSell 卖号
+     * @return 卖号集合
+     */
+    @Override
+    public List<FbAccountForSell> selectFbAccountForSellListNoId(FbAccountForSell fbAccountForSell) {
+        return fbAccountForSellMapper.selectFbAccountForSellListNoId(fbAccountForSell);
     }
 
     /**
@@ -179,137 +238,145 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
      */
     @Override
     public String loginFbAccountForSell(WebDriver webDriver, FbAccountForSell fbAccountForSell) {
-        webDriver.get("https://www.facebook.com");
         try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        // 清除所有 cookies
-        webDriver.manage().window().maximize();
+            webDriver.get("https://www.facebook.com");
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            // 清除所有 cookies
+            webDriver.manage().window().maximize();
 //        webDriver.manage().deleteAllCookies();
 //        webDriver.navigate().refresh();
-        WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
-        try {
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.name("login")));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            WebElement email = webDriver.findElement(By.name("email"));
-            WebElement password = webDriver.findElement(By.name("pass"));
+            WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
             try {
-                email.click();
-                // 创建Actions对象
-                Actions actions = new Actions(webDriver);
-                // 模拟Ctrl+A组合键
-                actions.keyDown(Keys.CONTROL)
-                        .sendKeys("a")
-                        .keyUp(Keys.CONTROL)
-                        .perform();
-                Thread.sleep(500);
-                actions.sendKeys(Keys.DELETE).perform();
-//                email.sendKeys(fbAccountForSell.getEmail());
-                for (char c : fbAccountForSell.getEmail().toCharArray()) {
-                    email.sendKeys(String.valueOf(c));
-                    // 可选：添加延迟，模拟更真实的逐字符输入
-                    Thread.sleep(100); // 延迟100毫秒
-                }
-                Thread.sleep(1000);
-                password.click();
-                // 模拟Ctrl+A组合键
-                actions.keyDown(Keys.CONTROL)
-                        .sendKeys("a")
-                        .keyUp(Keys.CONTROL)
-                        .perform();
-                Thread.sleep(500);
-                actions.sendKeys(Keys.DELETE).perform();
-//                password.sendKeys(fbAccountForSell.getPassword());
-                for (char c : fbAccountForSell.getPassword().toCharArray()) {
-                    password.sendKeys(String.valueOf(c));
-                    // 可选：添加延迟，模拟更真实的逐字符输入
-                    Thread.sleep(100); // 延迟100毫秒
-                }
-                Thread.sleep(2000);
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.name("login")));
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            WebElement loginButton = webDriver.findElement(By.name("login"));
-            loginButton.click();
-            waitingForContent(10, webDriver, "• Facebook");
-            String pageSource = webDriver.getPageSource();
-            Document document = Jsoup.parse(pageSource);
-            if (pageSource.contains("输入你看到的验证码")) {
-                fbAccountForSell.setNote("无法登录-需要输入验证码");
-                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-                return "";
-            }
-            if (pageSource.contains("WhatsApp")) {
-                fbAccountForSell.setNote("无法登录-需要WhatsApp验证码");
-                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-                return "";
-            }
-            if (pageSource.contains("账号或密码无效")) {
-                fbAccountForSell.setNote("无法登录-账号或密码无效");
-                fbAccountForSell.setCanLogin("0");
-                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-                return "";
-            }
-            if (pageSource.contains("你输入的是旧密码")) {
-                fbAccountForSell.setNote("无法登录-密码无效");
-                fbAccountForSell.setCanLogin("0");
-                fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-                return "";
-            }
-
-            //新版双重验证码输入
-            if (document.select("#approvals_code").first() != null) {
-                webDriver.findElement(By.id("approvals_code")).sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
-                webDriver.findElement(By.id("checkpointSubmitButton")).click();
-                Thread.sleep(2000);
-                webDriver.findElement(By.id("checkpointSubmitButton")).click();
-                Thread.sleep(2000);
-                webDriver.get("https://www.facebook.com");
-            }
-            Element element = document.select("input[type=text]").first();
-            if (element != null) {
-                WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
-                approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
-                approvalsCode.sendKeys(Keys.ENTER);
-                if (waitingForContent(2, webDriver, "currentColor")) {
-                    fbAccountForSell.setNote("无法登录-秘钥错误");
-                    fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-                    return "";
-                }
-                Thread.sleep(3000);
-                webDriver.get("https://www.facebook.com");
-            }
-            int size = document.select("[role=button]").size();
-            if (size == 1) {
-                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='button']"))).click();
-                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("input[type='radio'][value='1']"))).click();
-                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[4]/div[3]/div/div/div/div/div/div/div/div/div[1]/div/span/span"))).click();
-                WebElement approvalsCode = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']")));
-                approvalsCode.sendKeys(getVerificationCode(fbAccountForSell.getSecretKey()));
-                approvalsCode.sendKeys(Keys.ENTER);
-                if (waitingForContent(2, webDriver, "currentColor")) {
-                    fbAccountForSell.setNote("无法登录-秘钥错误");
-                    fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
-                    return "";
-                }
-                for (int i = 0; i < 10; i++) {
-                    if (!isLogin(webDriver, fbAccountForSell)){
-                        Thread.sleep(1000);
+            try {
+                WebElement email = webDriver.findElement(By.name("email"));
+                WebElement password = webDriver.findElement(By.name("pass"));
+                try {
+                    email.click();
+                    // 创建Actions对象
+                    Actions actions = new Actions(webDriver);
+                    // 模拟Ctrl+A组合键
+                    actions.keyDown(Keys.CONTROL)
+                            .sendKeys("a")
+                            .keyUp(Keys.CONTROL)
+                            .perform();
+                    Thread.sleep(500);
+                    actions.sendKeys(Keys.DELETE).perform();
+    //                email.sendKeys(fbAccountForSell.getEmail());
+                    for (char c : fbAccountForSell.getEmail().toCharArray()) {
+                        email.sendKeys(String.valueOf(c));
+                        // 可选：添加延迟，模拟更真实的逐字符输入
+                        Thread.sleep(100); // 延迟100毫秒
                     }
+                    Thread.sleep(1000);
+                    password.click();
+                    // 模拟Ctrl+A组合键
+                    actions.keyDown(Keys.CONTROL)
+                            .sendKeys("a")
+                            .keyUp(Keys.CONTROL)
+                            .perform();
+                    Thread.sleep(500);
+                    actions.sendKeys(Keys.DELETE).perform();
+    //                password.sendKeys(fbAccountForSell.getPassword());
+                    for (char c : fbAccountForSell.getPassword().toCharArray()) {
+                        password.sendKeys(String.valueOf(c));
+                        // 可选：添加延迟，模拟更真实的逐字符输入
+                        Thread.sleep(100); // 延迟100毫秒
+                    }
+                    Thread.sleep(2000);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                webDriver.get("https://www.facebook.com");
+                WebElement loginButton = webDriver.findElement(By.name("login"));
+                loginButton.click();
+                seleniumService.threadSleep(1000);
+                seleniumService.waitingForContent(10, webDriver, "• Facebook");
+                String pageSource = webDriver.getPageSource();
+                Document document = Jsoup.parse(pageSource);
+                if (pageSource.contains("输入你看到的验证码")) {
+                    fbAccountForSell.setNote("无法登录-需要输入验证码");
+                    fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                    return "";
+                }
+                if (pageSource.contains("WhatsApp")) {
+                    fbAccountForSell.setNote("无法登录-需要WhatsApp验证码");
+                    fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                    return "";
+                }
+                if (pageSource.contains("账号或密码无效")) {
+                    fbAccountForSell.setNote("无法登录-账号或密码无效");
+                    fbAccountForSell.setCanLogin("0");
+                    fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                    return "";
+                }
+                if (pageSource.contains("你输入的是旧密码")) {
+                    fbAccountForSell.setNote("无法登录-密码无效");
+                    fbAccountForSell.setCanLogin("0");
+                    fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                    return "";
+                }
+
+                //新版双重验证码输入
+                if (document.select("#approvals_code").first() != null) {
+                    webDriver.findElement(By.id("approvals_code")).sendKeys(FBAccountUtil.getGoogleVerificationCode(fbAccountForSell.getSecretKey()));
+                    webDriver.findElement(By.id("checkpointSubmitButton")).click();
+                    Thread.sleep(2000);
+                    webDriver.findElement(By.id("checkpointSubmitButton")).click();
+                    Thread.sleep(2000);
+                    webDriver.get("https://www.facebook.com");
+                }
+                Element element = document.select("input[type=text]").first();
+                if (element != null) {
+                    WebElement approvalsCode = webDriver.findElement(By.xpath("//input[@type='text']"));
+                    approvalsCode.sendKeys(FBAccountUtil.getGoogleVerificationCode(fbAccountForSell.getSecretKey()));
+                    approvalsCode.sendKeys(Keys.ENTER);
+                    if (seleniumService.waitingForContent(2, webDriver, "currentColor")) {
+                        fbAccountForSell.setNote("无法登录-秘钥错误");
+                        fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                        return "";
+                    }
+                    Thread.sleep(3000);
+                    webDriver.get("https://www.facebook.com");
+                }
+                int size = document.select("[role=button]").size();
+                if (size == 1) {
+                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='button']"))).click();
+                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("input[type='radio'][value='1']"))).click();
+                    List<WebElement> elements = webDriver.findElements(By.xpath("//div[@data-visualcompletion='ignore']"));
+                    elements.get(elements.size() - 1).findElement(By.xpath("..")).click();
+                    WebElement approvalsCode = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']")));
+                    approvalsCode.sendKeys(FBAccountUtil.getGoogleVerificationCode(fbAccountForSell.getSecretKey()));
+                    approvalsCode.sendKeys(Keys.ENTER);
+                    if (seleniumService.waitingForContent(2, webDriver, "currentColor")) {
+                        fbAccountForSell.setNote("无法登录-秘钥错误");
+                        fbAccountForSellMapper.updateFbAccountForSell(fbAccountForSell);
+                        return "";
+                    }
+                    for (int i = 0; i < 10; i++) {
+                        if (!isLogin(webDriver, fbAccountForSell)){
+                            Thread.sleep(1000);
+                        }
+                    }
+                    webDriver.get("https://www.facebook.com");
+                }
+
+                return "";
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        } catch (RuntimeException e) {
+            e.printStackTrace(
 
-            return "";
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            );
         }
         return "";
     }
@@ -342,7 +409,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
         }
         webDriver.get("https://www.facebook.com/" + fbAccountForSell.getId());
         String target = "https://static.xx.fbcdn.net/rsrc.php/v4/yz/r/AqoGWewwdNN.png";
-        waitingForContent(30, webDriver, target);
+        seleniumService.waitingForContent(30, webDriver, target);
 
         String pageSource = webDriver.getPageSource();
 
@@ -549,27 +616,6 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
         return fbAccountForSellMapper.selectFbAccountForSellListByAccountIds(ids);
     }
 
-
-    /**
-     * 获取双重验证
-     *
-     * @param secretKey
-     * @return
-     */
-    public String getVerificationCode(String secretKey) {
-        // 创建Google Authenticator实例
-        GoogleAuthenticator gAuth = new GoogleAuthenticator();
-
-        // 生成当前时间对应的TOTP密码
-        int totpPassword = gAuth.getTotpPassword(secretKey);
-
-        // 将TOTP密码格式化为字符串，确保不以0开头
-        String formattedCode = String.format("%06d", totpPassword);
-
-        return formattedCode;
-    }
-
-
     /**
      * 判断是否在线
      *
@@ -583,12 +629,25 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
         final String STATUS_DISABLED = "0";
 
         // 获取页面 URL 和 Cookies
+        for (int i = 0; i < 30; i++) {
+            Set<Cookie> cookies = webDriver.manage().getCookies();
+            System.out.println("第"+i);
+            if (cookies.size()>0) {
+                break;
+            }
+            seleniumService.threadSleep(1000);
+        }
         Set<Cookie> cookies = webDriver.manage().getCookies();
+        System.out.println("输出cookie--------------------------------------------");
+        for (Cookie cookie : cookies) {
+            System.out.println("name: " + cookie.getName() + ", value: " + cookie.getValue());
+        }
+        System.out.println("输出cookie--------------------------------------------");
         String pageSource = webDriver.getPageSource();
 
         // 检查是否处于检查点页面
         if (webDriver.getCurrentUrl().contains("/checkpoint/")) {
-            waitingForContent(5, webDriver, "xlink:href=\"https://scontent-tpe1-1.xx.fbcdn.net");
+            seleniumService.waitingForContent(5, webDriver, "xlink:href=\"https://scontent-tpe1-1.xx.fbcdn.net");
 
             // 处理检查点对应的情况
             if (pageSource.contains("/images/checkpoint/epsilon/comet/intro.png")) {
@@ -712,8 +771,12 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
         OperationLog operationLog = new OperationLog();
         WebDriverWait wait = new WebDriverWait(webDriver, 30, 1);
         webDriver.get("https://www.facebook.com/" + id);
-        webDriver.manage().window().maximize();
-        waitingForContent(10,webDriver,"https://static.xx.fbcdn.net/rsrc.php/v4/yK/r/r2FA830xjtI.png");
+        try {
+            webDriver.manage().window().maximize();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        seleniumService.waitingForContent(10,webDriver,"https://static.xx.fbcdn.net/rsrc.php/v4/yK/r/r2FA830xjtI.png");
         try {
             wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v4/yK/r/r2FA830xjtI.png']"))).click();
         } catch (Exception e) {
@@ -736,19 +799,39 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
         }
     }
 
-    //等待页面加载
-    public boolean waitingForContent(int time, WebDriver webDriver, String content) {
-        for (int i = 0; i < time; i++) {
-            if (webDriver.getPageSource().contains(content)) {
-                return true;
-            }
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+    /**
+     * 打开浏览器
+     *
+     * @param fbAccountForSell
+     * @return
+     */
+    @Override
+    public WebDriver openBrowser(FbAccountForSell fbAccountForSell) {
+        if (!processMap.containsKey(fbAccountForSell.getId())){
+            List<Integer> beforeListWindows = seleniumService.getListWindows();
+            WebDriver webDriver = seleniumService.openBrowser(BrowserConfig.getFbAccountForSellBrowserConfig(fbAccountForSell));
+            fbAccountForSellMapper.updateFbAccountForSellBrowserStatus(fbAccountForSell,"1");
+            List<Integer> afterListWindows = seleniumService.getListWindows();
+            Integer extraProcessId = seleniumService.findExtraProcessId(beforeListWindows, afterListWindows);
+            webDriverMap.put(fbAccountForSell.getId(),webDriver);
+            processMap.put(fbAccountForSell.getId(),extraProcessId);
+            return webDriver;
         }
-        return false;
+        if (processMap.containsKey(fbAccountForSell.getId())){
+            showBrowser(fbAccountForSell);
+            return null;
+        }
+        return null;
+    }
+
+    /**
+     * 显示浏览器
+     *
+     * @param fbAccountForSell
+     */
+    @Override
+    public void showBrowser(FbAccountForSell fbAccountForSell) {
+        seleniumService.showBrowser(processMap.get(fbAccountForSell.getId()));
     }
 
 

@@ -210,19 +210,37 @@
           size="mini"
         >发帖</el-button>
       </el-col>
-
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-switch-button"
+          size="mini"
+          @click="handleCloseAllBrowser"
+        >全部关闭</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-search"
+          size="mini"
+          @click="handleJumpPage"
+        >跳页</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="fbAccountList" @selection-change="handleSelectionChange" height="calc(100vh - 120px)">
+    <el-table v-loading="loading" :data="fbAccountList" @selection-change="handleSelectionChange" height="500">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" prop="keyId" />
       <el-table-column label="ID" align="center" prop="id" />
       <el-table-column label="密码" align="center" prop="password" />
-      <el-table-column label="邮箱" align="center" prop="email" />
+      <el-table-column label="邮箱" align="center" prop="email"
+      />
       <el-table-column label="邮箱密码" align="center" prop="emailPassword" />
       <el-table-column label="名字" align="center" prop="name" />
-      <el-table-column label="秘钥" align="center" prop="secretKey" />
+      <el-table-column label="秘钥" align="center" prop="secretKey" show-overflow-tooltip/>
       <el-table-column label="状态" align="center" prop="status">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.account_status" :value="scope.row.status"/>
@@ -390,7 +408,7 @@
 
 <script>
 import { listFbAccount, getFbAccount, delFbAccount, addFbAccount, updateFbAccount, openBrowser,
-  closeBrowser, addFriend, checkAccount, accountPost } from "@/api/account/fbAccount";
+  closeBrowser, addFriend, checkAccount, accountPost, closeAllBrowser, jumpPage } from "@/api/account/fbAccount";
 import { getToken } from "@/utils/auth";
 import post from "@/views/system/post/index.vue";
 
@@ -594,9 +612,7 @@ export default {
     /** 打开按钮操作 */
     handleOpenBrowser(row) {
       const keyIds = row.keyId || this.ids;
-      this.$modal.confirm('是否确认打开账号编号为"' + keyIds + '"的账号？').then(function() {
-        return openBrowser(keyIds);
-      }).then(() => {
+      openBrowser(keyIds).then(response => {
         this.getList();
         this.$modal.msgSuccess("打开成功");
       }).catch(() => {});
@@ -605,9 +621,7 @@ export default {
     /** 打开按钮操作 */
     handleCloseBrowser(row) {
       const keyIds = row.keyId || this.ids;
-      this.$modal.confirm('是否确认关闭账号编号为"' + keyIds + '"的账号？').then(function() {
-        return closeBrowser(keyIds);
-      }).then(() => {
+      closeBrowser(keyIds).then(response => {
         this.getList();
         this.$modal.msgSuccess("关闭成功");
       }).catch(() => {});
@@ -669,6 +683,7 @@ export default {
       this.$refs.upload.submit();
     },
 
+    //检测
     handleCheckAccount(){
       const idList = this.ids
       this.$modal.confirm('是否确认检测选中的账号？').then(function() {
@@ -679,6 +694,7 @@ export default {
       }).catch(() => {});
     },
 
+    //发帖
     handlePost(){
       const idList = this.ids
       this.$modal.confirm('是否确认给选中的账号发帖？').then(function() {
@@ -687,7 +703,24 @@ export default {
         this.getList();
         this.$modal.msgSuccess("发帖成功");
       }).catch(() => {});
-    }
+    },
+
+    //关闭全部
+    handleCloseAllBrowser(){
+      closeAllBrowser().then(response => {
+        this.$modal.msgSuccess("全关成功");
+      })
+    },
+
+    //跳转页面
+    handleJumpPage(){
+      jumpPage(this.queryParams).then(response => {
+        if (response.data === -1){
+        }else {
+          this.$message.info(Math.ceil((response.data+1)/this.queryParams.pageSize));
+        }
+      });
+    },
 
 
   }

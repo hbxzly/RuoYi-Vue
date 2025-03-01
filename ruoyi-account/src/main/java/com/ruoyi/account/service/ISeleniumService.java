@@ -3,6 +3,9 @@ package com.ruoyi.account.service;
 import com.ruoyi.account.domain.*;
 import org.openqa.selenium.WebDriver;
 
+import java.util.List;
+import java.util.Map;
+
 public interface ISeleniumService {
 
     /**
@@ -11,6 +14,13 @@ public interface ISeleniumService {
      * @return
      */
     WebDriver openBrowser(FbAccount fbAccount);
+
+    /**
+     * 打开打单个浏览器
+     * @param configMap
+     * @return
+     */
+    WebDriver openBrowser(Map<String,String> configMap);
 
     /**
      * 打开打单个浏览器
@@ -36,9 +46,9 @@ public interface ISeleniumService {
 
     /**
      * 显示浏览器
-     * @param fbAccount
+     * @param pId
      */
-    void showBrowser(FbAccount fbAccount);
+    void showBrowser(Integer pId);
 
 
     /**
@@ -83,4 +93,37 @@ public interface ISeleniumService {
      * @param seconds
      */
     public void threadSleep(int seconds);
+
+
+    /**
+     * 获取进程ID
+     * @param beforeProcessIdList
+     * @param afterProcessIdList
+     * @return
+     */
+    public Integer findExtraProcessId(List<Integer> beforeProcessIdList, List<Integer> afterProcessIdList);
+
+
+    /**
+     * 获取任务栏窗口进程ID
+     * @return
+     */
+    public List<Integer> getListWindows();
+
+    /**
+     * 检查进程ID是否活跃
+     * @param processId
+     * @return
+     */
+    public boolean isProcessAlive(Integer processId);
+
+    /**
+     * 等待内容
+     * @param time
+     * @param webDriver
+     * @param content
+     * @return
+     */
+    public boolean waitingForContent(int time, WebDriver webDriver, String content);
+
 }

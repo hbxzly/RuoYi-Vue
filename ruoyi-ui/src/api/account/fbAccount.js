@@ -87,3 +87,20 @@ export function accountPost(keyIds){
     method: "get"
   })
 }
+
+//全部关闭
+export function closeAllBrowser(){
+  return request({
+    url: "/account/fbAccount/closeAllBrowser",
+    method: "get"
+  })
+}
+
+//跳至页面
+export function jumpPage(query){
+  return request({
+    url: "account/fbAccount/jumpPage",
+    method: "get",
+    params: query
+  })
+}

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.account.mapper.CreateInfoMapper">
+    
+    <resultMap type="CreateInfo" id="CreateInfoResult">
+        <result property="keyId"    column="key_id"    />
+        <result property="email"    column="email"    />
+        <result property="password"    column="password"    />
+        <result property="emailPassword"    column="email_password"    />
+        <result property="phone"    column="phone"    />
+        <result property="secretKey"    column="secret_key"    />
+        <result property="id"    column="id"    />
+        <result property="nickName"    column="nick_name"    />
+        <result property="birthday"    column="birthday"    />
+        <result property="isMarketplace"    column="is_marketplace"    />
+        <result property="gender"    column="gender"    />
+        <result property="createDate"    column="create_date"    />
+        <result property="createIp"    column="create_ip"    />
+        <result property="createStatus"    column="create_status"    />
+        <result property="ua"    column="ua"    />
+        <result property="filePath"    column="file_path"    />
+        <result property="browserProfile"    column="browser_profile"    />
+        <result property="companyName"    column="company_name"    />
+        <result property="address"    column="address"    />
+        <result property="hometownAddress"    column="hometown_address"    />
+        <result property="accountOtherInfo"    column="account_other_info"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+
+    <sql id="selectCreateInfoVo">
+        select key_id, email, password, email_password, phone, secret_key, id, nick_name, birthday, is_marketplace, gender, create_date, create_ip, create_status, ua, file_path, browser_profile, company_name, address, hometown_address, account_other_info, note from create_info
+    </sql>
+
+    <select id="selectCreateInfoList" parameterType="CreateInfo" resultMap="CreateInfoResult">
+        <include refid="selectCreateInfoVo"/>
+        <where>  
+            <if test="email != null  and email != ''"> and email like concat('%',#{email},'%') </if>
+            <if test="password != null  and password != ''"> and password = #{password}</if>
+            <if test="emailPassword != null  and emailPassword != ''"> and email_password = #{emailPassword}</if>
+            <if test="phone != null  and phone != ''"> and phone = #{phone}</if>
+            <if test="secretKey != null  and secretKey != ''"> and secret_key = #{secretKey}</if>
+            <if test="nickName != null  and nickName != ''"> and nick_name like concat('%', #{nickName}, '%')</if>
+            <if test="birthday != null  and birthday != ''"> and birthday = #{birthday}</if>
+            <if test="isMarketplace != null  and isMarketplace != ''"> and is_marketplace = #{isMarketplace}</if>
+            <if test="gender != null  and gender != ''"> and gender = #{gender}</if>
+            <if test="createDate != null  and createDate != ''"> and create_date like concat('%',#{createDate},'%') </if>
+            <if test="createIp != null  and createIp != ''"> and create_ip = #{createIp}</if>
+            <if test="createStatus != null  and createStatus != ''"> and create_status like concat('%', #{createStatus},'%')</if>
+            <if test="ua != null  and ua != ''"> and ua = #{ua}</if>
+            <if test="filePath != null  and filePath != ''"> and file_path = #{filePath}</if>
+            <if test="browserProfile != null  and browserProfile != ''"> and browser_profile = #{browserProfile}</if>
+            <if test="companyName != null  and companyName != ''"> and company_name like concat('%', #{companyName}, '%')</if>
+            <if test="address != null  and address != ''"> and address = #{address}</if>
+            <if test="hometownAddress != null  and hometownAddress != ''"> and hometown_address = #{hometownAddress}</if>
+            <if test="accountOtherInfo != null  and accountOtherInfo != ''"> and account_other_info = #{accountOtherInfo}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+        </where>
+        order by key_id DESC
+    </select>
+    
+    <select id="selectCreateInfoByKeyId" parameterType="Long" resultMap="CreateInfoResult">
+        <include refid="selectCreateInfoVo"/>
+        where key_id = #{keyId}
+    </select>
+
+    <select id="selectCreateInfoByPassword" parameterType="java.lang.String" resultMap="CreateInfoResult">
+        <include refid="selectCreateInfoVo"/>
+        where password = #{password}
+    </select>
+
+    <insert id="insertCreateInfo" parameterType="CreateInfo" useGeneratedKeys="true" keyProperty="keyId">
+        insert into create_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="email != null">email,</if>
+            <if test="password != null">password,</if>
+            <if test="emailPassword != null">email_password,</if>
+            <if test="phone != null">phone,</if>
+            <if test="secretKey != null">secret_key,</if>
+            <if test="id != null">id,</if>
+            <if test="nickName != null">nick_name,</if>
+            <if test="birthday != null">birthday,</if>
+            <if test="isMarketplace != null">is_marketplace,</if>
+            <if test="gender != null">gender,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="createIp != null">create_ip,</if>
+            <if test="createStatus != null">create_status,</if>
+            <if test="ua != null">ua,</if>
+            <if test="filePath != null">file_path,</if>
+            <if test="browserProfile != null">browser_profile,</if>
+            <if test="companyName != null">company_name,</if>
+            <if test="address != null">address,</if>
+            <if test="hometownAddress != null">hometown_address,</if>
+            <if test="accountOtherInfo != null">account_other_info,</if>
+            <if test="note != null">note,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="email != null">#{email},</if>
+            <if test="password != null">#{password},</if>
+            <if test="emailPassword != null">#{emailPassword},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="secretKey != null">#{secretKey},</if>
+            <if test="id != null">#{id},</if>
+            <if test="nickName != null">#{nickName},</if>
+            <if test="birthday != null">#{birthday},</if>
+            <if test="isMarketplace != null">#{isMarketplace},</if>
+            <if test="gender != null">#{gender},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="createIp != null">#{createIp},</if>
+            <if test="createStatus != null">#{createStatus},</if>
+            <if test="ua != null">#{ua},</if>
+            <if test="filePath != null">#{filePath},</if>
+            <if test="browserProfile != null">#{browserProfile},</if>
+            <if test="companyName != null">#{companyName},</if>
+            <if test="address != null">#{address},</if>
+            <if test="hometownAddress != null">#{hometownAddress},</if>
+            <if test="accountOtherInfo != null">#{accountOtherInfo},</if>
+            <if test="note != null">#{note},</if>
+        </trim>
+    </insert>
+
+    <update id="updateCreateInfo" parameterType="CreateInfo">
+        update create_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="email != null">email = #{email},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="emailPassword != null">email_password = #{emailPassword},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="secretKey != null">secret_key = #{secretKey},</if>
+            <if test="id != null">id = #{id},</if>
+            <if test="nickName != null">nick_name = #{nickName},</if>
+            <if test="birthday != null">birthday = #{birthday},</if>
+            <if test="isMarketplace != null">is_marketplace = #{isMarketplace},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="createDate != null">create_date = #{createDate},</if>
+            <if test="createIp != null">create_ip = #{createIp},</if>
+            <if test="createStatus != null">create_status = #{createStatus},</if>
+            <if test="ua != null">ua = #{ua},</if>
+            <if test="filePath != null">file_path = #{filePath},</if>
+            <if test="browserProfile != null">browser_profile = #{browserProfile},</if>
+            <if test="companyName != null">company_name = #{companyName},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="hometownAddress != null">hometown_address = #{hometownAddress},</if>
+            <if test="accountOtherInfo != null">account_other_info = #{accountOtherInfo},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where key_id = #{keyId}
+    </update>
+
+    <delete id="deleteCreateInfoByKeyId" parameterType="Long">
+        delete from create_info where key_id = #{keyId}
+    </delete>
+
+    <delete id="deleteCreateInfoByKeyIds" parameterType="String">
+        delete from create_info where key_id in
+        <foreach item="keyId" collection="array" open="(" separator="," close=")">
+            #{keyId}
+        </foreach>
+    </delete>
+</mapper>

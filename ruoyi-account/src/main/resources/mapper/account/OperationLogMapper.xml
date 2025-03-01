@@ -20,7 +20,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectOperationLogList" parameterType="OperationLog" resultMap="OperationLogResult">
         <include refid="selectOperationLogVo"/>
         <where>
-            <if test="operationAccount != null  and operationAccount != ''"> and operation_account = #{operationAccount}</if>
+            <if test="operationAccount != null  and operationAccount != ''"> and operation_account like concat('%', #{operationAccount}, '%')</if>
             <if test="operationContent != null  and operationContent != ''"> and operation_content like concat('%', #{operationContent}, '%')</if>
             <if test="operationStatus != null  and operationStatus != ''"> and operation_status like concat('%', #{operationStatus}, '%')</if>
             <if test="operationTime != null "> and operation_time = #{operationTime}</if>

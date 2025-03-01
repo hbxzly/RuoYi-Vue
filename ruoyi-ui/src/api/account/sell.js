@@ -87,12 +87,29 @@ export function accountPost(keyIds){
 // 添加好友
 export function addFriend(keyIds,id) {
   return request({
-    url: `/account/sell/addFriend`,
+    url: "/account/sell/addFriend",
     method: 'get',
     params: {
       keyIds: keyIds.join(','),
       id: id
     }
+  })
+}
+
+//跳至页面
+export function jumpPage(query){
+  return request({
+    url: "account/sell/jumpPage",
+    method: "get",
+    params: query
+  })
+}
+
+//检测
+export function checkAccountActive(keyIds){
+  return request({
+    url: "account/sell/checkAccountActive/"+keyIds,
+    method: "get"
   })
 }
 

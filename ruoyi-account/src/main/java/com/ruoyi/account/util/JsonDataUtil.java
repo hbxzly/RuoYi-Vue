@@ -15,10 +15,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ReadJsonData {
+public class JsonDataUtil {
 
 
-    public static String getInfoByNodeName(String jsonData,String nodeName) throws JsonProcessingException {
+    public static String getValueByNodeName(String jsonData, String nodeName) throws JsonProcessingException {
         JsonMapper jsonMapper = new JsonMapper();
         JsonNode jsonNode = jsonMapper.readTree(jsonData);
         JsonNode addressJsonNode = jsonNode.get("address");

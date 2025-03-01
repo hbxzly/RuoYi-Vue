@@ -1,10 +1,26 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="邮箱" prop="email">
+      <el-form-item label="主机地址" prop="hostname">
         <el-input
-          v-model="queryParams.email"
-          placeholder="请输入邮箱"
+          v-model="queryParams.hostname"
+          placeholder="请输入主机地址"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="端口" prop="port">
+        <el-input
+          v-model="queryParams.port"
+          placeholder="请输入端口"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="用户名" prop="username">
+        <el-input
+          v-model="queryParams.username"
+          placeholder="请输入用户名"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -17,36 +33,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="账号ID" prop="accountId">
-        <el-input
-          v-model="queryParams.accountId"
-          placeholder="请输入账号ID"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择状态；0被释放，1正常，2被锁，3未知异常" clearable>
-          <el-option
-            v-for="dict in dict.type.email_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
       <el-form-item label="备注" prop="note">
         <el-input
           v-model="queryParams.note"
           placeholder="请输入备注"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="最近一次消息" prop="lastTimeMessage">
-        <el-input
-          v-model="queryParams.lastTimeMessage"
-          placeholder="请输入最近一次消息"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -65,18 +55,8 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['account:email:add']"
+          v-hasPermi="['account:ip:add']"
         >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="upload"
-          size="mini"
-          @click="handleImport"
-          v-hasPermi="['account:email:add']"
-        >上传</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -86,7 +66,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['account:email:edit']"
+          v-hasPermi="['account:ip:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -97,7 +77,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['account:email:remove']"
+          v-hasPermi="['account:ip:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -107,40 +87,33 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['account:email:export']"
+          v-hasPermi="['account:ip:export']"
         >导出</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
-          type="success"
+          type="info"
           plain
-          icon="el-icon-edit"
+          icon="el-icon-upload2"
           size="mini"
-          :disabled="multiple"
-          @click="handleUnlock"
-          v-hasPermi="['account:email:remove']"
-        >解锁</el-button>
+          @click="handleImport"
+        >导入</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="emailList" @selection-change="handleSelectionChange" height="500">
+    <el-table v-loading="loading" :data="ipList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="keyId" />
-      <el-table-column label="邮箱" align="center" prop="email" />
+      <el-table-column label="序号" align="center" prop="keyId" />
+      <el-table-column label="主机地址" align="center" prop="hostname" />
+      <el-table-column label="端口" align="center" prop="port" />
+      <el-table-column label="用户名" align="center" prop="username" />
       <el-table-column label="密码" align="center" prop="password" />
-      <el-table-column label="账号ID" align="center" prop="accountId" />
-      <el-table-column label="状态" align="center" prop="status">
-        <template slot-scope="scope">
-          <dict-tag :options="dict.type.email_status" :value="scope.row.status"/>
-        </template>
-      </el-table-column>
+      <el-table-column label="状态" align="center" prop="status" />
       <el-table-column label="备注" align="center" prop="note" />
-      <el-table-column label="最近一次消息" align="center" prop="lastTimeMessage" show-overflow-tooltip>
+      <el-table-column label="导入时间" align="center" prop="importTime" width="180">
         <template slot-scope="scope">
-          <span @dblclick="showMessageDialog(scope.row.lastTimeMessage)">
-             {{ scope.row.lastTimeMessage }}
-          </span>
+          <span>{{ parseTime(scope.row.importTime, '{y}-{m}-{d} {h}:{mm}:{ss}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -149,29 +122,15 @@
             size="mini"
             type="text"
             icon="el-icon-edit"
-            @click="handleGetMessage(scope.row)"
-            v-hasPermi="['account:email:edit']"
-          >取件</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['account:email:edit']"
+            v-hasPermi="['account:ip:edit']"
           >修改</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-edit"
-            @click="handleUnlock(scope.row)"
-            v-hasPermi="['account:email:edit']"
-          >解锁</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['account:email:remove']"
+            v-hasPermi="['account:ip:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -185,32 +144,23 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改email对话框 -->
+    <!-- 添加或修改代理对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="form.email" placeholder="请输入邮箱" />
+        <el-form-item label="主机地址" prop="hostname">
+          <el-input v-model="form.hostname" placeholder="请输入主机地址" />
+        </el-form-item>
+        <el-form-item label="端口" prop="port">
+          <el-input v-model="form.port" placeholder="请输入端口" />
+        </el-form-item>
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username" placeholder="请输入用户名" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input v-model="form.password" placeholder="请输入密码" />
         </el-form-item>
-        <el-form-item label="账号ID" prop="accountId">
-          <el-input v-model="form.accountId" placeholder="请输入账号ID" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio
-              v-for="dict in dict.type.email_status"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
         <el-form-item label="备注" prop="note">
           <el-input v-model="form.note" placeholder="请输入备注" />
-        </el-form-item>
-        <el-form-item label="最近一次消息" prop="lastTimeMessage">
-          <el-input v-model="form.lastTimeMessage" placeholder="请输入最近一次消息" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -219,7 +169,7 @@
       </div>
     </el-dialog>
 
-    <!-- email导入对话框 -->
+    <!-- 导入对话框 -->
     <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px" append-to-body>
       <el-upload
         ref="upload"
@@ -237,7 +187,7 @@
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
         <div class="el-upload__tip text-center" slot="tip">
           <div class="el-upload__tip" slot="tip">
-            <el-checkbox v-model="upload.updateSupport" /> 是否更新已经存在的用户数据
+            <el-checkbox v-model="upload.updateSupport" /> 是否更新已经存在的数据
           </div>
           <span>仅允许导入xls、xlsx格式文件。</span>
           <el-link type="primary" :underline="false" style="font-size:12px;vertical-align: baseline;" @click="importTemplate">下载模板</el-link>
@@ -249,39 +199,15 @@
       </div>
     </el-dialog>
 
-    <!--显示消息-->
-    <el-dialog
-      title="最近一次消息"
-      :visible.sync="messageDialog.visible"
-      width="500px"
-      append-to-body
-    >
-      <p>{{ messageDialog.content }}</p>
-      <span slot="footer" class="dialog-footer">
-    <el-button @click="messageDialog.visible = false">关闭</el-button>
-  </span>
-    </el-dialog>
-
   </div>
 </template>
 
-<style>
-/* 固定表头 */
-.el-table__header-wrapper {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background-color: #f5f7fa; /* 设置表头背景色 */
-}
-</style>
-
 <script>
-import { listEmail, getEmail, delEmail, addEmail, updateEmail, getMessage, unlockEmail } from "@/api/account/email";
+import { listIp, getIp, delIp, addIp, updateIp } from "@/api/account/ip";
 import { getToken } from "@/utils/auth";
 
 export default {
-  name: "Email",
-  dicts: ['email_status'],
+  name: "Ip",
   data() {
     return {
       // 遮罩层
@@ -296,8 +222,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // email表格数据
-      emailList: [],
+      // 代理表格数据
+      ipList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -306,14 +232,19 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        email: null,
+        hostname: null,
+        port: null,
+        username: null,
         password: null,
         status: null,
-        note: null,
-        lastTimeMessage: null
+        note: null
       },
-
-      // email导入参数
+      // 表单参数
+      form: {},
+      // 表单校验
+      rules: {
+      },
+      // 导入参数
       upload: {
         // 是否显示弹出层（用户导入）
         open: false,
@@ -326,33 +257,19 @@ export default {
         // 设置上传的请求头部
         headers: { Authorization: "Bearer " + getToken() },
         // 上传的地址
-        url: process.env.VUE_APP_BASE_API + "/account/email/importData"
+        url: process.env.VUE_APP_BASE_API + "/account/ip/importData"
       },
-
-      // 文件上传中处理
-      handleFileUploadProgress(event, file, fileList) {
-        this.upload.isUploading = true;
-      },
-      // 表单参数
-      form: {},
-      // 表单校验
-      rules: {
-      },
-      messageDialog: {
-        visible: false,
-        content: ''
-      }
     };
   },
   created() {
     this.getList();
   },
   methods: {
-    /** 查询email列表 */
+    /** 查询代理列表 */
     getList() {
       this.loading = true;
-      listEmail(this.queryParams).then(response => {
-        this.emailList = response.rows;
+      listIp(this.queryParams).then(response => {
+        this.ipList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -366,11 +283,12 @@ export default {
     reset() {
       this.form = {
         keyId: null,
-        email: null,
+        hostname: null,
+        port: null,
+        username: null,
         password: null,
         status: null,
-        note: null,
-        lastTimeMessage: null
+        note: null
       };
       this.resetForm("form");
     },
@@ -394,69 +312,16 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加email";
-    },
-    /**解锁邮箱*/
-    handleUnlock(row) {
-      const keyIds = row.keyId || this.ids;
-      this.$modal.confirm('是否确认解锁email编号为"' + keyIds + '"的数据项？').then(function() {
-        return unlockEmail(keyIds);
-      }).then(() => {
-        this.getList();
-        this.$modal.msgSuccess("删除成功");
-      }).catch(() => {});
-    },
-
-    /** 导入按钮操作 */
-    handleImport() {
-      this.upload.title = "email导入";
-      this.upload.open = true;
-    },
-
-    /** 下载模板操作 */
-    importTemplate() {
-      this.download('account/email/importTemplate', {
-      }, `email_template_${new Date().getTime()}.xlsx`)
-    },
-
-    // 文件上传成功处理
-    handleFileSuccess(response, file, fileList) {
-      this.upload.open = false;
-      this.upload.isUploading = false;
-      this.$refs.upload.clearFiles();
-      this.$alert("<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" + response.msg + "</div>", "导入结果", { dangerouslyUseHTMLString: true });
-      this.getList();
-    },
-
-    // 提交上传文件
-    submitFileForm() {
-      this.$refs.upload.submit();
-    },
-    /** 修改按钮操作 */
-    handleGetMessage(row) {
-      this.reset();
-      // 组合 row 对象
-      const requestData = {
-        keyId: row.keyId,
-        email: row.email,
-        password: row.password,
-        status: row.status,
-        note: row.note,
-        lastTimeMessage: row.lastTimeMessage
-      };
-      getMessage(requestData).then(response => {
-        this.$modal.msgSuccess("获取成功");
-        this.getList();
-      });
+      this.title = "添加代理";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
       const keyId = row.keyId || this.ids
-      getEmail(keyId).then(response => {
+      getIp(keyId).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改email";
+        this.title = "修改代理";
       });
     },
     /** 提交按钮 */
@@ -464,13 +329,13 @@ export default {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.keyId != null) {
-            updateEmail(this.form).then(response => {
+            updateIp(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addEmail(this.form).then(response => {
+            addIp(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -482,8 +347,8 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const keyIds = row.keyId || this.ids;
-      this.$modal.confirm('是否确认删除email编号为"' + keyIds + '"的数据项？').then(function() {
-        return delEmail(keyIds);
+      this.$modal.confirm('是否确认删除代理编号为"' + keyIds + '"的数据项？').then(function() {
+        return delIp(keyIds);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
@@ -491,28 +356,38 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('account/email/export', {
+      this.download('account/ip/export', {
         ...this.queryParams
-      }, `email_${new Date().getTime()}.xlsx`)
+      }, `ip_${new Date().getTime()}.xlsx`)
     },
 
+    /** 下载模板操作 */
+    importTemplate() {
+      this.download('account/ip/importTemplate', {
+      }, `ip_template_${new Date().getTime()}.xlsx`)
+    },
 
-    showMessageDialog(message) {
-      this.messageDialog.content = message;
-      this.messageDialog.visible = true;
-    }
-
+    /** 导入按钮操作 */
+    handleImport() {
+      this.upload.title = "数据导入";
+      this.upload.open = true;
+    },
+    // 文件上传中处理
+    handleFileUploadProgress(event, file, fileList) {
+      this.upload.isUploading = true;
+    },
+    // 文件上传成功处理
+    handleFileSuccess(response, file, fileList) {
+      this.upload.open = false;
+      this.upload.isUploading = false;
+      this.$refs.upload.clearFiles();
+      this.$alert("<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" + response.msg + "</div>", "导入结果", { dangerouslyUseHTMLString: true });
+      this.getList();
+    },
+    // 提交上传文件
+    submitFileForm() {
+      this.$refs.upload.submit();
+    },
   }
-
 };
 </script>
-
-<style scoped>
-.small-padding {
-  padding: 0;
-}
-
-.fixed-width {
-  width: 130px;
-}
-</style>

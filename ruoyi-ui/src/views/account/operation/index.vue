@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px"  >
       <el-form-item label="操作账号" prop="operationAccount">
         <el-input
           v-model="queryParams.operationAccount"
@@ -93,7 +93,7 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="operationList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="operationList" @selection-change="handleSelectionChange" height="500">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" prop="keyId" />
       <el-table-column label="操作账号" align="center" prop="operationAccount" />

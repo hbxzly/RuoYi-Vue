@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @SpringBootTest(classes = RuoYiApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -21,13 +23,15 @@ public class AppTest {
 
     @Test
     public void TestOne(){
-        List<FbAccount> fbAccounts = accountService.selectFbAccountList(new FbAccount());
-        for (FbAccount fbAccount : fbAccounts) {
-            if (fbAccount.getKeyId()>1078){
-                fbAccount.setRegion("中文");
-                accountService.updateFbAccount(fbAccount);
+        List<FbAccountForSell> fbAccountForSells = accountForSellService.selectFbAccountForSellList(new FbAccountForSell());
+        for (FbAccountForSell fbAccountForSell : fbAccountForSells) {
+            if (fbAccountForSell.getNote().contains("卖出")){
+                LocalDate localDate = LocalDate.parse(fbAccountForSell.getNote().replace("卖出", ""), DateTimeFormatter.ofPattern("yyyy-M-d"));
+                fbAccountForSell.setSellDate(localDate);
+                accountForSellService.updateFbAccountForSell(fbAccountForSell);
             }
         }
+
     }
 
 

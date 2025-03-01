@@ -74,7 +74,31 @@
 			<if test="secretKey != null  and secretKey != ''"> and secret_key = #{secretKey}</if>
 			<if test="status != null  and status != ''"> and status = #{status}</if>
 			<if test="createDate != null  and createDate != ''"> and create_date = #{createDate}</if>
-			<if test="note != null  and note != ''"> and note = #{note}</if>
+			<if test="note != null  and note != ''"> and note like concat('%', #{note} ,'%') </if>
+			<if test="ua != null  and ua != ''"> and ua = #{ua}</if>
+			<if test="dataSource != null  and dataSource != ''"> and data_source = #{dataSource}</if>
+			<if test="region != null  and region != ''"> and region = #{region}</if>
+			<if test="browserStatus != null  and browserStatus != ''"> and browser_status = #{browserStatus}</if>
+			<if test="browserProfile != null  and browserProfile != ''"> and browser_profile = #{browserProfile}</if>
+			<if test="friendNumber != null "> and friend_number = #{friendNumber}</if>
+			<if test="canAds != null  and canAds != ''"> and can_ads = #{canAds}</if>
+		</where>
+		order by key_id DESC
+	</select>
+
+	<select id="selectFbAccountListNoId" parameterType="FbAccount" resultMap="FbAccountResult">
+		<include refid="selectFbAccountVo"/>
+		<where>
+			<if test="id != null  and id != ''"> and id = #{id}</if>
+			<if test="password != null  and password != ''"> and password = #{password}</if>
+			<if test="email != null  and email != ''"> and email = #{email}</if>
+			<if test="emailPassword != null  and emailPassword != ''"> and email_password = #{emailPassword}</if>
+			<if test="birthday != null  and birthday != ''"> and birthday = #{birthday}</if>
+			<if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+			<if test="secretKey != null  and secretKey != ''"> and secret_key = #{secretKey}</if>
+			<if test="status != null  and status != ''"> and status = #{status}</if>
+			<if test="createDate != null  and createDate != ''"> and create_date = #{createDate}</if>
+			<if test="note != null  and note != ''"> and note like concat('%', #{note} ,'%') </if>
 			<if test="ua != null  and ua != ''"> and ua = #{ua}</if>
 			<if test="dataSource != null  and dataSource != ''"> and data_source = #{dataSource}</if>
 			<if test="region != null  and region != ''"> and region = #{region}</if>
@@ -186,7 +210,6 @@
 			<if test="ua != null">ua = #{ua},</if>
 			<if test="dataSource != null">data_source = #{dataSource},</if>
 			<if test="region != null">region = #{region},</if>
-			<if test="browserStatus != null">browser_status = #{browserStatus},</if>
 			<if test="browserProfile != null">browser_profile = #{browserProfile},</if>
 			<if test="friendNumber != null">friend_number = #{friendNumber},</if>
 			<if test="canAds != null">can_ads = #{canAds},</if>

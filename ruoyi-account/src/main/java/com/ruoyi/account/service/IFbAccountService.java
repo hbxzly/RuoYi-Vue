@@ -38,6 +38,14 @@ public interface IFbAccountService {
     public List<FbAccount> selectFbAccountList(FbAccount fbAccount);
 
     /**
+     * 查询账号列表
+     *
+     * @param fbAccount 账号
+     * @return 账号集合
+     */
+    public List<FbAccount> selectFbAccountListNoId(FbAccount fbAccount);
+
+    /**
      * 新增账号
      *
      * @param fbAccount 账号
@@ -119,4 +127,28 @@ public interface IFbAccountService {
      * @param webDriver
      */
     public void post(FbAccount fbAccount,  WebDriver webDriver);
+
+    /**
+     * 打开浏览器
+     * @param fbAccount
+     * @return
+     */
+    public WebDriver openBrowser(FbAccount fbAccount);
+
+    /**
+     * 关闭浏览器
+     * @param fbAccount
+     */
+    public void closeBrowser(FbAccount fbAccount);
+
+    /**
+     * 显示浏览器
+     * @param fbAccount
+     */
+    public void showBrowser(FbAccount fbAccount);
+
+    /**
+     * 关闭全部浏览器
+     */
+    public void closeAllBrowser();
 }
