@@ -34,6 +34,10 @@ public class Email extends BaseEntity
     @Excel(name = "状态；0被释放，1正常，2被锁，3未知异常")
     private String status;
 
+    /** 状态；0被释放，1正常，2被锁，3未知异常 */
+    @Excel(name = "状态；0否，1是")
+    private String isBoundAccount;
+
     /** 备注 */
     @Excel(name = "备注")
     private String note;
@@ -81,6 +85,13 @@ public class Email extends BaseEntity
     public void setStatus(String status)
     {
         this.status = status;
+    }
+
+    public String getIsBoundAccount() {
+        return isBoundAccount;
+    }
+    public void setIsBoundAccount(String isBoundAccount) {
+        this.isBoundAccount = isBoundAccount;
     }
 
     public String getStatus()

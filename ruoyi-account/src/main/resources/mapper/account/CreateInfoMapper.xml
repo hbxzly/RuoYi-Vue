@@ -3,7 +3,7 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.account.mapper.CreateInfoMapper">
-    
+
     <resultMap type="CreateInfo" id="CreateInfoResult">
         <result property="keyId"    column="key_id"    />
         <result property="email"    column="email"    />
@@ -27,10 +27,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="hometownAddress"    column="hometown_address"    />
         <result property="accountOtherInfo"    column="account_other_info"    />
         <result property="note"    column="note"    />
+        <result property="cookie"    column="cookie"    />
+        <result property="isBoundEmail"    column="is_bound_email"    />
+        <result property="is2fa"    column="is_2fa"    />
+        <result property="isBoundTelephone"    column="is_bound_telephone"    />
+        <result property="isCreate"    column="is_create"    />
     </resultMap>
 
     <sql id="selectCreateInfoVo">
-        select key_id, email, password, email_password, phone, secret_key, id, nick_name, birthday, is_marketplace, gender, create_date, create_ip, create_status, ua, file_path, browser_profile, company_name, address, hometown_address, account_other_info, note from create_info
+        select key_id, email, password, email_password, phone, secret_key, id, nick_name, birthday, is_marketplace, gender, create_date, create_ip, create_status, ua, file_path, browser_profile, company_name, address, hometown_address, account_other_info, note, cookie, is_bound_email, is_2fa, is_bound_telephone, is_create from create_info
     </sql>
 
     <select id="selectCreateInfoList" parameterType="CreateInfo" resultMap="CreateInfoResult">
@@ -56,6 +61,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="hometownAddress != null  and hometownAddress != ''"> and hometown_address = #{hometownAddress}</if>
             <if test="accountOtherInfo != null  and accountOtherInfo != ''"> and account_other_info = #{accountOtherInfo}</if>
             <if test="note != null  and note != ''"> and note = #{note}</if>
+            <if test="cookie != null  and cookie != ''"> and cookie = #{cookie}</if>
+            <if test="isBoundEmail != null  and isBoundEmail != ''"> and is_bound_email = #{isBoundEmail}</if>
+            <if test="is2fa != null  and is2fa != ''"> and is_2fa = #{is2fa}</if>
+            <if test="isBoundTelephone != null  and isBoundTelephone != ''"> and is_bound_telephone = #{isBoundTelephone}</if>
+            <if test="isCreate != null  and isCreate != ''"> and is_create = #{isCreate}</if>
         </where>
         order by key_id DESC
     </select>
@@ -94,6 +104,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="hometownAddress != null">hometown_address,</if>
             <if test="accountOtherInfo != null">account_other_info,</if>
             <if test="note != null">note,</if>
+            <if test="cookie != null">cookie,</if>
+            <if test="isBoundEmail != null">is_bound_email,</if>
+            <if test="is2fa != null">is_2fa,</if>
+            <if test="isBoundTelephone != null">is_bound_telephone,</if>
+            <if test="isCreate != null">is_create,</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="email != null">#{email},</if>
@@ -117,8 +132,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="hometownAddress != null">#{hometownAddress},</if>
             <if test="accountOtherInfo != null">#{accountOtherInfo},</if>
             <if test="note != null">#{note},</if>
+            <if test="cookie != null">#{cookie},</if>
+            <if test="isBoundEmail != null">#{isBoundEmail},</if>
+            <if test="is2fa != null">#{is2fa},</if>
+            <if test="isBoundTelephone != null">#{isBoundTelephone},</if>
+            <if test="isCreate != null">#{isCreate},</if>
         </trim>
     </insert>
+
 
     <update id="updateCreateInfo" parameterType="CreateInfo">
         update create_info
@@ -144,6 +165,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="hometownAddress != null">hometown_address = #{hometownAddress},</if>
             <if test="accountOtherInfo != null">account_other_info = #{accountOtherInfo},</if>
             <if test="note != null">note = #{note},</if>
+            <if test="cookie != null">cookie = #{cookie},</if>
+            <if test="isBoundEmail != null">is_bound_email = #{isBoundEmail},</if>
+            <if test="is2fa != null">is_2fa = #{is2fa},</if>
+            <if test="isBoundTelephone != null">is_bound_telephone = #{isBoundTelephone},</if>
+            <if test="isCreate != null">is_create = #{isCreate},</if>
         </trim>
         where key_id = #{keyId}
     </update>

@@ -65,6 +65,7 @@
 	<select id="selectFbAccountList" parameterType="FbAccount" resultMap="FbAccountResult">
 		<include refid="selectFbAccountVo"/>
 		<where>
+			<if test="keyId != null  and keyId != ''"> and key_id = #{keyId}</if>
 			<if test="id != null  and id != ''"> and id = #{id}</if>
 			<if test="password != null  and password != ''"> and password = #{password}</if>
 			<if test="email != null  and email != ''"> and email = #{email}</if>
@@ -175,6 +176,12 @@
 	<select id="selectFbAccountById" resultMap="FbAccountResult" parameterType="java.lang.String">
 		SELECT * FROM fb_account
 		WHERE id = #{id}
+	</select>
+
+	<!-- 查询操作 -->
+	<select id="selectFbAccountByEmail" resultMap="FbAccountResult" parameterType="java.lang.String">
+		SELECT * FROM fb_account
+		WHERE email = #{emial}
 	</select>
 
 	<!-- 使用条件判断片段进行查询 -->

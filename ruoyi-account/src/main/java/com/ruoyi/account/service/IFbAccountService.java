@@ -13,6 +13,7 @@ import org.openqa.selenium.WebDriver;
  * @date 2024-12-12
  */
 public interface IFbAccountService {
+
     /**
      * 查询账号
      *
@@ -20,6 +21,20 @@ public interface IFbAccountService {
      * @return 账号
      */
     public FbAccount selectFbAccountByKeyId(Long keyId);
+    /**
+     * 查询账号
+     *
+     * @param id id
+     * @return 账号
+     */
+    public FbAccount selectFbAccountById(String id);
+    /**
+     * 查询账号
+     *
+     * @param email 邮箱
+     * @return 账号
+     */
+    public FbAccount selectFbAccountByEmail(String email);
 
     /**
      * 批量查询账号
@@ -151,4 +166,12 @@ public interface IFbAccountService {
      * 关闭全部浏览器
      */
     public void closeAllBrowser();
+
+    /**
+     *
+     * @param fbAccount
+     * @param pageName
+     * @return
+     */
+    public String createPage(FbAccount fbAccount,String pageName);
 }

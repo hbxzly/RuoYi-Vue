@@ -115,6 +115,28 @@ public class FbAccountServiceImpl implements IFbAccountService {
     }
 
     /**
+     * 查询账号
+     *
+     * @param id id
+     * @return 账号
+     */
+    @Override
+    public FbAccount selectFbAccountById(String id) {
+        return fbAccountMapper.selectFbAccountById(id);
+    }
+
+    /**
+     * 查询账号
+     *
+     * @param email 邮箱
+     * @return 账号
+     */
+    @Override
+    public FbAccount selectFbAccountByEmail(String email) {
+        return fbAccountMapper.selectFbAccountByEmail(email);
+    }
+
+    /**
      * 批量查询账号
      * @param keyIds 账号主键
      * @return 账号
@@ -359,7 +381,6 @@ public class FbAccountServiceImpl implements IFbAccountService {
         final String STATUS_BANNED = "5";
 
         // 获取页面 URL 和 Cookies
-        Set<Cookie> cookies = webDriver.manage().getCookies();
         String pageSource = webDriver.getPageSource();
 
         // 检查是否处于检查点页面
@@ -381,15 +402,9 @@ public class FbAccountServiceImpl implements IFbAccountService {
             return false;
         }
 
-        // 检查 Cookies 是否包含特定项
-        boolean hasCUser = cookies.stream().anyMatch(cookie -> "c_user".equals(cookie.getName()));
-        boolean hasPresence = cookies.stream().anyMatch(cookie -> "presence".equals(cookie.getName()));
 
-        if (hasCUser) {
-            if (!STATUS_ACTIVE.equals(fbAccount.getStatus())) {
-                updateFbAccountStatus(fbAccount, STATUS_ACTIVE);
-            }
-            return hasPresence;
+        if (pageSource.contains("="+fbAccount.getId())) {
+            return true;
         }
 
         return false; // 统一处理其他情况
@@ -418,12 +433,14 @@ public class FbAccountServiceImpl implements IFbAccountService {
         try {
             wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v4/yo/r/Qg9sXPTnmFb.png']")));
             operationLog.setOperationAccount(fbAccount.getId());
+            operationLog.setOperationAccountKeyId(fbAccount.getKeyId());
             operationLog.setOperationContent("添加"+id+"好友");
             operationLog.setOperationStatus("成功");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
         }catch (Exception e){
             operationLog.setOperationAccount(fbAccount.getId());
+            operationLog.setOperationAccountKeyId(fbAccount.getKeyId());
             operationLog.setOperationContent("添加"+id+"好友");
             operationLog.setOperationStatus("失败");
             operationLog.setOperationTime(new Date());
@@ -585,13 +602,13 @@ public class FbAccountServiceImpl implements IFbAccountService {
             int randomIndex = random.nextInt(numbers.length);
             for (int i = 0; i < numbers[randomIndex]; i++) {
                 seleniumService.simulateKeyPress(KeyEvent.VK_PAGE_DOWN);
-                seleniumService.threadSleep(1000);
+                seleniumService.threadSleep(1);
             }
             seleniumService.simulateKeyPress(KeyEvent.VK_HOME);
-            seleniumService.threadSleep(1000);
+            seleniumService.threadSleep(1);
             WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v4/y7/r/Ivw7nhRtXyo.png']"))).click();
-            seleniumService.threadSleep(1000);
+            seleniumService.threadSleep(1);
             String pageSource = webDriver.getPageSource();
             //如果仅朋友可见
             String xpath = "";
@@ -600,7 +617,7 @@ public class FbAccountServiceImpl implements IFbAccountService {
                 webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v4/yD/r/KV7QFf-Yspp.png']"))).click();
                 for (int i = 0; i < 3; i++) {
                     seleniumService.simulateKeyPress(KeyEvent.VK_TAB);
-                    seleniumService.threadSleep(300);
+                    seleniumService.threadSleep(1);
                 }
                 seleniumService.simulateKeyPress(KeyEvent.VK_ENTER);
             }
@@ -614,7 +631,7 @@ public class FbAccountServiceImpl implements IFbAccountService {
             webDriver.findElement(By.xpath(xpath)).sendKeys(postsList.get(randomIndex).getContent());
             Point location = webDriver.findElement(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v4/yq/r/b37mHA1PjfK.png']")).getLocation();
             seleniumService.clickAtCoordinates(webDriver,location.x, location.y+70);
-            seleniumService.threadSleep(2000);
+            seleniumService.threadSleep(2);
             pageSource = webDriver.getPageSource();
             if (pageSource.contains("role=\"dialog\"")) {
                if (pageSource.contains("<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">Post</span>")) {
@@ -632,7 +649,7 @@ public class FbAccountServiceImpl implements IFbAccountService {
             randomIndex = random.nextInt(numbers.length);
             for (int i = 0; i < numbers[randomIndex]; i++) {
                 seleniumService.simulateKeyPress(KeyEvent.VK_PAGE_DOWN);
-                seleniumService.threadSleep(1000);
+                seleniumService.threadSleep(1);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -710,6 +727,77 @@ public class FbAccountServiceImpl implements IFbAccountService {
 
            iterator.remove(); // 安全移除元素
         }
+    }
+
+    /**
+     * @param fbAccount
+     * @param pageName
+     * @return
+     */
+    @Override
+    public String createPage(FbAccount fbAccount, String pageName) {
+        WebDriver webDriver = openBrowser(fbAccount);
+        login(fbAccount,webDriver);
+        WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30);
+        webDriver.get("https://www.facebook.com/pages/creation/?ref_type=launch_point");
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']"))).sendKeys(pageName);
+        // 要输入的文本
+        String text = "clothing";
+        try {
+            WebElement pageType = webDriver.findElement(By.xpath("//input[@aria-label='类别（必填）']"));
+            for (char c : text.toCharArray()) {
+                pageType.sendKeys(String.valueOf(c)); // 逐个输入字符
+                seleniumService.threadSleep(0.2); // 模拟用户输入间隔，200ms
+            }
+            seleniumService.threadSleep(2);
+            pageType.sendKeys(Keys.DOWN);
+            pageType.sendKeys(Keys.ENTER);
+        } catch (Exception e) {
+            try {
+                WebElement pageType = webDriver.findElement(By.xpath("//input[@aria-label='Category (required)']"));
+                for (char c : text.toCharArray()) {
+                    pageType.sendKeys(String.valueOf(c)); // 逐个输入字符
+                    seleniumService.threadSleep(0.2); // 模拟用户输入间隔，200ms
+                }
+                seleniumService.threadSleep(2);
+                pageType.sendKeys(Keys.DOWN);
+                pageType.sendKeys(Keys.ENTER);
+            } catch (Exception ex) {
+                try {
+                    WebElement pageType = webDriver.findElement(By.xpath("//input[@aria-label='類別（必填）']"));
+                    for (char c : text.toCharArray()) {
+                        pageType.sendKeys(String.valueOf(c)); // 逐个输入字符
+                        seleniumService.threadSleep(0.2); // 模拟用户输入间隔，200ms
+                    }
+                    seleniumService.threadSleep(2);
+                    pageType.sendKeys(Keys.DOWN);
+                    pageType.sendKeys(Keys.ENTER);
+                } catch (Exception exception) {
+                }
+            }
+        }
+
+        webDriver.findElement(By.xpath("//div[@aria-label='创建公共主页' or @aria-label='建立粉絲專頁' or @aria-label='Create Page']")).click();
+
+        boolean result = seleniumService.waitingForContent(15, webDriver, "US+1");
+        OperationLog operationLog = new OperationLog();
+        if (result){
+            operationLog.setOperationAccount(fbAccount.getId());
+            operationLog.setOperationAccountKeyId(fbAccount.getKeyId());
+            operationLog.setOperationContent("创建主页："+pageName);
+            operationLog.setOperationStatus("成功");
+            operationLog.setOperationTime(new Date());
+            operationLogService.insertOperationLog(operationLog);
+        }else {
+            operationLog.setOperationAccount(fbAccount.getId());
+            operationLog.setOperationAccountKeyId(fbAccount.getKeyId());
+            operationLog.setOperationContent("创建主页："+pageName);
+            operationLog.setOperationStatus("失败");
+            operationLog.setOperationTime(new Date());
+            operationLogService.insertOperationLog(operationLog);
+            webDriver.quit();
+        }
+        return "";
     }
 
     /**

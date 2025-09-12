@@ -1,5 +1,6 @@
 package com.ruoyi.account.service;
 
+import java.util.Date;
 import java.util.List;
 import com.ruoyi.account.domain.OperationLog;
 
@@ -58,4 +59,15 @@ public interface IOperationLogService
      * @return 结果
      */
     public int deleteOperationLogByKeyId(Long keyId);
+
+    /**
+     * 近期操作
+     * @param accountId
+     * @param cutoffDate
+     * @return
+     */
+    public int countOperationsAfter(String accountId, Date cutoffDate);
+
+
+
 }

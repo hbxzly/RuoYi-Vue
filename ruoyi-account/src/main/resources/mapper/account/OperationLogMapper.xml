@@ -3,9 +3,10 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.account.mapper.OperationLogMapper">
-    
+
     <resultMap type="OperationLog" id="OperationLogResult">
         <result property="keyId"    column="key_id"    />
+        <result property="operationAccountKeyId"    column="operation_account_key_id"    />
         <result property="operationAccount"    column="operation_account"    />
         <result property="operationContent"    column="operation_content"    />
         <result property="operationStatus"    column="operation_status"    />
@@ -14,15 +15,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectOperationLogVo">
-        select key_id, operation_account, operation_content, operation_status, operation_time, note from operation_log
+        select key_id, operation_account_key_id, operation_account, operation_content, operation_status, operation_time, note from operation_log
     </sql>
 
     <select id="selectOperationLogList" parameterType="OperationLog" resultMap="OperationLogResult">
         <include refid="selectOperationLogVo"/>
         <where>
-            <if test="operationAccount != null  and operationAccount != ''"> and operation_account like concat('%', #{operationAccount}, '%')</if>
-            <if test="operationContent != null  and operationContent != ''"> and operation_content like concat('%', #{operationContent}, '%')</if>
-            <if test="operationStatus != null  and operationStatus != ''"> and operation_status like concat('%', #{operationStatus}, '%')</if>
+            <if test="operationAccountKeyId != null "> and operation_account_key_id = #{operationAccountKeyId}</if>
+            <if test="operationAccount != null  and operationAccount != ''"> and operation_account = #{operationAccount}</if>
+            <if test="operationContent != null  and operationContent != ''"> and operation_content like concat('%',#{operationContent},'%') </if>
+            <if test="operationStatus != null  and operationStatus != ''"> and operation_status = #{operationStatus}</if>
             <if test="operationTime != null "> and operation_time = #{operationTime}</if>
             <if test="note != null  and note != ''"> and note = #{note}</if>
         </where>
@@ -37,24 +39,27 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="insertOperationLog" parameterType="OperationLog" useGeneratedKeys="true" keyProperty="keyId">
         insert into operation_log
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="operationAccountKeyId != null">operation_account_key_id,</if>
             <if test="operationAccount != null">operation_account,</if>
             <if test="operationContent != null">operation_content,</if>
             <if test="operationStatus != null">operation_status,</if>
             <if test="operationTime != null">operation_time,</if>
             <if test="note != null">note,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="operationAccountKeyId != null">#{operationAccountKeyId},</if>
             <if test="operationAccount != null">#{operationAccount},</if>
             <if test="operationContent != null">#{operationContent},</if>
             <if test="operationStatus != null">#{operationStatus},</if>
             <if test="operationTime != null">#{operationTime},</if>
             <if test="note != null">#{note},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateOperationLog" parameterType="OperationLog">
         update operation_log
         <trim prefix="SET" suffixOverrides=",">
+            <if test="operationAccountKeyId != null">operation_account_key_id = #{operationAccountKeyId},</if>
             <if test="operationAccount != null">operation_account = #{operationAccount},</if>
             <if test="operationContent != null">operation_content = #{operationContent},</if>
             <if test="operationStatus != null">operation_status = #{operationStatus},</if>

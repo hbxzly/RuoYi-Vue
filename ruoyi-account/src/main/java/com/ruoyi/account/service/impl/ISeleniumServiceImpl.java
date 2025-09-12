@@ -21,10 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 @Service
@@ -45,6 +47,8 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         processMap = new HashMap<>();
     }
 
+
+
     @Override
     public WebDriver openBrowser(FbAccount fbAccount) {
         //判断账号是否已经打开
@@ -57,7 +61,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
                 option.addArguments("--remote-allow-origins=*");
                 option.addArguments("--disable-notifications");//限制通知
                 option.addArguments("--user-agent=" + fbAccount.getUa());
-                option.setExperimentalOption("useAutomationExtension", false);
                 option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
                 List<Integer> beforeProcessIdList = getListWindows();
                 WebDriver webDriver = new ChromeDriver(option);
@@ -91,7 +94,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             ChromeOptions option = new ChromeOptions();
             option.addArguments("--remote-allow-origins=*");
             option.addArguments("--disable-notifications");//限制通知
-            option.setExperimentalOption("useAutomationExtension", false);
             option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
             if (configMap.containsKey("userDataDir")) {
                 option.addArguments("--user-data-dir=" + configMap.get("userDataDir"));
@@ -123,7 +125,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             option.addArguments("--remote-allow-origins=*");
             option.addArguments("--disable-notifications");//限制通知
             option.addArguments("--user-agent=" + fbAccountForSell.getUa());
-            option.setExperimentalOption("useAutomationExtension", false);
             option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
             WebDriver webDriver = new ChromeDriver(option);
             return webDriver;
@@ -131,6 +132,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             e.printStackTrace();
             return null;
         }
+
     }
 
     /**
@@ -141,6 +143,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
      */
     @Override
     public WebDriver openBrowserForAccountSell(FbAccountForSell fbAccountForSell) {
+
         try {
             //参数配置
             System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
@@ -149,7 +152,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             option.addArguments("--remote-allow-origins=*");
             option.addArguments("--disable-notifications");//限制通知
             option.addArguments("--user-agent=" + fbAccountForSell.getUa());
-            option.setExperimentalOption("useAutomationExtension", false);
             option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
             WebDriver webDriver = new ChromeDriver(option);
             return webDriver;
@@ -157,6 +159,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             e.printStackTrace();
             return null;
         }
+
     }
 
     @Override
@@ -296,6 +299,8 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     }
 
 
+
+
     /**
      * 返回新开浏览器的进程ID
      * @param beforeProcessIdList 打开之前的进程
@@ -314,6 +319,69 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         }
 
         return null; // 没有多出来的对象
+    }
+
+    /**
+     * 修改IP
+     */
+    @Override
+    public void changeIP() {
+        User32 user32 = User32.INSTANCE;
+
+        AtomicInteger x = new AtomicInteger();
+        AtomicInteger y = new AtomicInteger();
+
+        user32.EnumWindows(new WinUser.WNDENUMPROC() {
+            @Override
+            public boolean callback(WinDef.HWND hWnd, Pointer arg1) {
+                if (!user32.IsWindowVisible(hWnd)) {
+                    return true;
+                }
+
+                char[] windowText = new char[512];
+                user32.GetWindowText(hWnd, windowText, 512);
+                String wText = Native.toString(windowText).trim();
+                if (wText.isEmpty()) {
+                    return true;
+                }
+
+                WinDef.RECT rect = new WinDef.RECT();
+                user32.GetWindowRect(hWnd, rect);
+                int winX = rect.left;
+                int winY = rect.top;
+                int width = rect.right - rect.left;
+                int height = rect.bottom - rect.top;
+
+                System.out.println("窗口标题: " + wText);
+                System.out.println(" → 位置: (" + winX + ", " + winY + "), 大小: " + width + " x " + height);
+                System.out.println("--------------------------------------------------");
+
+                if (wText.contains("(管理员)Ver")) {
+                    user32.ShowWindow(hWnd, User32.SW_RESTORE);
+                    user32.SetForegroundWindow(hWnd);
+
+                    x.set(winX);
+                    y.set(winY);
+
+                    System.out.println(">>> 已激活窗口，记录坐标: (" + x + ", " + y + ")");
+                }
+
+                return true;
+            }
+        }, null);
+
+        try {
+            Thread.sleep(1000);
+            clickAtCoordinates(x.get() + 200, y.get() + 550);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            Thread.sleep(1000);
+            clickAtCoordinates(x.get() + 200, y.get() + 400);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -362,7 +430,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
 //            option.addArguments("--user-data-dir=" + fbAccountForSell.getFilePath() + fbAccountForSell.getBrowserProfile());
             option.addArguments("--remote-allow-origins=*");
             option.addArguments("--disable-notifications");//限制通知
-            option.setExperimentalOption("useAutomationExtension", false);
             option.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
             WebDriver webDriver = new ChromeDriver(option);
             return webDriver;
@@ -371,7 +438,6 @@ public class ISeleniumServiceImpl implements ISeleniumService {
             return null;
         }
     }
-
 
     /**
      * 模拟鼠标点击指定坐标位置
@@ -387,15 +453,32 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         actions.moveByOffset(x, y).click().perform();
     }
 
+
+    /**
+     * 模拟鼠标点击指定坐标位置
+     * @param x
+     * @param y
+     */
+    public static void clickAtCoordinates(int x, int y) throws AWTException {
+
+        Robot robot = new Robot();
+        // 移动鼠标到指定位置 (例如，屏幕坐标 x=500, y=500)
+        robot.mouseMove(x, y);
+        // 模拟鼠标左键按下
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        // 模拟鼠标左键释放
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    }
+
     /**
      * 等待时间
      *
      * @param seconds
      */
     @Override
-    public void threadSleep(int seconds) {
+    public void threadSleep(double seconds) {
         try {
-            Thread.sleep(seconds);
+            Thread.sleep((long) (seconds*1000));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

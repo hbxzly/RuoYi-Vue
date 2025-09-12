@@ -157,6 +157,41 @@ public class DefuUtil {
      * 获取号码
      * @return
      */
+    public static String getMobile(String projectId, String scope, String scope_black, String operator){
+
+        try {
+            // 指定要请求的URL
+            String urlString = "http://api.sqhyw.net:90/api/get_mobile?token="+token+"&project_id="+projectId+"&scope_black="+scope_black+"&scope="+scope+"&operator="+operator;
+
+            URL url = new URL(urlString);
+
+            // 打开连接
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // 设置请求方法为GET
+            connection.setRequestMethod("GET");
+            // 获取响应代码
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200){
+                String readResponse = readResponse(connection);
+                // 关闭连接
+                System.out.println(readResponse);
+                connection.disconnect();
+                return jsonExtractor(readResponse,"mobile");
+            }else {
+                connection.disconnect();
+                return "请求失败";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "异常";
+        }
+    }
+
+    /**
+     * 获取号码
+     * @return
+     */
     public static String getMobileByPhone(String projectId, String phone_num){
 
         try {

@@ -1,42 +1,44 @@
 package com.ruoyi.account.domain;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Objects;
 
 /**
  * 卖号对象 fb_account_for_sell
- *
+ * 
  * @author ruoyi
  * @date 2024-11-01
  */
-public class FbAccountForSell extends BaseEntity
+public class FbAccountForSellQuery extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
-    /** 序号 */
-    private Long keyId;
+    /** 前序号 */
+    private Long beforeKeyId;
+
+    /** 后序号 */
+    private Long afterKeyId;
 
     /** 邮箱 */
-    @Excel(name = "邮箱（必须）")
+    @Excel(name = "邮箱")
     private String email;
 
     /** 密码 */
-    @Excel(name = "密码（必须）")
+    @Excel(name = "密码")
     private String password;
 
     /** 邮箱密码 */
-    @Excel(name = "邮箱密码（必须）")
+    @Excel(name = "邮箱密码")
     private String emailPassword;
 
     /** ID */
-    @Excel(name = "ID（必须）")
+    @Excel(name = "ID")
     private String id;
 
     /** 账户生日 */
@@ -44,7 +46,7 @@ public class FbAccountForSell extends BaseEntity
     private String birthday;
 
     /** 秘钥 */
-    @Excel(name = "秘钥（必须）")
+    @Excel(name = "秘钥")
     private String secretKey;
 
     /** 是否商城号 */
@@ -64,7 +66,7 @@ public class FbAccountForSell extends BaseEntity
     private String createDate;
 
     /** 地区 */
-    @Excel(name = "地区（必须）")
+    @Excel(name = "地区")
     private String region;
 
     /** 备注 */
@@ -82,10 +84,6 @@ public class FbAccountForSell extends BaseEntity
     /** 能否广告 */
     @Excel(name = "能否广告")
     private String canAds;
-
-    /** 个人户状态 */
-    @Excel(name = "个人户状态")
-    private String adAccountStatus;
 
     /** 主页数量 */
     @Excel(name = "主页数量")
@@ -110,7 +108,7 @@ public class FbAccountForSell extends BaseEntity
     private String browserProfile;
 
     /** 文件路径 */
-    @Excel(name = "文件路径（必须）")
+    @Excel(name = "文件路径")
     private String filePath;
 
     /** 最近发帖时间 */
@@ -122,245 +120,230 @@ public class FbAccountForSell extends BaseEntity
     private String isShelf;
 
     /** 邮箱状态 */
-    @Excel(name = "邮箱状态（必须）")
+    @Excel(name = "邮箱状态")
     private String emailStatus;
 
     /** 是否卖出 */
-    @Excel(name = "是否卖出（必须）")
+    @Excel(name = "是否卖出")
     private String isSell;
 
     /** 卖出日期 */
     @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @Excel(name = "卖出日期", width = 30, dateFormat = "yyyy-MM-dd")
     private LocalDate sellDate;
 
-    private String cookie;
 
-
-    // ========== 非持久化字段：批量搜索用 ==========
-    private String searchType;
-    private List<String> values;
-
-    public String getSearchType() {
-        return searchType;
+    public Long getBeforeKeyId() {
+        return beforeKeyId;
     }
 
-    public void setSearchType(String searchType) {
-        this.searchType = searchType;
+    public void setBeforeKeyId(Long beforeKeyId) {
+        this.beforeKeyId = beforeKeyId;
     }
 
-    public List<String> getValues() {
-        return values;
+    public Long getAfterKeyId() {
+        return afterKeyId;
     }
 
-    public void setValues(List<String> values) {
-        this.values = values;
+    public void setAfterKeyId(Long afterKeyId) {
+        this.afterKeyId = afterKeyId;
     }
 
-
-    public void setKeyId(Long keyId)
-    {
-        this.keyId = keyId;
-    }
-
-    public Long getKeyId()
-    {
-        return keyId;
-    }
     public void setId(String id)
     {
         this.id = id;
     }
 
-    public String getId()
+    public String getId() 
     {
         return id;
     }
-    public void setPassword(String password)
+    public void setPassword(String password) 
     {
         this.password = password;
     }
 
-    public String getPassword()
+    public String getPassword() 
     {
         return password;
     }
-    public void setEmail(String email)
+    public void setEmail(String email) 
     {
         this.email = email;
     }
 
-    public String getEmail()
+    public String getEmail() 
     {
         return email;
     }
-    public void setEmailPassword(String emailPassword)
+    public void setEmailPassword(String emailPassword) 
     {
         this.emailPassword = emailPassword;
     }
 
-    public String getEmailPassword()
+    public String getEmailPassword() 
     {
         return emailPassword;
     }
-    public void setBirthday(String birthday)
+    public void setBirthday(String birthday) 
     {
         this.birthday = birthday;
     }
 
-    public String getBirthday()
+    public String getBirthday() 
     {
         return birthday;
     }
-    public void setName(String name)
+    public void setName(String name) 
     {
         this.name = name;
     }
 
-    public String getName()
+    public String getName() 
     {
         return name;
     }
-    public void setSecretKey(String secretKey)
+    public void setSecretKey(String secretKey) 
     {
         this.secretKey = secretKey;
     }
 
-    public String getSecretKey()
+    public String getSecretKey() 
     {
         return secretKey;
     }
-    public void setGender(String gender)
+    public void setGender(String gender) 
     {
         this.gender = gender;
     }
 
-    public String getGender()
+    public String getGender() 
     {
         return gender;
     }
-    public void setCreateDate(String createDate)
+    public void setCreateDate(String createDate) 
     {
         this.createDate = createDate;
     }
 
-    public String getCreateDate()
+    public String getCreateDate() 
     {
         return createDate;
     }
-    public void setNote(String note)
+    public void setNote(String note) 
     {
         this.note = note;
     }
 
-    public String getNote()
+    public String getNote() 
     {
         return note;
     }
-    public void setRegion(String region)
+    public void setRegion(String region) 
     {
         this.region = region;
     }
 
-    public String getRegion()
+    public String getRegion() 
     {
         return region;
     }
-    public void setCanLogin(String canLogin)
+    public void setCanLogin(String canLogin) 
     {
         this.canLogin = canLogin;
     }
 
-    public String getCanLogin()
+    public String getCanLogin() 
     {
         return canLogin;
     }
-    public void setIsMarketplace(String isMarketplace)
+    public void setIsMarketplace(String isMarketplace) 
     {
         this.isMarketplace = isMarketplace;
     }
 
-    public String getIsMarketplace()
+    public String getIsMarketplace() 
     {
         return isMarketplace;
     }
-    public void setFriendNumber(String friendNumber)
+    public void setFriendNumber(String friendNumber) 
     {
         this.friendNumber = friendNumber;
     }
 
-    public String getFriendNumber()
+    public String getFriendNumber() 
     {
         return friendNumber;
     }
-    public void setCanAds(String canAds)
+    public void setCanAds(String canAds) 
     {
         this.canAds = canAds;
     }
 
-    public String getCanAds()
+    public String getCanAds() 
     {
         return canAds;
     }
-    public void setPageNumber(String pageNumber)
+    public void setPageNumber(String pageNumber) 
     {
         this.pageNumber = pageNumber;
     }
 
-    public String getPageNumber()
+    public String getPageNumber() 
     {
         return pageNumber;
     }
-    public void setBmNumber(String bmNumber)
+    public void setBmNumber(String bmNumber) 
     {
         this.bmNumber = bmNumber;
     }
 
-    public String getBmNumber()
+    public String getBmNumber() 
     {
         return bmNumber;
     }
-    public void setPostsNumber(String postsNumber)
+    public void setPostsNumber(String postsNumber) 
     {
         this.postsNumber = postsNumber;
     }
 
-    public String getPostsNumber()
+    public String getPostsNumber() 
     {
         return postsNumber;
     }
-    public void setUa(String ua)
+    public void setUa(String ua) 
     {
         this.ua = ua;
     }
 
-    public String getUa()
+    public String getUa() 
     {
         return ua;
     }
-    public void setBrowserStatus(String browserStatus)
+    public void setBrowserStatus(String browserStatus) 
     {
         this.browserStatus = browserStatus;
     }
 
-    public String getBrowserStatus()
+    public String getBrowserStatus() 
     {
         return browserStatus;
     }
-    public void setBrowserProfile(String browserProfile)
+    public void setBrowserProfile(String browserProfile) 
     {
         this.browserProfile = browserProfile;
     }
 
-    public String getBrowserProfile()
+    public String getBrowserProfile() 
     {
         return browserProfile;
     }
-    public void setFilePath(String filePath)
+    public void setFilePath(String filePath) 
     {
         this.filePath = filePath;
     }
 
-    public String getFilePath()
+    public String getFilePath() 
     {
         return filePath;
     }
@@ -407,62 +390,11 @@ public class FbAccountForSell extends BaseEntity
         this.sellDate = sellDate;
     }
 
-    public String getAdAccountStatus() {
-        return adAccountStatus;
-    }
-
-    public void setAdAccountStatus(String adAccountStatus) {
-        this.adAccountStatus = adAccountStatus;
-    }
-
-    public String getCookie() {
-        return cookie;
-    }
-
-    public void setCookie(String cookie) {
-        this.cookie = cookie;
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
-                .append("keyId", getKeyId())
-                .append("id", getId())
-                .append("password", getPassword())
-                .append("email", getEmail())
-                .append("emailPassword", getEmailPassword())
-                .append("birthday", getBirthday())
-                .append("name", getName())
-                .append("secretKey", getSecretKey())
-                .append("gender", getGender())
-                .append("createDate", getCreateDate())
-                .append("note", getNote())
-                .append("region", getRegion())
-                .append("canLogin", getCanLogin())
-                .append("adAccountStatus", getAdAccountStatus())
-                .append("isMarketplace", getIsMarketplace())
-                .append("emailStatus", getEmailStatus())
-                .append("friendNumber", getFriendNumber())
-                .append("canAds", getCanAds())
-                .append("pageNumber", getPageNumber())
-                .append("bmNumber", getBmNumber())
-                .append("postsNumber", getPostsNumber())
-                .append("ua", getUa())
-                .append("browserStatus", getBrowserStatus())
-                .append("browserProfile", getBrowserProfile())
-                .append("filePath", getFilePath())
-                .append("lastPostsTime", getLastPostsTime())
-                .append("isShelf", getIsShelf())
-                .append("isSell", getIsSell())
-                .append("sellDate", getSellDate())
-                .toString();
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-        FbAccountForSell that = (FbAccountForSell) obj;
+        FbAccountForSellQuery that = (FbAccountForSellQuery) obj;
         return Objects.equals(id, that.id); // 假设使用 id 作为唯一标识
     }
 

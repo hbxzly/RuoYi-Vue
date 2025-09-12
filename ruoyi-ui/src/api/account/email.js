@@ -51,9 +51,13 @@ export function getMessage(requestData){
   })
 }
 
-export function unlockEmail(keyId){
+export function unlockEmail(email,unlockType){
   return request({
-    url: '/account/email/unlockEmail/'+keyId,
-    method: 'get'
+    url: '/account/email/unlockEmail/',
+    method: 'get',
+    params:{
+      email: email,
+      unlockType: unlockType
+    }
   })
 }

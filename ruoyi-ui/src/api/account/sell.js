@@ -113,3 +113,76 @@ export function checkAccountActive(keyIds){
   })
 }
 
+//创建主页
+export function createPage(keyId, pageName){
+  return request({
+    url: "/account/sell/createPage",
+    method: 'get',
+    params: {
+      keyId: keyId.join(','),
+      pageName: pageName
+    }
+  })
+}
+
+//修改名字
+export function changeAccountName(keyId, accountName){
+  return request({
+    url: "/account/sell/changeAccountName",
+    method: 'get',
+    params: {
+      keyId: keyId.join(','),
+      accountName: accountName
+    }
+  })
+}
+
+export function getEmail(keyId){
+  return request({
+    url: "/account/sell/getEmail/"+keyId,
+    method: "get",
+  })
+}
+
+export function unlockEmail(keyId){
+  return request({
+    url: "/account/sell/unlockEmail/"+keyId,
+    method: "get",
+  })
+}
+
+export function confirmAddFriend(keyId){
+  return request({
+    url: "/account/sell/confirmAddFriend/"+keyId,
+    method: "get",
+  })
+}
+
+
+export function get2FACode(id){
+  return request({
+    url: "/account/sell/get2FACode/"+id,
+    method: "get",
+  })
+}
+
+//获取账号信息
+export function getAccountInfo(payload) {
+  return request({
+    url: '/account/sell/getAccountInfo',
+    method: 'post',
+    data: payload
+  })
+}
+
+
+// 批量搜索
+export function batchSearch(data) {
+  return request({
+    url: '/account/sell/batchSearch',
+    method: 'post',
+    data: data
+  })
+}
+
+

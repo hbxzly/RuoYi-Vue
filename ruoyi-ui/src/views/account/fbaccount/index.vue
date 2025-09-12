@@ -202,6 +202,16 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
+          type="primary"
+          plain
+          icon="el-icon-document"
+          size="mini"
+          :disabled="single"
+          @click="handleCreatePage"
+        >创建主页</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
           type="success"
           plain
           icon="el-icon-edit"
@@ -403,12 +413,26 @@
       </div>
     </el-dialog>
 
+    <!--创建主页-->
+    <el-dialog :title="title" :visible.sync="openCreatePage" width="500px" append-to-body>
+      <el-form ref="createPageForm" :model="createPageFormData"  size="medium" label-width="100px">
+        <el-form-item label="添加账号" prop="pageName">
+          <el-input v-model="createPageFormData.pageName" placeholder="输入主页名" clearable :style="{width: '100%'}">
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="closeCreatePage">取消</el-button>
+        <el-button type="primary" @click="submitCreatePage">确定</el-button>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
 import { listFbAccount, getFbAccount, delFbAccount, addFbAccount, updateFbAccount, openBrowser,
-  closeBrowser, addFriend, checkAccount, accountPost, closeAllBrowser, jumpPage } from "@/api/account/fbAccount";
+  closeBrowser, addFriend, checkAccount, accountPost, closeAllBrowser, jumpPage, createPage } from "@/api/account/fbAccount";
 import { getToken } from "@/utils/auth";
 import post from "@/views/system/post/index.vue";
 
@@ -436,6 +460,9 @@ export default {
       // 是否显示弹出层
       open: false,
       openAddFriend: false,
+
+      //创建主页
+      openCreatePage: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -476,6 +503,8 @@ export default {
       // 表单参数
       form: {},
       addFriendFormData: {},
+      //创建主页参数
+      createPageFormData:{},
       // 表单校验
       rules: {
       },
@@ -527,6 +556,11 @@ export default {
     },
     resetAddFriendForm() {
       this.$refs.addFriendForm.resetFields();
+    },
+
+    // 创建主页表单重置
+    resetCreatePageForm() {
+      this.$refs.createPageForm.resetFields();
     },
 
     /** 搜索按钮操作 */
@@ -633,11 +667,24 @@ export default {
       this.openAddFriend = true;
     },
 
+    //创建主页
+    handleCreatePage(){
+      this.title = "创建主页";
+      this.openCreatePage = true;
+    },
+
     /** 添加好友弹出窗取消按钮 */
     closeAddFriend(){
       this.openAddFriend = false;
       this.resetAddFriendForm();
     },
+
+    /** 添加好友弹出窗取消按钮 */
+    closeCreatePage(){
+      this.openCreatePage = false;
+      this.resetCreatePageForm();
+    },
+
 
     /** 添加好友弹出窗确定按钮 */
     submitAddFriend(){
@@ -650,6 +697,16 @@ export default {
           addFriend(operationAccount,id);
         }
       });
+    },
+
+    /** 创建主页弹出窗确定按钮 */
+    submitCreatePage(){
+      const operationAccount = this.ids;
+      const pageName = this.createPageFormData.pageName;
+      this.resetCreatePageForm();// 提交后重置表单
+      this.openCreatePage = false;
+      createPage(operationAccount,pageName);
+
     },
 
     /** 导入按钮操作 */
@@ -689,7 +746,6 @@ export default {
       this.$modal.confirm('是否确认检测选中的账号？').then(function() {
         return checkAccount(idList);
       }).then(() => {
-        this.getList();
         this.$modal.msgSuccess("检测成功");
       }).catch(() => {});
     },

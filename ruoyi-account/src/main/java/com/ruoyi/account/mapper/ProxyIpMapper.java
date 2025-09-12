@@ -36,6 +36,14 @@ public interface ProxyIpMapper
     public List<ProxyIp> selectProxyIpList(ProxyIp proxyIp);
 
     /**
+     * 查询代理列表
+     *
+     * @param status 状态
+     * @return 代理集合
+     */
+    public List<ProxyIp> selectProxyIpListByStatus(String status);
+
+    /**
      * 新增代理
      * 
      * @param proxyIp 代理

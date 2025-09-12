@@ -23,6 +23,13 @@ public interface FbAccountMapper {
     FbAccount selectFbAccountById(String id);
 
     /**
+     * 查询账号
+     * @param email
+     * @return
+     */
+    FbAccount selectFbAccountByEmail(String email);
+
+    /**
      * 批量查询账号
      * @param keyIds 账号主键
      * @return 账号集合

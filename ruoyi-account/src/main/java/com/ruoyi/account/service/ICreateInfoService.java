@@ -1,6 +1,8 @@
 package com.ruoyi.account.service;
 
 import java.util.List;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruoyi.account.domain.CreateInfo;
 import com.ruoyi.account.domain.FbAccountForSell;
 import org.openqa.selenium.WebDriver;
@@ -127,7 +129,7 @@ public interface ICreateInfoService {
      * @param createInfo
      * @return
      */
-    public String updateAccountAddEmail(WebDriver webDriver, CreateInfo createInfo);
+    public String updateAccountAddEmail(WebDriver webDriver, CreateInfo createInfo) throws JsonProcessingException;
 
     /**
      * 开启双重验证
@@ -136,5 +138,13 @@ public interface ICreateInfoService {
      * @return
      */
     public String updateAccountOpenTwoFactor(WebDriver webDriver, CreateInfo createInfo);
+
+    /**
+     * 登录邮箱
+     * @param webDriver
+     * @param createInfo
+     * @return
+     */
+    public String loginEmail(WebDriver webDriver, CreateInfo createInfo);
 
 }

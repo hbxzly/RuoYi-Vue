@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.account.mapper.CreateDeviceMapper">
+    
+    <resultMap type="CreateDevice" id="CreateDeviceResult">
+        <result property="keyId"    column="key_id"    />
+        <result property="deviceName"    column="device_name"    />
+        <result property="packageName"    column="package_name"    />
+        <result property="createAccountId"    column="create_account_id"    />
+        <result property="createDate"    column="create_date"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+
+    <sql id="selectCreateDeviceVo">
+        select key_id, device_name, package_name, create_account_id, create_date, note from create_device
+    </sql>
+
+    <select id="selectCreateDeviceList" parameterType="CreateDevice" resultMap="CreateDeviceResult">
+        <include refid="selectCreateDeviceVo"/>
+        <where>  
+            <if test="deviceName != null  and deviceName != ''"> and device_name like concat('%', #{deviceName}, '%')</if>
+            <if test="packageName != null  and packageName != ''"> and package_name like concat('%', #{packageName}, '%')</if>
+            <if test="createAccountId != null  and createAccountId != ''"> and create_account_id = #{createAccountId}</if>
+            <if test="createDate != null "> and create_date = #{createDate}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+        </where>
+    </select>
+    
+    <select id="selectCreateDeviceByKeyId" parameterType="Long" resultMap="CreateDeviceResult">
+        <include refid="selectCreateDeviceVo"/>
+        where key_id = #{keyId}
+    </select>
+        
+    <insert id="insertCreateDevice" parameterType="CreateDevice" useGeneratedKeys="true" keyProperty="keyId">
+        insert into create_device
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="deviceName != null">device_name,</if>
+            <if test="packageName != null">package_name,</if>
+            <if test="createAccountId != null">create_account_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="note != null">note,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="deviceName != null">#{deviceName},</if>
+            <if test="packageName != null">#{packageName},</if>
+            <if test="createAccountId != null">#{createAccountId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="note != null">#{note},</if>
+         </trim>
+    </insert>
+
+    <update id="updateCreateDevice" parameterType="CreateDevice">
+        update create_device
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deviceName != null">device_name = #{deviceName},</if>
+            <if test="packageName != null">package_name = #{packageName},</if>
+            <if test="createAccountId != null">create_account_id = #{createAccountId},</if>
+            <if test="createDate != null">create_date = #{createDate},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where key_id = #{keyId}
+    </update>
+
+    <delete id="deleteCreateDeviceByKeyId" parameterType="Long">
+        delete from create_device where key_id = #{keyId}
+    </delete>
+
+    <delete id="deleteCreateDeviceByKeyIds" parameterType="String">
+        delete from create_device where key_id in 
+        <foreach item="keyId" collection="array" open="(" separator="," close=")">
+            #{keyId}
+        </foreach>
+    </delete>
+</mapper>

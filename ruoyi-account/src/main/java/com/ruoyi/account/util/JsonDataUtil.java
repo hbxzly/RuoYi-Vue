@@ -2,6 +2,7 @@ package com.ruoyi.account.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,10 +20,9 @@ public class JsonDataUtil {
 
 
     public static String getValueByNodeName(String jsonData, String nodeName) throws JsonProcessingException {
-        JsonMapper jsonMapper = new JsonMapper();
-        JsonNode jsonNode = jsonMapper.readTree(jsonData);
-        JsonNode addressJsonNode = jsonNode.get("address");
-        return addressJsonNode.get(nodeName).asText();
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(jsonData);
+        return jsonNode.get(nodeName).asText();
     }
 
     /**

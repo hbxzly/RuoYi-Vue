@@ -42,3 +42,12 @@ export function delIp(keyId) {
     method: 'delete'
   })
 }
+
+//修改状态
+export function updateIpStatus(keyId,status){
+  return request({
+    url: `/account/ip/updateIpStatus`,
+    method: 'get',
+    params: { keyId, status } // 通过查询参数传递
+  });
+}

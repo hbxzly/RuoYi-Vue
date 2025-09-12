@@ -1,21 +1,18 @@
 package com.ruoyi.account.service.impl;
 
-import com.ruoyi.account.domain.Email;
-import com.ruoyi.account.domain.FbAccountForSell;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ruoyi.account.domain.*;
 import com.ruoyi.account.mapper.EmailMapper;
-import com.ruoyi.account.service.IEmailService;
-import com.ruoyi.account.service.ISeleniumService;
-import com.ruoyi.account.util.DefuUtil;
-import com.ruoyi.account.util.EmailUtil;
-import com.ruoyi.account.util.HttpClientUtil;
-import com.ruoyi.account.util.RandomUitl;
+import com.ruoyi.account.service.*;
+import com.ruoyi.account.util.*;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.service.impl.SysUserServiceImpl;
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -25,7 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * emailService业务层处理
@@ -43,6 +43,15 @@ public class EmailServiceImpl implements IEmailService {
 
     @Autowired
     ISeleniumService seleniumService;
+
+    @Autowired
+    IFbAccountForSellService fbAccountForSellService;
+
+    @Autowired
+    IFbAccountService fbAccountService;
+
+    @Autowired
+    IOperationLogService operationLogService;
 
 
 
@@ -76,8 +85,7 @@ public class EmailServiceImpl implements IEmailService {
      * @return email
      */
     @Override
-    public List<Email> selectEmailList(Email email)
-    {
+    public List<Email> selectEmailList(Email email) {
         return emailMapper.selectEmailList(email);
     }
 
@@ -99,8 +107,21 @@ public class EmailServiceImpl implements IEmailService {
      * @return 结果
      */
     @Override
-    public int updateEmail(Email email)
-    {
+    public int updateEmail(Email email) {
+        if(email.getStatus() != null && email.getStatus().equals("1")){
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+            if (fbAccountForSell != null) {
+                fbAccountForSell.setEmailStatus("1");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }
+        }
+        if(email.getStatus() != null && email.getStatus().equals("0")){
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+            if (fbAccountForSell != null) {
+                fbAccountForSell.setEmailStatus("0");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }
+        }
         return emailMapper.updateEmail(email);
     }
 
@@ -111,8 +132,7 @@ public class EmailServiceImpl implements IEmailService {
      * @return 结果
      */
     @Override
-    public int deleteEmailByKeyIds(Long[] keyIds)
-    {
+    public int deleteEmailByKeyIds(Long[] keyIds) {
         return emailMapper.deleteEmailByKeyIds(keyIds);
     }
 
@@ -158,7 +178,7 @@ public class EmailServiceImpl implements IEmailService {
                 }
                 else if (isUpdateSupport)
                 {
-                    emailMapper.updateEmail(email);
+                    updateEmail(email);
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、邮箱 " + email.getEmail()  + " 更新成功");
                 }
@@ -194,93 +214,411 @@ public class EmailServiceImpl implements IEmailService {
      * @return
      */
     @Override
-    public String getMessage(Email email) {
-        String url = "https://bsh.bhdata.com:30015/bhmailer?uid=492746380&sign=99277cf10db6483c92e3c6e142bb8db1&act=checkMail&email="+email.getEmail()+"&sent=-10000&t=-100000";
+    public String getMessage(Email email) throws JsonProcessingException {
+        String url = "https://bsh.bhdata.com:30015/bhmailer?uid=492746380&sign=99277cf10db6483c92e3c6e142bb8db1&act=checkMail&email="+email.getEmail()+"&pass="+email.getPassword()+"&sent=-10000&t=-100000";
         String message = "";
         try {
             message = HttpClientUtil.sendGet(url);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return message;
+        String msg = JsonDataUtil.getValueByNodeName(message, "msg");
+        if (msg != null && msg.contains("需要绑定辅助邮箱，但没有启用自动绑定辅助邮箱")){
+            email.setStatus("1");
+            updateEmail(email);
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+            if (fbAccountForSell != null) {
+                fbAccountForSell.setEmailStatus("1");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }
+        }
+        if (msg != null && msg.contains("没有发现匹配的邮件")){
+            email.setStatus("1");
+            updateEmail(email);
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+            if (fbAccountForSell != null) {
+                fbAccountForSell.setEmailStatus("1");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }
+        }
+        if (msg != null && msg.contains("没有启用自动验证手机号码")){
+            email.setStatus("0");
+            updateEmail(email);
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+            if (fbAccountForSell != null) {
+                fbAccountForSell.setEmailStatus("0");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }else {
+                FbAccount fbAccount = fbAccountService.selectFbAccountByEmail(email.getEmail());
+                if (fbAccount != null) {
+                    fbAccount.setNote(fbAccount.getNote() + "邮箱无法用");
+                    fbAccountService.updateFbAccount(fbAccount);
+                }
+            }
+
+        }
+        if (msg != null && msg.contains("That Microsoft account doesn't exist")){
+            email.setStatus("0");
+            updateEmail(email);
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+            if (fbAccountForSell != null) {
+                fbAccountForSell.setEmailStatus("0");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }else {
+                FbAccount fbAccount = fbAccountService.selectFbAccountByEmail(email.getEmail());
+                if (fbAccount != null) {
+                    fbAccount.setNote(fbAccount.getNote() + "邮箱无法用");
+                    fbAccountService.updateFbAccount(fbAccount);
+                }
+            }
+        }
+        if (msg != null && msg.contains("sign in to account.live.com from a browser")){
+            email.setStatus("0");
+            updateEmail(email);
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+            if (fbAccountForSell != null) {
+                fbAccountForSell.setEmailStatus("0");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }else {
+                FbAccount fbAccount = fbAccountService.selectFbAccountByEmail(email.getEmail());
+                if (fbAccount != null) {
+                    fbAccount.setNote(fbAccount.getNote() + "邮箱无法用");
+                    fbAccountService.updateFbAccount(fbAccount);
+                }
+            }
+        }
+        return msg;
     }
 
     @Override
-    public Email unlockEmail(Email email) {
-            WebDriver webDriver = seleniumService.openBrowserForEmail(email);
-        try {
-            webDriver.get("https://login.live.com");
-            WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
-            //输入邮箱
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='i0116']"))).sendKeys(email.getEmail());
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='idSIButton9']"))).click();
-            //输入密码
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='i0118']"))).sendKeys(email.getPassword());
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='idSIButton9']"))).click();
-            boolean b = waitingForContent(5, webDriver, "你的帐户或密码不正确");
-            if (b){
-                email.setNote("账号密码不正确");
-                emailMapper.updateEmail(email);
-                webDriver.quit();
-                return email;
-            }
-            String pageSource = webDriver.getPageSource();
-            if (pageSource.contains("该 Microsoft 帐户不存在")){
-                email.setStatus("0");
-                emailMapper.updateEmail(email);
-                webDriver.quit();
-                return email;
-            }
-            b = waitingForContent(5, webDriver, "我们即将更新条款");
-            if (b){
-                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='iNext']"))).click();
-            }
-            waitingForContent(5, webDriver, "锁定");
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='StartAction']"))).click();
+    public Email unlockEmail(Email email, ProxyIp proxyIp) {
 
-            String mobile = DefuUtil.getMobile("27030", "167","171");
-            WebElement countryDropdown = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='phoneCountry']")));
-            Select select = new Select(countryDropdown);
-            select.selectByValue("CN");
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='proofField']"))).sendKeys(mobile);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='nextButton']"))).click();
-            b = waitingForContent(5, webDriver, "该验证方法目前无效。请尝试其他方法。");
-            if (b){
-                email.setNote("该验证方法目前无效。请尝试其他方法。");
-                emailMapper.updateEmail(email);
-                webDriver.quit();
-            }
-            //取码
-            String code = "";
-            for (int i = 0; i < 7; i++) {
-                code = DefuUtil.getCode(mobile, "27030");
-                if (code .equals("wait")) {
-                    try {
-                        Thread.sleep(10000);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+        Map<String, Object> createAndUpdateConfig = BiteBrowserConfig.createAndUpdateBrowse();
+
+        createAndUpdateConfig.put("proxyType", proxyIp.getProxyType());//['noproxy', 'http', 'https', 'socks5', 'ssh']
+        createAndUpdateConfig.put("host", proxyIp.getHostname());
+        createAndUpdateConfig.put("port", proxyIp.getPort());
+        createAndUpdateConfig.put("proxyUserName", proxyIp.getUsername());
+        createAndUpdateConfig.put("proxyPassword", proxyIp.getPassword());
+
+        try {
+            Map<String, Object> resultMap = OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/update", createAndUpdateConfig);
+            // 解析返回的 Map
+            if (resultMap != null && (boolean) resultMap.get("success")) {
+                // 获取 "data" 部分
+                Map<String, Object> dataMap = (Map<String, Object>) resultMap.get("data");
+
+                // 获取 "id" 值
+                if (dataMap != null) {
+                    String id = (String) dataMap.get("id");
+                    Map<String, Object> openBrowseConfig = BiteBrowserConfig.openBrowse();
+                    openBrowseConfig.put("id", id);
+                    Map<String, Object> openResultMap = OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/open", openBrowseConfig);
+                    if (openResultMap != null && (boolean) openResultMap.get("success")) {
+                        Map<String, Object> openData = (Map<String, Object>) openResultMap.get("data");
+                        openData.forEach((k, v) -> System.out.println(k+"="+v));
+                        if (openData != null) {
+                            try {
+                                //参数配置
+                                System.setProperty("webdriver.chrome.driver", openData.get("driver").toString());
+                                ChromeOptions options = new ChromeOptions();
+                                options.setExperimentalOption("debuggerAddress", openData.get("http").toString());
+                                WebDriver webDriver = new ChromeDriver(options);
+                                try {
+                                    webDriver.get("https://login.live.com");
+                                    WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
+//                                    boolean forContent = seleniumService.waitingForContent(10, webDriver, "使用你的 Microsoft 帐户");
+                                    boolean forContent = seleniumService.waitingForContent(10, webDriver, "Use your Microsoft account");
+                                    if (forContent) {
+                                        //输入邮箱
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='usernameEntry']"))).sendKeys(email.getEmail());
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+                                        //输入密码
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='passwordEntry']"))).sendKeys(email.getPassword());
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+                                    }else {
+                                        //输入邮箱
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='i0116']"))).sendKeys(email.getEmail());
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='idSIButton9']"))).click();
+                                        //输入密码
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='i0118']"))).sendKeys(email.getPassword());
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='idSIButton9']"))).click();
+                                    }
+
+                                    boolean b = waitingForContent(5, webDriver, "你的帐户或密码不正确");
+                                    if (b){
+                                        email.setNote("账号密码不正确");
+                                        updateEmail(email);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return email;
+                                    }
+                                    String pageSource = webDriver.getPageSource();
+                                    if (pageSource.contains("该 Microsoft 帐户不存在")){
+                                        email.setStatus("0");
+                                        updateEmail(email);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return email;
+                                    }
+                                    b = waitingForContent(5, webDriver, "我们即将更新条款");
+                                    if (b){
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='iNext']"))).click();
+                                    }
+                                    waitingForContent(5, webDriver, "Your account has been locked");
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='StartAction']"))).click();
+
+                                    String mobile = DefuUtil.getMobile("27030", "186","170,192,130,171");
+                                    WebElement countryDropdown = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='phoneCountry']")));
+                                    Select select = new Select(countryDropdown);
+                                    select.selectByValue("CN");
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='proofField']"))).sendKeys(mobile);
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='nextButton']"))).click();
+//                                    b = waitingForContent(5, webDriver, "该验证方法目前无效。请尝试其他方法。");
+                                    b = waitingForContent(5, webDriver, "Try another verification method");
+                                    if (b){
+                                        email.setNote("该验证方法目前无效。请尝试其他方法。");
+                                        updateEmail(email);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                    }
+                                    //取码
+                                    String code = "";
+                                    for (int i = 0; i < 10; i++) {
+                                        code = DefuUtil.getCode(mobile, "27030");
+                                        if (code .equals("wait")) {
+                                            try {
+                                                Thread.sleep(10000);
+                                            } catch (InterruptedException e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        }else {
+                                            break;
+                                        }
+                                    }
+                                    if (code.equals("wait")) {
+                                        email.setNote("接不到码");
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return email;
+                                    }
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='enter-code-input']"))).sendKeys(code);
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='nextButton']"))).click();
+                                    seleniumService.threadSleep(5);
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@id='FinishAction']"))).click();
+//                                    boolean waitingForContent = waitingForContent(10, webDriver, "已取消阻止你的帐户");
+                                    boolean waitingForContent = waitingForContent(10, webDriver, "A quick note about your Microsoft account");
+                                    FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                                    if (waitingForContent){
+                                        email.setStatus("1");
+                                        email.setNote("");
+                                        updateEmail(email);
+                                        if (fbAccountForSell != null) {
+                                            fbAccountForSell.setEmailStatus("1");
+                                            fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                                            OperationLog operationLog = new OperationLog();
+                                            operationLog.setOperationAccount(fbAccountForSell.getId());
+                                            operationLog.setOperationAccountKeyId(fbAccountForSell.getKeyId());
+                                            operationLog.setOperationContent("解锁邮箱");
+                                            operationLog.setOperationStatus("成功");
+                                            operationLog.setOperationTime(new Date());
+                                            operationLogService.insertOperationLog(operationLog);
+                                        }else {
+                                            FbAccount fbAccount = fbAccountService.selectFbAccountByEmail(email.getEmail());
+                                            OperationLog operationLog = new OperationLog();
+//                                            operationLog.setOperationAccount(fbAccount.getId());
+//                                            operationLog.setOperationAccountKeyId(fbAccount.getKeyId());
+                                            operationLog.setOperationContent("解锁邮箱");
+                                            operationLog.setOperationStatus("成功");
+                                            operationLog.setOperationTime(new Date());
+                                            operationLogService.insertOperationLog(operationLog);
+                                        }
+
+                                        seleniumService.threadSleep(2);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                    }else {
+                                        fbAccountForSell.setEmailStatus("3");
+                                        email.setStatus("3");
+                                        updateEmail(email);
+                                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                                        seleniumService.threadSleep(2);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                    }
+                                } catch (Exception e) {
+                                    webDriver.close();
+                                    webDriver.quit();
+                                    e.printStackTrace();
+                                }
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                }else {
-                    break;
+                    Map<String, Object> closeBrowserConfig = BiteBrowserConfig.closeBrowse();
+                    closeBrowserConfig.put("id",id);
+                    OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/close",closeBrowserConfig);
                 }
             }
-            if (code.equals("wait")) {
-                email.setNote("接不到码");
-                webDriver.quit();
-                return email;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return email;
+    }
+
+    /**
+     * 解锁邮箱-加号码
+     *
+     * @param email
+     * @param proxyIp
+     * @return
+     */
+    @Override
+    public Email unlockEmailAddTelephone(Email email, ProxyIp proxyIp) {
+
+        Map<String, Object> createAndUpdateConfig = BiteBrowserConfig.createAndUpdateBrowse();
+        createAndUpdateConfig.put("proxyType", "socks5");//['noproxy', 'http', 'https', 'socks5', 'ssh']
+        createAndUpdateConfig.put("host", proxyIp.getHostname());
+        createAndUpdateConfig.put("port", proxyIp.getPort());
+        createAndUpdateConfig.put("proxyUserName", proxyIp.getUsername());
+        createAndUpdateConfig.put("proxyPassword", proxyIp.getPassword());
+
+        try {
+            Map<String, Object> resultMap = OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/update", createAndUpdateConfig);
+            // 解析返回的 Map
+            if (resultMap != null && (boolean) resultMap.get("success")) {
+                // 获取 "data" 部分
+                Map<String, Object> dataMap = (Map<String, Object>) resultMap.get("data");
+
+                // 获取 "id" 值
+                if (dataMap != null) {
+                    String id = (String) dataMap.get("id");
+                    Map<String, Object> openBrowseConfig = BiteBrowserConfig.openBrowse();
+                    openBrowseConfig.put("id", id);
+                    Map<String, Object> openResultMap = OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/open", openBrowseConfig);
+                    if (openResultMap != null && (boolean) openResultMap.get("success")) {
+                        Map<String, Object> openData = (Map<String, Object>) openResultMap.get("data");
+                        openData.forEach((k, v) -> System.out.println(k+"="+v));
+                        if (openData != null) {
+                            try {
+                                //参数配置
+                                System.setProperty("webdriver.chrome.driver", openData.get("driver").toString());
+                                ChromeOptions options = new ChromeOptions();
+                                options.setExperimentalOption("debuggerAddress", openData.get("http").toString());
+                                WebDriver webDriver = new ChromeDriver(options);
+                                try {
+                                    webDriver.get("https://login.live.com");
+                                    WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
+                                    //输入邮箱
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='i0116']"))).sendKeys(email.getEmail());
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='idSIButton9']"))).click();
+                                    //输入密码
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='i0118']"))).sendKeys(email.getPassword());
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='idSIButton9']"))).click();
+                                    boolean b = waitingForContent(5, webDriver, "你的帐户或密码不正确");
+                                    if (b){
+                                        email.setNote("账号密码不正确");
+                                        updateEmail(email);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return email;
+                                    }
+                                    String pageSource = webDriver.getPageSource();
+                                    if (pageSource.contains("该 Microsoft 帐户不存在")){
+                                        email.setStatus("0");
+                                        updateEmail(email);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return email;
+                                    }
+                                    b = waitingForContent(5, webDriver, "帮助我们保护帐户");
+                                    if (b){
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='iLandingViewAction']"))).click();
+                                    }
+
+                                    String mobile = DefuUtil.getMobile("27030", "167","171");
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='DisplayPhoneNumber']"))).sendKeys(mobile);
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='iCollectPhoneViewAction']"))).click();
+                                    b = waitingForContent(5, webDriver, "机器人");
+                                    if (b){
+                                        seleniumService.threadSleep(50);
+                                    }
+                                    //取码
+                                    String code = "";
+                                    for (int i = 0; i < 8; i++) {
+                                        code = DefuUtil.getCode(mobile, "27030");
+                                        if (code .equals("wait")) {
+                                            try {
+                                                Thread.sleep(10000);
+                                            } catch (InterruptedException e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        }else {
+                                            break;
+                                        }
+                                    }
+                                    if (code.equals("wait")) {
+                                        email.setNote("接不到码");
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return email;
+                                    }
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='iOttText']"))).sendKeys(code);
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='iVerifyPhoneViewAction']"))).click();
+                                    boolean waitingForContent = waitingForContent(5, webDriver, "设置新密码");
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='iPassword']"))).sendKeys(email.getPassword()+"!");
+                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='iPasswordViewAction']"))).click();
+                                    seleniumService.threadSleep(10);
+                                    boolean isChargePassword = waitingForContent(5, webDriver, "你的密码已更改");
+                                    if (isChargePassword){
+                                        email.setStatus("1");
+                                        email.setPassword(email.getPassword()+"!");
+                                        email.setNote("");
+                                        updateEmail(email);
+                                        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                                        if (fbAccountForSell != null) {
+                                            fbAccountForSell.setEmailStatus("1");
+                                            fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                                            OperationLog operationLog = new OperationLog();
+                                            operationLog.setOperationAccount(fbAccountForSell.getId());
+                                            operationLog.setOperationAccountKeyId(fbAccountForSell.getKeyId());
+                                            operationLog.setOperationContent("解锁邮箱");
+                                            operationLog.setOperationStatus("成功");
+                                            operationLog.setOperationTime(new Date());
+                                            operationLogService.insertOperationLog(operationLog);
+                                        }else {
+                                            FbAccount fbAccount = fbAccountService.selectFbAccountByEmail(email.getEmail());
+                                            OperationLog operationLog = new OperationLog();
+                                            operationLog.setOperationAccount(fbAccount.getId());
+                                            operationLog.setOperationAccountKeyId(fbAccount.getKeyId());
+                                            operationLog.setOperationContent("解锁邮箱");
+                                            operationLog.setOperationStatus("成功");
+                                            operationLog.setOperationTime(new Date());
+                                            operationLogService.insertOperationLog(operationLog);
+                                        }
+
+                                        /*webDriver.close();
+                                        webDriver.quit();*/
+                                    }
+                                } catch (Exception e) {
+//                                    webDriver.close();
+//                                    webDriver.quit();
+                                    e.printStackTrace();
+                                }
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    Map<String, Object> closeBrowserConfig = BiteBrowserConfig.closeBrowse();
+                    closeBrowserConfig.put("id",id);
+                    OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/close",closeBrowserConfig);
+                }
             }
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='enter-code-input']"))).sendKeys(code);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='nextButton']"))).click();
-            boolean waitingForContent = waitingForContent(5, webDriver, "已取消阻止你的帐户");
-            if (waitingForContent){
-                email.setStatus("1");
-                email.setNote("");
-                emailMapper.updateEmail(email);
-                webDriver.quit();
-            }
-        } catch (Exception e) {
-            webDriver.quit();
-            e.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         return email;
@@ -350,7 +688,7 @@ public class EmailServiceImpl implements IEmailService {
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、数据 " + email.getEmail() + " 导入成功");
                 } else if (isUpdateSupport) {
-                    emailMapper.updateEmail(email);
+                    updateEmail(email);
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、数据 " + email.getEmail() + " 更新成功");
                 } else {

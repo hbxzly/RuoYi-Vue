@@ -1,8 +1,10 @@
 package com.ruoyi.account.service;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruoyi.account.domain.Email;
 import com.ruoyi.account.domain.FbAccountForSell;
+import com.ruoyi.account.domain.ProxyIp;
 
 import java.util.List;
 
@@ -85,14 +87,23 @@ public interface IEmailService {
      * @param email
      * @return
      */
-    public String getMessage(Email email);
+    public String getMessage(Email email) throws JsonProcessingException;
 
     /**
      * 解锁邮箱
      * @param email
      * @return
      */
-    public Email unlockEmail(Email email);
+    public Email unlockEmail(Email email, ProxyIp proxyIp);
+
+
+    /**
+     * 解锁邮箱-加号码
+     * @param email
+     * @param proxyIp
+     * @return
+     */
+    public Email unlockEmailAddTelephone(Email email, ProxyIp proxyIp);
 
     /**
      * 检查邮箱

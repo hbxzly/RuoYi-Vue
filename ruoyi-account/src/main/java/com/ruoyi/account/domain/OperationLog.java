@@ -9,9 +9,9 @@ import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
  * 操作记录对象 operation_log
- * 
+ *
  * @author ruoyi
- * @date 2024-09-29
+ * @date 2025-03-13
  */
 public class OperationLog extends BaseEntity
 {
@@ -19,6 +19,10 @@ public class OperationLog extends BaseEntity
 
     /** 序号 */
     private Long keyId;
+
+    /** 操作账号keyId */
+    @Excel(name = "操作账号keyId")
+    private Long operationAccountKeyId;
 
     /** 操作账号 */
     @Excel(name = "操作账号")
@@ -41,57 +45,66 @@ public class OperationLog extends BaseEntity
     @Excel(name = "备注")
     private String note;
 
-    public void setKeyId(Long keyId) 
+    public void setKeyId(Long keyId)
     {
         this.keyId = keyId;
     }
 
-    public Long getKeyId() 
+    public Long getKeyId()
     {
         return keyId;
     }
-    public void setOperationAccount(String operationAccount) 
+    public void setOperationAccountKeyId(Long operationAccountKeyId)
+    {
+        this.operationAccountKeyId = operationAccountKeyId;
+    }
+
+    public Long getOperationAccountKeyId()
+    {
+        return operationAccountKeyId;
+    }
+    public void setOperationAccount(String operationAccount)
     {
         this.operationAccount = operationAccount;
     }
 
-    public String getOperationAccount() 
+    public String getOperationAccount()
     {
         return operationAccount;
     }
-    public void setOperationContent(String operationContent) 
+    public void setOperationContent(String operationContent)
     {
         this.operationContent = operationContent;
     }
 
-    public String getOperationContent() 
+    public String getOperationContent()
     {
         return operationContent;
     }
-    public void setOperationStatus(String operationStatus) 
+    public void setOperationStatus(String operationStatus)
     {
         this.operationStatus = operationStatus;
     }
 
-    public String getOperationStatus() 
+    public String getOperationStatus()
     {
         return operationStatus;
     }
-    public void setOperationTime(Date operationTime) 
+    public void setOperationTime(Date operationTime)
     {
         this.operationTime = operationTime;
     }
 
-    public Date getOperationTime() 
+    public Date getOperationTime()
     {
         return operationTime;
     }
-    public void setNote(String note) 
+    public void setNote(String note)
     {
         this.note = note;
     }
 
-    public String getNote() 
+    public String getNote()
     {
         return note;
     }
@@ -99,12 +112,13 @@ public class OperationLog extends BaseEntity
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
-            .append("keyId", getKeyId())
-            .append("operationAccount", getOperationAccount())
-            .append("operationContent", getOperationContent())
-            .append("operationStatus", getOperationStatus())
-            .append("operationTime", getOperationTime())
-            .append("note", getNote())
-            .toString();
+                .append("keyId", getKeyId())
+                .append("operationAccountKeyId", getOperationAccountKeyId())
+                .append("operationAccount", getOperationAccount())
+                .append("operationContent", getOperationContent())
+                .append("operationStatus", getOperationStatus())
+                .append("operationTime", getOperationTime())
+                .append("note", getNote())
+                .toString();
     }
 }

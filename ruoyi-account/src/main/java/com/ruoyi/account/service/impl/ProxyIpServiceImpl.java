@@ -37,8 +37,7 @@ public class ProxyIpServiceImpl implements IProxyIpService {
      * @return 代理
      */
     @Override
-    public ProxyIp selectProxyIpByKeyId(Long keyId)
-    {
+    public ProxyIp selectProxyIpByKeyId(Long keyId) {
         return proxyIpMapper.selectProxyIpByKeyId(keyId);
     }
 
@@ -52,6 +51,17 @@ public class ProxyIpServiceImpl implements IProxyIpService {
     public List<ProxyIp> selectProxyIpList(ProxyIp proxyIp)
     {
         return proxyIpMapper.selectProxyIpList(proxyIp);
+    }
+
+    /**
+     * 查询代理列表
+     *
+     * @param status 状态
+     * @return 代理集合
+     */
+    @Override
+    public List<ProxyIp> selectProxyIpListByStatus(String status) {
+        return proxyIpMapper.selectProxyIpListByStatus(status);
     }
 
     /**
@@ -125,14 +135,12 @@ public class ProxyIpServiceImpl implements IProxyIpService {
                 ProxyIp ip = proxyIpMapper.selectProxyIpByUsername(proxyIp.getUsername());
                 if (StringUtils.isNull(ip))
                 {
-                    proxyIp.setImportTime(LocalDateTime.now());
                     proxyIpMapper.insertProxyIp(proxyIp);
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、信息 " + proxyIp.getPassword() + " 导入成功");
                 }
                 else if (isUpdateSupport)
                 {
-                    proxyIp.setImportTime(LocalDateTime.now());
                     proxyIpMapper.updateProxyIp(proxyIp);
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、信息 " + proxyIp.getPassword()   + " 更新成功");

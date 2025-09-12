@@ -25,6 +25,16 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="是否绑定账号" prop="isBoundAccount">
+        <el-select v-model="queryParams.isBoundAccount" placeholder="请选择状态；0否，1是" clearable>
+          <el-option
+            v-for="dict in dict.type.is_bound_account"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择状态；0被释放，1正常，2被锁，3未知异常" clearable>
           <el-option
@@ -116,7 +126,7 @@
           plain
           icon="el-icon-edit"
           size="mini"
-          :disabled="multiple"
+          :disabled="single"
           @click="handleUnlock"
           v-hasPermi="['account:email:remove']"
         >解锁</el-button>
@@ -133,6 +143,11 @@
       <el-table-column label="状态" align="center" prop="status">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.email_status" :value="scope.row.status"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="是否绑定账号" align="center" prop="isBoundAccount">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.is_bound_account" :value="scope.row.isBoundAccount"/>
         </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="note" />
@@ -196,6 +211,15 @@
         </el-form-item>
         <el-form-item label="账号ID" prop="accountId">
           <el-input v-model="form.accountId" placeholder="请输入账号ID" />
+        </el-form-item>
+        <el-form-item label="是否绑定账号" prop="isBoundAccount">
+          <el-radio-group v-model="form.isBoundAccount">
+            <el-radio
+              v-for="dict in dict.type.is_bound_account"
+              :key="dict.value"
+              :label="dict.value"
+            >{{dict.label}}</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
@@ -262,26 +286,37 @@
   </span>
     </el-dialog>
 
+    <!-- 解锁对话框 -->
+    <el-dialog title="选择解锁方式" :visible.sync="unlockDialogVisible" width="400px">
+      <el-form ref="unlockForm" :model="unlockForm" >
+        <el-form-item label="解锁邮箱" prop="email">
+          {{unlockForm.email}}
+        </el-form-item>
+        <el-form-item label="解锁方式">
+          <el-radio-group v-model="unlockForm.unlockType">
+            <el-radio :label="1">一般解锁</el-radio>
+            <el-radio :label="2">添加号码</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="unlockDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmUnlock">确定</el-button>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
-<style>
-/* 固定表头 */
-.el-table__header-wrapper {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background-color: #f5f7fa; /* 设置表头背景色 */
-}
-</style>
 
 <script>
 import { listEmail, getEmail, delEmail, addEmail, updateEmail, getMessage, unlockEmail } from "@/api/account/email";
 import { getToken } from "@/utils/auth";
+import item from "@/layout/components/Sidebar/Item.vue";
 
 export default {
   name: "Email",
-  dicts: ['email_status'],
+  dicts: ['email_status', 'is_bound_account'],
   data() {
     return {
       // 遮罩层
@@ -307,8 +342,10 @@ export default {
         pageNum: 1,
         pageSize: 10,
         email: null,
+        accountId: null,
         password: null,
         status: null,
+        isBoundAccount: null,
         note: null,
         lastTimeMessage: null
       },
@@ -335,13 +372,21 @@ export default {
       },
       // 表单参数
       form: {},
+      unlockForm: {
+        email: "", // 解锁邮箱
+        unlockType: 1, // 默认 "一般解锁"
+      },
       // 表单校验
       rules: {
       },
+
       messageDialog: {
         visible: false,
         content: ''
-      }
+      },
+
+      unlockDialogVisible: false, // 控制对话框的显示
+      unlockType: 1, // 默认选项 (1: 一般解锁, 2: 添加号码)
     };
   },
   created() {
@@ -367,8 +412,10 @@ export default {
       this.form = {
         keyId: null,
         email: null,
+        accountId: null,
         password: null,
         status: null,
+        isBoundAccount: null,
         note: null,
         lastTimeMessage: null
       };
@@ -387,25 +434,28 @@ export default {
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.keyId)
+      this.selectEmail = selection.map(item => item.email)
       this.single = selection.length!==1
       this.multiple = !selection.length
     },
+
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
       this.open = true;
       this.title = "添加email";
     },
+
     /**解锁邮箱*/
-    handleUnlock(row) {
+    /*handleUnlock(row) {
       const keyIds = row.keyId || this.ids;
       this.$modal.confirm('是否确认解锁email编号为"' + keyIds + '"的数据项？').then(function() {
         return unlockEmail(keyIds);
       }).then(() => {
         this.getList();
-        this.$modal.msgSuccess("删除成功");
+        this.$modal.msgSuccess("解锁成功");
       }).catch(() => {});
-    },
+    },*/
 
     /** 导入按钮操作 */
     handleImport() {
@@ -500,6 +550,20 @@ export default {
     showMessageDialog(message) {
       this.messageDialog.content = message;
       this.messageDialog.visible = true;
+    },
+    // 点击解锁按钮，打开对话框
+    handleUnlock(row) {
+      this.unlockForm = {
+        email: row.email || this.selectEmail || "", // 默认邮箱
+        unlockType: 1, // 重置解锁方式
+      };
+      this.unlockDialogVisible = true;
+    },
+
+    confirmUnlock(){
+      //打印选中的邮箱，所选的项目
+      this.unlockDialogVisible = false;
+      unlockEmail(this.unlockForm.email,this.unlockForm.unlockType);
     }
 
   }
@@ -507,12 +571,3 @@ export default {
 };
 </script>
 
-<style scoped>
-.small-padding {
-  padding: 0;
-}
-
-.fixed-width {
-  width: 130px;
-}
-</style>

@@ -2,6 +2,8 @@ package com.ruoyi.account.mapper;
 
 import java.util.List;
 import com.ruoyi.account.domain.FbAccountForSell;
+import com.ruoyi.account.domain.FbAccountForSellQuery;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -10,6 +12,7 @@ import org.apache.ibatis.annotations.Param;
  * @author ruoyi
  * @date 2024-11-01
  */
+@Mapper
 public interface FbAccountForSellMapper 
 {
     /**
@@ -27,6 +30,14 @@ public interface FbAccountForSellMapper
      * @return 卖号集合
      */
     public List<FbAccountForSell> selectFbAccountForSellList(FbAccountForSell fbAccountForSell);
+
+    /**
+     * 查询卖号列表
+     *
+     * @param fbAccountForSellQuery 卖号查询条件
+     * @return 卖号集合
+     */
+    public List<FbAccountForSell> selectFbAccountForSellListByQuery(@Param("fbAccountForSellQuery") FbAccountForSellQuery fbAccountForSellQuery);
 
     /**
      * 查询卖号列表
@@ -76,6 +87,13 @@ public interface FbAccountForSellMapper
     public FbAccountForSell selectFbAccountForSellById(String id);
 
     /**
+     * 通过账号邮箱查询
+     * @param email
+     * @return
+     */
+    public FbAccountForSell selectFbAccountForSellByEmail(String email);
+
+    /**
      * 多ID查询
      * @param ids
      * @return
@@ -89,4 +107,12 @@ public interface FbAccountForSellMapper
      * @return
      */
     public int updateFbAccountForSellBrowserStatus(@Param("fbAccountForSell") FbAccountForSell fbAccountForSell, @Param("status") String status);
+
+    /**
+     * 批量查找
+     * @param account
+     * @return
+     */
+    List<FbAccountForSell> batchSearch(@Param("account") FbAccountForSell account);
 }
+

@@ -42,3 +42,11 @@ export function delOperation(keyId) {
     method: 'delete'
   })
 }
+
+// 打开操作账号
+export function openOperationAccount(operationAccountId) {
+  return request({
+    url: '/account/operation/openOperationAccount/' + operationAccountId,
+    method: 'get'
+  })
+}

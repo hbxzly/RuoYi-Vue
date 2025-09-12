@@ -36,7 +36,7 @@ public class FBAccountUtil {
         try {
             URL obj = new URL(url);
             // 设置代理（根据你的代理信息替换 host 和 port）
-            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 7890)); // 示例代理
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8800)); // 示例代理
             HttpURLConnection connection = (HttpURLConnection) obj.openConnection(proxy);
             // 设置请求方法
             connection.setRequestMethod("GET");
@@ -56,7 +56,7 @@ public class FBAccountUtil {
             }
             in.close();
             System.out.println(response.toString());
-            return response.toString().contains("Photoshop");
+            return response.toString().contains("hotoshop");
         } catch (Exception e) {
             e.printStackTrace();
         }

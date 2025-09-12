@@ -92,7 +92,7 @@ public interface ISeleniumService {
      * 等待时间
      * @param seconds
      */
-    public void threadSleep(int seconds);
+    public void threadSleep(double seconds);
 
 
     /**
@@ -102,6 +102,11 @@ public interface ISeleniumService {
      * @return
      */
     public Integer findExtraProcessId(List<Integer> beforeProcessIdList, List<Integer> afterProcessIdList);
+
+    /**
+     * 修改IP
+     */
+    public void changeIP();
 
 
     /**

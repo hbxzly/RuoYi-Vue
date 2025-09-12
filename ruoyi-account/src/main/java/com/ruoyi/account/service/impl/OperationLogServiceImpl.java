@@ -1,5 +1,6 @@
 package com.ruoyi.account.service.impl;
 
+import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,6 @@ public class OperationLogServiceImpl implements IOperationLogService
 
     /**
      * 查询操作记录
-     * 
      * @param keyId 操作记录主键
      * @return 操作记录
      */
@@ -89,5 +89,16 @@ public class OperationLogServiceImpl implements IOperationLogService
     public int deleteOperationLogByKeyId(Long keyId)
     {
         return operationLogMapper.deleteOperationLogByKeyId(keyId);
+    }
+
+    /**
+     * 近期操作
+     * @param accountId
+     * @param cutoffDate
+     * @return
+     */
+    @Override
+    public int countOperationsAfter(String accountId, Date cutoffDate) {
+        return operationLogMapper.countOperationsAfter(accountId, cutoffDate);
     }
 }

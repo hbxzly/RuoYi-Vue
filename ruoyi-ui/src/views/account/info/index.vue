@@ -73,6 +73,46 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+        <el-form-item label="绑定邮箱" prop="isBoundEmail">
+          <el-select v-model="queryParams.isBoundEmail" placeholder="请选择状态；0否，1是" clearable>
+            <el-option
+              v-for="dict in dict.type.is_bound_email"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="绑定电话" prop="isBoundTelephone">
+          <el-select v-model="queryParams.isBoundTelephone" placeholder="请选择状态；0否，1是" clearable>
+            <el-option
+              v-for="dict in dict.type.is_bound_telephone"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="双重验证" prop="is2fa">
+          <el-select v-model="queryParams.is2fa" placeholder="请选择状态；0否，1是" clearable>
+            <el-option
+              v-for="dict in dict.type.is_2fa"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="是否创建" prop="isCreate">
+          <el-select v-model="queryParams.isCreate" placeholder="请选择状态；0否，1是" clearable>
+            <el-option
+              v-for="dict in dict.type.is_create"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
       <el-form-item label="创建状态" prop="createStatus">
         <el-input
           v-model="queryParams.createStatus"
@@ -291,6 +331,24 @@
         <el-form-item label="地区" prop="createIp">
           <el-input v-model="form.createIp" placeholder="请输入地区" />
         </el-form-item>
+        <el-form-item label="是否绑定邮箱" prop="isBoundEmail">
+          <el-radio-group v-model="form.isBoundEmail">
+            <el-radio
+              v-for="dict in dict.type.is_bound_email"
+              :key="dict.value"
+              :label="dict.value"
+            >{{dict.label}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="是否绑定手机" prop="isBoundTelephone">
+          <el-radio-group v-model="form.isBoundTelephone">
+            <el-radio
+              v-for="dict in dict.type.is_bound_telephone"
+              :key="dict.value"
+              :label="dict.value"
+            >{{dict.label}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item label="创建状态" prop="createStatus">
           <el-input v-model="form.createStatus" placeholder="请输入创建状态" />
         </el-form-item>
@@ -355,6 +413,7 @@ import { getToken } from "@/utils/auth";
 
 export default {
   name: "Info",
+  dicts: ['is_bound_email', 'is_bound_telephone', 'is_2fa', 'is_create'],
   data() {
     return {
       // 遮罩层
@@ -391,6 +450,10 @@ export default {
         createDate: null,
         createIp: null,
         createStatus: null,
+        isBoundTelephone: null,
+        isBoundEmail: null,
+        is2fa: null,
+        isCreate: null,
         ua: null,
         filePath: null,
         browserProfile: null,
@@ -426,7 +489,7 @@ export default {
         title: "",
       },
       checkedUpdateOption:[],
-      options: ['上传头像','添加邮箱','开启双重验证','发帖'],
+      options: ['上传头像','添加邮箱','开启双重验证','发帖','登录邮箱','删除手机'],
       isIndeterminate: true,
       checkAll: false
     };
@@ -626,7 +689,6 @@ export default {
       const keyIds = row.keyId || this.ids
       checkAccountActive(keyIds).then(response => {
         this.$modal.msgSuccess("检测完毕");
-        this.getList();
       });
     }
   }

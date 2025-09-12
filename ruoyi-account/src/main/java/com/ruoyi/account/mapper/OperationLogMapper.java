@@ -1,7 +1,10 @@
 package com.ruoyi.account.mapper;
 
+import java.util.Date;
 import java.util.List;
 import com.ruoyi.account.domain.OperationLog;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 /**
  * 操作记录Mapper接口
@@ -58,4 +61,8 @@ public interface OperationLogMapper
      * @return 结果
      */
     public int deleteOperationLogByKeyIds(Long[] keyIds);
+
+
+    @Select("SELECT COUNT(*) FROM operation_log WHERE operation_account = #{accountId} AND operation_time >= #{cutoffDate}")
+    int countOperationsAfter(@Param("accountId") String accountId, @Param("cutoffDate") Date cutoffDate);
 }

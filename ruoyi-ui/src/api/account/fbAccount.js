@@ -104,3 +104,15 @@ export function jumpPage(query){
     params: query
   })
 }
+
+//创建主页
+export function createPage(keyId, pageName){
+  return request({
+    url: "/account/fbAccount/createPage",
+    method: 'get',
+    params: {
+      keyId: keyId.join(','),
+      pageName: pageName
+    }
+  })
+}

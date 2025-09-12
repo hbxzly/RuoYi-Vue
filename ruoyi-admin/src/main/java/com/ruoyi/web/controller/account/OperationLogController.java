@@ -2,16 +2,13 @@ package com.ruoyi.web.controller.account;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+
+import com.ruoyi.account.domain.FbAccountForSell;
+import com.ruoyi.account.service.IFbAccountForSellService;
+import org.openqa.selenium.WebDriver;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
@@ -33,6 +30,9 @@ public class OperationLogController extends BaseController
 {
     @Autowired
     private IOperationLogService operationLogService;
+
+    @Autowired
+    private IFbAccountForSellService fbAccountForSellService;
 
     /**
      * 查询操作记录列表
@@ -100,5 +100,17 @@ public class OperationLogController extends BaseController
     public AjaxResult remove(@PathVariable Long[] keyIds)
     {
         return toAjax(operationLogService.deleteOperationLogByKeyIds(keyIds));
+    }
+
+    /**
+     * 打开操作账号
+     */
+	@GetMapping("/openOperationAccount/{operationAccountId}")
+    @ResponseBody
+    public AjaxResult openOperationAccount(@PathVariable String operationAccountId) {
+        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellById(operationAccountId);
+        WebDriver webDriver = fbAccountForSellService.openBrowser(fbAccountForSell);
+        fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell);
+        return success();
     }
 }

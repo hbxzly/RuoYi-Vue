@@ -109,13 +109,20 @@
       <el-table-column label="端口" align="center" prop="port" />
       <el-table-column label="用户名" align="center" prop="username" />
       <el-table-column label="密码" align="center" prop="password" />
-      <el-table-column label="状态" align="center" prop="status" />
-      <el-table-column label="备注" align="center" prop="note" />
-      <el-table-column label="导入时间" align="center" prop="importTime" width="180">
+      <el-table-column label="状态" align="center" prop="status">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.importTime, '{y}-{m}-{d} {h}:{mm}:{ss}') }}</span>
+          <el-switch
+            v-model="scope.row.status"
+            :active-value="1"
+            :inactive-value="0"
+            @change="handleUpdateIpStatus(scope.row)"
+          />
         </template>
       </el-table-column>
+      <el-table-column label="备注" align="center" prop="note" />
+      <el-table-column label="导入时间" align="center" prop="importTime" />
+      <el-table-column label="地区" align="center" prop="region" />
+      <el-table-column label="代理类型" align="center" prop="proxyType" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -162,6 +169,15 @@
         <el-form-item label="备注" prop="note">
           <el-input v-model="form.note" placeholder="请输入备注" />
         </el-form-item>
+        <el-form-item label="导入时间" prop="importTime">
+          <el-input v-model="form.importTime" placeholder="请输入导入时间" />
+        </el-form-item>
+        <el-form-item label="地区" prop="region">
+          <el-input v-model="form.region" placeholder="请输入地区" />
+        </el-form-item>
+        <el-form-item label="代理类型" prop="proxyType">
+          <el-input v-model="form.proxyType" placeholder="'noproxy', 'http', 'https', 'socks5', 'ssh'" />
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -203,7 +219,7 @@
 </template>
 
 <script>
-import { listIp, getIp, delIp, addIp, updateIp } from "@/api/account/ip";
+import { listIp, getIp, delIp, addIp, updateIp, updateIpStatus } from "@/api/account/ip";
 import { getToken } from "@/utils/auth";
 
 export default {
@@ -235,6 +251,8 @@ export default {
         hostname: null,
         port: null,
         username: null,
+        importTime: null,
+        proxyType: null,
         password: null,
         status: null,
         note: null
@@ -269,7 +287,10 @@ export default {
     getList() {
       this.loading = true;
       listIp(this.queryParams).then(response => {
-        this.ipList = response.rows;
+        this.ipList = response.rows.map(item => ({
+          ...item,
+          status: Number(item.status) // 确保 status 是数字
+        }));
         this.total = response.total;
         this.loading = false;
       });
@@ -286,6 +307,8 @@ export default {
         hostname: null,
         port: null,
         username: null,
+        importTime: null,
+        proxyType: null,
         password: null,
         status: null,
         note: null
@@ -388,6 +411,16 @@ export default {
     submitFileForm() {
       this.$refs.upload.submit();
     },
+
+    handleUpdateIpStatus(row){
+      const keyId = row.keyId;
+      const status = row.status
+      updateIpStatus(keyId, status)
+        .then(response => {
+          this.$message.success("状态更新成功");
+          this.getList(); // 重新获取数据，刷新表格
+        })
+    }
   }
 };
 </script>

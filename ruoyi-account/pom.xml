@@ -30,11 +30,27 @@
         </dependency>
 
         <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>3.141.59</version> <!-- 使用你需要的 Selenium 版本 -->
+        </dependency>
+        <dependency>
+            <groupId>io.appium</groupId>
+            <artifactId>java-client</artifactId>
+            <version>7.6.0</version> <!-- 也可以用 8.5.1 等新版 -->
+        </dependency>
+
+        <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>1.14.3</version> <!-- 使用最新版本 -->
         </dependency>
 
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
 
         <!--窗口控制-->
         <dependency>
@@ -105,6 +121,14 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- OkHttp 依赖 -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.14.9</version>  <!-- 请根据最新版本进行更新 -->
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

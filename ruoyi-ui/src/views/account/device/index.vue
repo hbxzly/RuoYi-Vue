@@ -1,36 +1,36 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px"  >
-      <el-form-item label="操作账号" prop="operationAccount">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="设备名称" prop="deviceName">
         <el-input
-          v-model="queryParams.operationAccount"
-          placeholder="请输入操作账号"
+          v-model="queryParams.deviceName"
+          placeholder="请输入设备名称"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="操作内容" prop="operationContent">
+      <el-form-item label="包名" prop="packageName">
         <el-input
-          v-model="queryParams.operationContent"
-          placeholder="请输入操作内容"
+          v-model="queryParams.packageName"
+          placeholder="请输入包名"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="操作状态" prop="operationStatus">
+      <el-form-item label="创建账号ID" prop="createAccountId">
         <el-input
-          v-model="queryParams.operationStatus"
-          placeholder="请输入操作状态"
+          v-model="queryParams.createAccountId"
+          placeholder="请输入创建账号ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="操作时间" prop="operationTime">
+      <el-form-item label="创建日期" prop="createDate">
         <el-date-picker clearable
-          v-model="queryParams.operationTime"
+          v-model="queryParams.createDate"
           type="date"
           value-format="yyyy-MM-dd"
-          placeholder="请选择操作时间">
+          placeholder="请选择创建日期">
         </el-date-picker>
       </el-form-item>
       <el-form-item label="备注" prop="note">
@@ -55,7 +55,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['account:operation:add']"
+          v-hasPermi="['account:device:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -66,7 +66,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['account:operation:edit']"
+          v-hasPermi="['account:device:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -77,7 +77,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['account:operation:remove']"
+          v-hasPermi="['account:device:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -87,22 +87,31 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['account:operation:export']"
+          v-hasPermi="['account:device:export']"
         >导出</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          plain
+          icon="el-icon-refresh"
+          size="mini"
+          @click="handleGetDevices"
+          v-hasPermi="['account:device:edit']"
+        >获取</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="operationList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="deviceList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" align="center" prop="keyId" />
-      <el-table-column label="操作账号keyId" align="center" width="70" prop="operationAccountKeyId" />
-      <el-table-column label="操作账号" align="center" prop="operationAccount" />
-      <el-table-column label="操作内容" align="center" width="250" prop="operationContent" />
-      <el-table-column label="操作状态" align="center" width="100" prop="operationStatus" />
-      <el-table-column label="操作时间" align="center" prop="operationTime" width="180">
+      <el-table-column label="主键ID" align="center" prop="keyId" />
+      <el-table-column label="设备名称" align="center" prop="deviceName" />
+      <el-table-column label="包名" align="center" prop="packageName" />
+      <el-table-column label="创建账号ID" align="center" prop="createAccountId" />
+      <el-table-column label="创建日期" align="center" prop="createDate" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.operationTime, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.createDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="note" />
@@ -112,26 +121,26 @@
             size="mini"
             type="text"
             icon="el-icon-edit"
+            @click="handleOpen(scope.row)"
+            v-hasPermi="['account:device:edit']"
+          >打开</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['operation:operation:edit']"
+            v-hasPermi="['account:device:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['operation:operation:remove']"
+            v-hasPermi="['account:device:remove']"
           >删除</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-delete"
-            @click="handleOpenOperationAccount(scope.row)"
-          >打开操作号</el-button>
         </template>
       </el-table-column>
     </el-table>
-
 
     <pagination
       v-show="total>0"
@@ -141,24 +150,24 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改操作记录对话框 -->
+    <!-- 添加或修改创建设备对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="操作账号" prop="operationAccount">
-          <el-input v-model="form.operationAccount" placeholder="请输入操作账号" />
+        <el-form-item label="设备名称" prop="deviceName">
+          <el-input v-model="form.deviceName" placeholder="请输入设备名称" />
         </el-form-item>
-        <el-form-item label="操作内容">
-          <el-input v-model="form.operationContent" placeholder="请输入操作内容"/>
+        <el-form-item label="包名" prop="packageName">
+          <el-input v-model="form.packageName" placeholder="请输入包名" />
         </el-form-item>
-        <el-form-item label="操作状态">
-          <el-input v-model="form.operationStatus" placeholder="请输入操作状态"/>
+        <el-form-item label="创建账号ID" prop="createAccountId">
+          <el-input v-model="form.createAccountId" placeholder="请输入创建账号ID" />
         </el-form-item>
-        <el-form-item label="操作时间" prop="operationTime">
+        <el-form-item label="创建日期" prop="createDate">
           <el-date-picker clearable
-            v-model="form.operationTime"
+            v-model="form.createDate"
             type="date"
             value-format="yyyy-MM-dd"
-            placeholder="请选择操作时间">
+            placeholder="请选择创建日期">
           </el-date-picker>
         </el-form-item>
         <el-form-item label="备注" prop="note">
@@ -174,10 +183,10 @@
 </template>
 
 <script>
-import { listOperation, getOperation, delOperation, addOperation, updateOperation, openOperationAccount } from "@/api/account/operation";
+import { listDevice, getDevice, delDevice, addDevice, updateDevice, getDevices,openDevice } from "@/api/account/device";
 
 export default {
-  name: "Operation",
+  name: "Device",
   data() {
     return {
       // 遮罩层
@@ -192,8 +201,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 操作记录表格数据
-      operationList: [],
+      // 创建设备表格数据
+      deviceList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -202,10 +211,10 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        operationAccount: null,
-        operationContent: null,
-        operationStatus: null,
-        operationTime: null,
+        deviceName: null,
+        packageName: null,
+        createAccountId: null,
+        createDate: null,
         note: null
       },
       // 表单参数
@@ -219,11 +228,11 @@ export default {
     this.getList();
   },
   methods: {
-    /** 查询操作记录列表 */
+    /** 查询创建设备列表 */
     getList() {
       this.loading = true;
-      listOperation(this.queryParams).then(response => {
-        this.operationList = response.rows;
+      listDevice(this.queryParams).then(response => {
+        this.deviceList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -237,10 +246,10 @@ export default {
     reset() {
       this.form = {
         keyId: null,
-        operationAccount: null,
-        operationContent: null,
-        operationStatus: null,
-        operationTime: null,
+        deviceName: null,
+        packageName: null,
+        createAccountId: null,
+        createDate: null,
         note: null
       };
       this.resetForm("form");
@@ -265,16 +274,24 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加操作记录";
+      this.title = "添加创建设备";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
       const keyId = row.keyId || this.ids
-      getOperation(keyId).then(response => {
+      getDevice(keyId).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改操作记录";
+        this.title = "修改创建设备";
+      });
+    },
+    /** 打开按钮操作 */
+    handleOpen(row) {
+      this.reset();
+      const keyId = row.keyId || this.ids
+      openDevice(keyId).then(response => {
+
       });
     },
     /** 提交按钮 */
@@ -282,13 +299,13 @@ export default {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.keyId != null) {
-            updateOperation(this.form).then(response => {
+            updateDevice(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addOperation(this.form).then(response => {
+            addDevice(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -300,8 +317,8 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const keyIds = row.keyId || this.ids;
-      this.$modal.confirm('是否确认删除操作记录编号为"' + keyIds + '"的数据项？').then(function() {
-        return delOperation(keyIds);
+      this.$modal.confirm('是否确认删除创建设备编号为"' + keyIds + '"的数据项？').then(function() {
+        return delDevice(keyIds);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
@@ -309,14 +326,15 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('account/operation/export', {
+      this.download('account/device/export', {
         ...this.queryParams
-      }, `operation_${new Date().getTime()}.xlsx`)
+      }, `device_${new Date().getTime()}.xlsx`)
     },
-
-    handleOpenOperationAccount(row){
-      const operationAccountId = row.operationAccount
-      openOperationAccount(operationAccountId);
+    /** 导出按钮操作 */
+    handleGetDevices() {
+      getDevices().then(response => {
+        this.$modal.msgSuccess("获取成功");
+      });
     }
   }
 };

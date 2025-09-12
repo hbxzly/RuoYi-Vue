@@ -1,8 +1,5 @@
 package com.ruoyi.account.domain;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
@@ -12,7 +9,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 代理对象 proxy_ip
  *
  * @author ruoyi
- * @date 2025-02-28
+ * @date 2025-04-08
  */
 public class ProxyIp extends BaseEntity
 {
@@ -46,9 +43,16 @@ public class ProxyIp extends BaseEntity
     private String note;
 
     /** 导入时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @Excel(name = "导入时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime importTime;
+    @Excel(name = "导入时间")
+    private String importTime;
+
+    /** 地区 */
+    @Excel(name = "地区")
+    private String region;
+
+    /** 代理类型 */
+    @Excel(name = "代理类型")
+    private String proxyType;
 
     public void setKeyId(Long keyId)
     {
@@ -113,13 +117,32 @@ public class ProxyIp extends BaseEntity
     {
         return note;
     }
-
-    public LocalDateTime getImportTime() {
-        return importTime;
+    public void setImportTime(String importTime)
+    {
+        this.importTime = importTime;
     }
 
-    public void setImportTime(LocalDateTime importTime) {
-        this.importTime = importTime;
+    public String getImportTime()
+    {
+        return importTime;
+    }
+    public void setRegion(String region)
+    {
+        this.region = region;
+    }
+
+    public String getRegion()
+    {
+        return region;
+    }
+    public void setProxyType(String proxyType)
+    {
+        this.proxyType = proxyType;
+    }
+
+    public String getProxyType()
+    {
+        return proxyType;
     }
 
     @Override
@@ -133,6 +156,8 @@ public class ProxyIp extends BaseEntity
                 .append("status", getStatus())
                 .append("note", getNote())
                 .append("importTime", getImportTime())
+                .append("region", getRegion())
+                .append("proxyType", getProxyType())
                 .toString();
     }
 }

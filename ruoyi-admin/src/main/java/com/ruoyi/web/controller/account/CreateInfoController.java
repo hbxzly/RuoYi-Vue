@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruoyi.account.domain.FbAccountForSell;
 import com.ruoyi.account.util.FBAccountUtil;
 import org.openqa.selenium.WebDriver;
@@ -142,7 +143,7 @@ public class CreateInfoController extends BaseController
 
     @PostMapping("/updateAccountInfo")
     @ResponseBody
-    public AjaxResult updateAccountInfo(@RequestBody Map<String, Object> payload){
+    public AjaxResult updateAccountInfo(@RequestBody Map<String, Object> payload) throws JsonProcessingException {
         // 从请求体中解析 keyIds 和 selectedOptions
         List<Integer> keyIds = (List<Integer>) payload.get("keyIds");
         List<String> selectedOptions = (List<String>) payload.get("selectedOptions");
@@ -159,6 +160,9 @@ public class CreateInfoController extends BaseController
             }
             if (selectedOptions.contains("开启双重验证")){
                 createInfoService.updateAccountOpenTwoFactor(webDriver, createInfo);
+            }
+            if (selectedOptions.contains("登录邮箱")){
+                createInfoService.loginEmail(webDriver, createInfo);
             }
             createInfoService.closeBrowser(createInfo);
         }

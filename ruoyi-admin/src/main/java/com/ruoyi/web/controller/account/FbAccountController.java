@@ -220,4 +220,12 @@ public class FbAccountController extends BaseController
         return success(-1);
     }
 
+    @GetMapping("/createPage")
+    @ResponseBody
+    public AjaxResult createPage(@RequestParam("keyId") List<Long> keyId, @RequestParam("pageName") String pageName){
+        FbAccount fbAccount = fbAccountService.selectFbAccountByKeyIds(keyId.toArray(new Long[0])).get(0);
+        fbAccountService.createPage(fbAccount, pageName);
+        return success();
+    }
+
 }

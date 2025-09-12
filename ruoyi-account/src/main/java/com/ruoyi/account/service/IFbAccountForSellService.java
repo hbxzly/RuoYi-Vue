@@ -1,9 +1,7 @@
 package com.ruoyi.account.service;
 
 import java.util.List;
-import java.util.Map;
 
-import com.ruoyi.account.domain.FbAccount;
 import com.ruoyi.account.domain.FbAccountForSell;
 import org.openqa.selenium.WebDriver;
 
@@ -22,6 +20,22 @@ public interface IFbAccountForSellService
      * @return 卖号
      */
     public FbAccountForSell selectFbAccountForSellByKeyId(Long keyId);
+
+    /**
+     * 查询卖号
+     *
+     * @param id 卖号id
+     * @return 卖号
+     */
+    public FbAccountForSell selectFbAccountForSellById(String id);
+
+    /**
+     * 查询卖号
+     *
+     * @param email 邮箱
+     * @return 卖号
+     */
+    public FbAccountForSell selectFbAccountForSellByEmail(String email);
 
     /**
      * 查询卖号列表
@@ -90,11 +104,53 @@ public interface IFbAccountForSellService
 
 
     /**
-     * 获取信息（简体）
+     * 获取名字和好友数量（简体）
      * @param webDriver
      * @param fbAccountForSell
      */
-    public void getAccountMarketplaceAndNameAndFriendInSimplified(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+    public void getAccountNameAndFriendNumber(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 获取商城信息（简体）
+     * @param webDriver
+     * @param fbAccountForSell
+     */
+    public void getIsMarketplace(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 获取广告状态（简体）
+     * @param webDriver
+     * @param fbAccountForSell
+     */
+    public void getAccountAdStatus(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 获取Bm数量（简体）
+     * @param webDriver
+     * @param fbAccountForSell
+     */
+    public void getAccountBm(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 获取主页数量（简体）
+     * @param webDriver
+     * @param fbAccountForSell
+     */
+    public void getAccountPage(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 获取帖子数量（简体）
+     * @param webDriver
+     * @param fbAccountForSell
+     */
+    public void getAccountPostCount(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 获取登录记录（简体）
+     * @param webDriver
+     * @param fbAccountForSell
+     */
+    public void getAccountLoginLog(WebDriver webDriver, FbAccountForSell fbAccountForSell);
 
 
     /**
@@ -132,7 +188,18 @@ public interface IFbAccountForSellService
      * @param id
      * @param webDriver
      */
-    public void addFriend(FbAccountForSell fbAccountForSell, String id, WebDriver webDriver);
+    public String addFriend(FbAccountForSell fbAccountForSell, String id, WebDriver webDriver);
+
+    /**
+     * 添加好友
+     * @param addId
+     * @param number
+     * @param region
+     * @param canLogin
+     * @param isSell
+     * @return
+     */
+    public String addFriendNew(String addId, Integer number, String region, String canLogin, String isSell);
 
     /**
      * 打开浏览器
@@ -146,5 +213,44 @@ public interface IFbAccountForSellService
      * @param fbAccountForSell
      */
     public void showBrowser(FbAccountForSell fbAccountForSell);
+
+    /**
+     * 创建主页
+     * @param fbAccountForSell
+     * @param pageName
+     * @return
+     */
+    public String createPage(FbAccountForSell fbAccountForSell,String pageName);
+
+    /**
+     * 打开比特浏览器
+     * @param fbAccountForSell
+     * @return
+     */
+    public String openBitBrowser(FbAccountForSell fbAccountForSell);
+
+    /**
+     * 确认添加好友
+     * @param fbAccountForSell
+     * @return
+     */
+    public String confirmAddFriend(FbAccountForSell fbAccountForSell);
+
+
+    /**
+     * 修改账号名
+     * @param fbAccountForSell
+     * @param newName
+     * @return
+     */
+    public String changeAccountName(FbAccountForSell fbAccountForSell, String newName);
+
+
+    /**
+     * 批量查询
+     * @param account
+     * @return
+     */
+    public List<FbAccountForSell> batchSearch(FbAccountForSell account);
 
 }

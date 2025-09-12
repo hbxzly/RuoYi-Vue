@@ -1,7 +1,10 @@
 package com.ruoyi.web.controller.account;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruoyi.account.domain.Email;
+import com.ruoyi.account.domain.ProxyIp;
 import com.ruoyi.account.service.IEmailService;
+import com.ruoyi.account.service.IProxyIpService;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
@@ -29,6 +32,8 @@ public class EmailController extends BaseController
     @Autowired
     private IEmailService emailService;
 
+    @Autowired
+    private IProxyIpService proxyIpService;
     /**
      * 查询email列表
      */
@@ -126,12 +131,10 @@ public class EmailController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('account:email:edit')")
     @PutMapping("/getMessage")
-    public AjaxResult getMessage(@RequestBody Email email) {
-//        String message = emailService.getMessage(email);
-//        email.setLastTimeMessage(message);
-//        String mailMessage = EmailUtil.getMessage(email);
-//        email.setLastTimeMessage(mailMessage);
-//        emailService.updateEmail(email);
+    public AjaxResult getMessage(@RequestBody Email email) throws JsonProcessingException {
+        String message = emailService.getMessage(email);
+        email.setLastTimeMessage(message);
+        emailService.updateEmail(email);
         return success();
     }
 
@@ -139,12 +142,19 @@ public class EmailController extends BaseController
      * 获取email
      */
     @PreAuthorize("@ss.hasPermi('account:email:edit')")
-    @GetMapping("/unlockEmail/{keyIds}")
+    @GetMapping("/unlockEmail")
     @ResponseBody
-    public AjaxResult unlockEmail(@PathVariable Long[] keyIds) {
-        for (Long keyId : keyIds) {
-            Email email = emailService.selectEmailByKeyId(keyId);
-            emailService.unlockEmail(email);
+    public AjaxResult unlockEmail(@RequestParam("email") String email,
+                                  @RequestParam("unlockType") Integer unlockType) {
+
+        Email e = emailService.selectEmailByEmail(email);
+        List<ProxyIp> proxyIps = proxyIpService.selectProxyIpListByStatus("1");
+        ProxyIp proxyIp = proxyIps.get(proxyIps.size() - 1);
+        if (unlockType == 1){
+            emailService.unlockEmail(e,proxyIp);
+        }
+        if (unlockType == 2){
+            emailService.unlockEmailAddTelephone(e,proxyIp);
         }
         return success();
     }
