@@ -19,7 +19,7 @@ ruoyi:
 server:
   # 服务器的HTTP端口，默认为8080
 #  port: 8080
-  port: 8085
+  port: 8081
   servlet:
     # 应用的访问路径
     context-path: /
@@ -130,3 +130,9 @@ xss:
   excludes: /system/notice
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+#指纹浏览器
+browser:
+  hubstudio:
+    base-url: http://127.0.0.1:6873/api/v1
+#     timeout: 10000

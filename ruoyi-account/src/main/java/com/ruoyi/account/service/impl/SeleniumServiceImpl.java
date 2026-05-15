@@ -3,6 +3,8 @@ package com.ruoyi.account.service.impl;
 import com.ruoyi.account.domain.*;
 import com.ruoyi.account.mapper.FbAccountMapper;
 import com.ruoyi.account.service.ISeleniumService;
+import com.ruoyi.account.util.BiteBrowser;
+import com.ruoyi.account.util.OkHttpUtil;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
@@ -30,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 @Service
-public class ISeleniumServiceImpl implements ISeleniumService {
+public class SeleniumServiceImpl implements ISeleniumService {
 
     @Autowired
     private FbAccountMapper fbAccountMapper;
@@ -42,7 +44,7 @@ public class ISeleniumServiceImpl implements ISeleniumService {
     public static Map<String, Integer> processMap;
 
 
-    public ISeleniumServiceImpl() {
+    public SeleniumServiceImpl() {
         webDriverMap = new HashMap<>();
         processMap = new HashMap<>();
     }
@@ -108,6 +110,56 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         }
         return null;
     }
+
+    /**
+     * 打开打单个浏览器
+     *
+     * @param configMap
+     * @return
+     */
+    @Override
+    public WebDriver openBitBrowser(Map<String, String> configMap) {
+        Map<String, Object> createAndUpdateConfig = BiteBrowser.createAndUpdateBrowse();
+
+        createAndUpdateConfig.put("proxyType", "socks5");//['noproxy', 'http', 'https', 'socks5', 'ssh']
+        try {
+            Map<String, Object> resultMap = OkHttpUtil.post("http://127.0.0.1:54345/browser/update", createAndUpdateConfig);
+            // 解析返回的 Map
+            if (resultMap != null && (boolean) resultMap.get("success")) {
+                // 获取 "data" 部分
+                Map<String, Object> dataMap = (Map<String, Object>) resultMap.get("data");
+
+                // 获取 "id" 值
+                if (dataMap != null) {
+                    String id = (String) dataMap.get("id");
+                    Map<String, Object> openBrowseConfig = BiteBrowser.openBrowse();
+                    openBrowseConfig.put("id", id);
+                    Map<String, Object> openResultMap = OkHttpUtil.post("http://127.0.0.1:54345/browser/open", openBrowseConfig);
+                    if (openResultMap != null && (boolean) openResultMap.get("success")) {
+                        Map<String, Object> openData = (Map<String, Object>) openResultMap.get("data");
+                        openData.forEach((k, v) -> System.out.println(k + "=" + v));
+                        if (openData != null) {
+                            try {
+                                //参数配置
+                                System.setProperty("webdriver.chrome.driver", openData.get("driver").toString());
+                                ChromeOptions options = new ChromeOptions();
+                                options.setExperimentalOption("debuggerAddress", openData.get("http").toString());
+                                WebDriver webDriver = new ChromeDriver(options);
+                                return webDriver;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
 
     /**
      * 打开打单个浏览器
@@ -378,7 +430,8 @@ public class ISeleniumServiceImpl implements ISeleniumService {
         }
         try {
             Thread.sleep(1000);
-            clickAtCoordinates(x.get() + 200, y.get() + 400);
+//            clickAtCoordinates(x.get() + 200, y.get() + 280);//新加坡
+            clickAtCoordinates(x.get() + 200, y.get() + 400);//台湾
         } catch (Exception e) {
             e.printStackTrace();
         }

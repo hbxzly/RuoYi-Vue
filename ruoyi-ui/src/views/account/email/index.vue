@@ -131,10 +131,20 @@
           v-hasPermi="['account:email:remove']"
         >解锁</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-edit"
+          size="mini"
+          @click="handleTempLogin"
+          v-hasPermi="['account:email:remove']"
+        >临时登录</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="emailList" @selection-change="handleSelectionChange" height="500">
+    <el-table v-loading="loading" :data="emailList" @selection-change="handleSelectionChange" height="800">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="主键" align="center" prop="keyId" />
       <el-table-column label="邮箱" align="center" prop="email" />
@@ -305,12 +315,26 @@
       </template>
     </el-dialog>
 
+    <!--邮箱临时登录-->
+    <el-dialog :title="title" :visible.sync="tempLoginDialog" width="500px" append-to-body>
+      <el-form ref="tempLoginForm" :model="tempEmailData"  size="medium" label-width="100px">
+        <el-form-item label="邮箱" prop="tempEmail">
+          <el-input v-model="tempEmailData.tempEmail" placeholder="账号-密码" clearable :style="{width: '100%'}">
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="closeTempLoginDialog">取消</el-button>
+        <el-button type="primary" @click="submitTempLoginDialog">确定</el-button>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 
 
 <script>
-import { listEmail, getEmail, delEmail, addEmail, updateEmail, getMessage, unlockEmail } from "@/api/account/email";
+import { listEmail, getEmail, delEmail, addEmail, updateEmail, getMessage, unlockEmail, tempEmailLogin, loginEmail } from "@/api/account/email";
 import { getToken } from "@/utils/auth";
 import item from "@/layout/components/Sidebar/Item.vue";
 
@@ -337,6 +361,7 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      tempLoginDialog: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -372,6 +397,11 @@ export default {
       },
       // 表单参数
       form: {},
+
+      tempEmailData: {
+        tempEmail: ""
+      },
+
       unlockForm: {
         email: "", // 解锁邮箱
         unlockType: 1, // 默认 "一般解锁"
@@ -421,6 +451,11 @@ export default {
       };
       this.resetForm("form");
     },
+
+    resetTempEmailData(){
+      this.$refs.tempLoginForm.resetFields()
+    },
+
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageNum = 1;
@@ -551,6 +586,7 @@ export default {
       this.messageDialog.content = message;
       this.messageDialog.visible = true;
     },
+
     // 点击解锁按钮，打开对话框
     handleUnlock(row) {
       this.unlockForm = {
@@ -560,10 +596,35 @@ export default {
       this.unlockDialogVisible = true;
     },
 
+    handleTempLogin(){
+      this.title = "临时邮箱";
+      this.tempLoginDialog = true
+    },
+
+
+
     confirmUnlock(){
       //打印选中的邮箱，所选的项目
       this.unlockDialogVisible = false;
       unlockEmail(this.unlockForm.email,this.unlockForm.unlockType);
+    },
+
+    closeTempLoginDialog(){
+      this.resetTempEmailData();
+      this.tempLoginDialog = false
+    },
+
+    submitTempLoginDialog(){
+      const keyIds =this.ids;
+
+      if (keyIds && keyIds.length > 0) {
+        // keyIds 不为空
+        loginEmail(keyIds);
+      } else {
+        // 原逻辑
+        tempEmailLogin(this.tempEmailData.tempEmail);
+      }
+      this.closeTempLoginDialog()
     }
 
   }

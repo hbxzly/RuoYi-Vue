@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ruoyi.account.domain.CreateInfo;
+import com.ruoyi.account.domain.FbAccountForSell;
 import com.ruoyi.account.service.ICreateInfoService;
 import io.appium.java_client.AppiumDriver;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -150,6 +152,15 @@ public class CreateDeviceController extends BaseController
                     device.setPackageName(packageName);
                     createDeviceService.insertCreateDevice(device);
                 }
+                if (lineA.startsWith("package:com.facebook.katan")) {
+                    String packageName = lineA.replace("package:", "").trim();
+
+                    // 构建实体对象
+                    CreateDevice device = new CreateDevice();
+                    device.setDeviceName(deviceName);
+                    device.setPackageName(packageName);
+                    createDeviceService.insertCreateDevice(device);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -161,9 +172,37 @@ public class CreateDeviceController extends BaseController
     @ResponseBody
     public AjaxResult openDevice(@PathVariable Long[] keyIds){
 
+        for (Long keyId : keyIds) {
+            CreateDevice createDevice = createDeviceService.selectCreateDeviceByKeyId(keyId);
+            AppiumDriver appiumDriver = createDeviceService.openApp(createDevice);
+            List<CreateInfo> createInfos = createInfoService.selectCreateInfoList(new CreateInfo());
+            CreateInfo createInfo = null;
 
-        AppiumDriver appiumDriver = createDeviceService.openApp(createDeviceService.selectCreateDeviceByKeyId(30L));
+            for (CreateInfo info : createInfos) {
+                if (!"已创建".equals(info.getCreateStatus())) {
+                    createInfo = info;
+                    break; // 找到就退出
+                }
+            }
+            createDeviceService.CreateAccounnt(appiumDriver, createDevice, createInfo);
+        }
+        return success();
+    }
 
+
+    /**
+     *
+     * 修改备注
+     */
+    @GetMapping("/changeNote")
+    @ResponseBody
+    public AjaxResult changeNote(@RequestParam("id") List<Long> id, @RequestParam(value = "note", defaultValue = "") String note){
+
+        List<CreateDevice> createDevices = createDeviceService.selectCreateDeviceByKeyIds(id.toArray(new Long[0]));
+        for (CreateDevice createDevice : createDevices) {
+            createDevice.setNote(note);
+            createDeviceService.updateCreateDevice(createDevice);
+        }
         return success();
     }
 }

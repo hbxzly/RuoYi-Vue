@@ -158,11 +158,20 @@ public class CreateInfoController extends BaseController
             if (selectedOptions.contains("添加邮箱")){
                 createInfoService.updateAccountAddEmail(webDriver, createInfo);
             }
+            if (selectedOptions.contains("发帖")){
+                createInfoService.posts(webDriver, createInfo);
+            }
             if (selectedOptions.contains("开启双重验证")){
                 createInfoService.updateAccountOpenTwoFactor(webDriver, createInfo);
             }
             if (selectedOptions.contains("登录邮箱")){
                 createInfoService.loginEmail(webDriver, createInfo);
+            }
+            if (selectedOptions.contains("删除手机")){
+                createInfoService.deleteAccountPhoneNumber(webDriver, createInfo);
+            }
+            if (selectedOptions.contains("改成繁体")){
+                createInfoService.changeToTraditional(webDriver, createInfo);
             }
             createInfoService.closeBrowser(createInfo);
         }

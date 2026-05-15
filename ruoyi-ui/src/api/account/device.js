@@ -56,3 +56,15 @@ export function openDevice(keyId){
     method: 'get'
   })
 }
+
+//修改备注
+export function changeNote(keyId, note){
+  return request({
+    url: "/account/device/changeNote",
+    method: 'get',
+    params: {
+      id: keyId.join(','),
+      note: note
+    }
+  })
+}

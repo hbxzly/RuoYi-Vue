@@ -133,6 +133,7 @@ public class FbAccountForSell extends BaseEntity
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate sellDate;
 
+    @Excel(name = "cookie")
     private String cookie;
 
 

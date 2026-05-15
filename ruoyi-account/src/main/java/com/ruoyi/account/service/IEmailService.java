@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruoyi.account.domain.Email;
 import com.ruoyi.account.domain.FbAccountForSell;
 import com.ruoyi.account.domain.ProxyIp;
+import org.openqa.selenium.WebDriver;
 
 import java.util.List;
 
@@ -92,9 +93,10 @@ public interface IEmailService {
     /**
      * 解锁邮箱
      * @param email
+     * @param driver
      * @return
      */
-    public Email unlockEmail(Email email, ProxyIp proxyIp);
+    public String unlockEmail(Email email, WebDriver driver);
 
 
     /**
@@ -112,12 +114,12 @@ public interface IEmailService {
     String CheckEmail(Email email);
 
     /**
-     * 导入数据
-     *
-     * @param emailList 数据列表
-     * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
-     * @param operName 操作用户
-     * @return 结果
+     * 临时登录
+     * @param email
+     * @param password
      */
-    public String importFbAccountForSell(List<Email> emailList, Boolean isUpdateSupport, String operName);
+    public void tempLogin(String email, String password, ProxyIp proxyIp);
+
+
+
 }

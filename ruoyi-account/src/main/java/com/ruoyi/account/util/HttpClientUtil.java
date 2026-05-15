@@ -1,116 +1,91 @@
 package com.ruoyi.account.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.net.URL;
-import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class HttpClientUtil {
 
-    public static Map<String, String> getIpAddress() {
+    private static final int CONNECT_TIMEOUT = 5000;
+    private static final int READ_TIMEOUT = 30000;
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-        Map<String, String> map = new HashMap<String, String>();
-        String url = "https://whoer.net/zh/main/api/ip";
+    private HttpClientUtil() {}
 
+    /* ======================= GET ======================= */
+
+    public static String get(String url) {
         try {
-            URL obj = new URL(url);
-
-
-            // 设置代理（根据你的代理信息替换 host 和 port）
-            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 7890)); // 示例代理
-            HttpURLConnection connection = (HttpURLConnection) obj.openConnection(proxy);
-
-            // 设置请求方法
-            connection.setRequestMethod("GET");
-
-            // 添加请求头
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
-
-            int responseCode = connection.getResponseCode();
-            System.out.println("Response Code: " + responseCode);
-
-            // 读取响应
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            map.put("ip", JsonDataUtil.getValueByNodeName(response.toString(), "ip"));
-            map.put("country", JsonDataUtil.getValueByNodeName(response.toString(), "country"));
-            return map;
-
+            HttpURLConnection con = openConnection(url, "GET");
+            return readResponse(con);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("HTTP GET failed: " + url, e);
         }
-        return null;
     }
 
-    // GET 请求方法
-    public static String sendGet(String url) throws Exception {
+    /* ======================= POST JSON ======================= */
+
+    public static String post(String url, Object body) {
+        try {
+            HttpURLConnection con = openConnection(url, "POST");
+            con.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+            con.setDoOutput(true);
+
+            // 自动处理 Map -> JSON
+            String json;
+            if (body instanceof String) {
+                json = (String) body;
+            } else if (body instanceof Map) {
+                json = mapper.writeValueAsString(body);
+            } else {
+                throw new IllegalArgumentException("Unsupported body type: " + body.getClass());
+            }
+
+            try (OutputStream os = con.getOutputStream()) {
+                os.write(json.getBytes(StandardCharsets.UTF_8));
+            }
+
+            return readResponse(con);
+        } catch (Exception e) {
+            throw new RuntimeException("HTTP POST JSON failed: " + url, e);
+        }
+    }
+
+    /* ======================= 基础方法 ======================= */
+
+    private static HttpURLConnection openConnection(String url, String method) throws Exception {
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("GET");
-
-        int responseCode = con.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) { // success
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            return response.toString();
-        } else {
-            throw new RuntimeException("GET request failed. Response Code: " + responseCode);
-        }
+        con.setRequestMethod(method);
+        con.setConnectTimeout(CONNECT_TIMEOUT);
+        con.setReadTimeout(READ_TIMEOUT);
+        con.setRequestProperty("Accept-Charset", "UTF-8");
+        return con;
     }
 
-    // POST 请求方法
-    public static String sendPost(String url, Map<String, String> parameters) throws Exception {
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+    private static String readResponse(HttpURLConnection con) throws Exception {
+        int code = con.getResponseCode();
+        InputStream is = code >= 200 && code < 300
+                ? con.getInputStream()
+                : con.getErrorStream();
 
-        // 将参数转换为 key=value 形式的字符串
-        String formData = parameters.entrySet()
-                .stream()
-                .map(entry -> entry.getKey() + "=" + entry.getValue())
-                .collect(Collectors.joining("&"));
+        try (BufferedReader in = new BufferedReader(
+                new InputStreamReader(is, StandardCharsets.UTF_8))) {
 
-        // 发送 POST 请求
-        con.setDoOutput(true);
-        try (OutputStream os = con.getOutputStream()) {
-            os.write(formData.getBytes());
-            os.flush();
-        }
-
-        int responseCode = con.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = in.readLine()) != null) {
+                sb.append(line);
             }
-            in.close();
-            return response.toString();
-        } else {
-            throw new RuntimeException("POST request failed. Response Code: " + responseCode);
+            return sb.toString();
         }
     }
-
-
 }
+

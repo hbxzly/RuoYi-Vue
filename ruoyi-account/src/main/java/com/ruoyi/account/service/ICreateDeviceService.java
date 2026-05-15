@@ -3,6 +3,7 @@ package com.ruoyi.account.service;
 import java.util.List;
 import com.ruoyi.account.domain.CreateDevice;
 import com.ruoyi.account.domain.CreateInfo;
+import com.ruoyi.account.domain.FbAccountForSell;
 import io.appium.java_client.AppiumDriver;
 
 /**
@@ -22,12 +23,27 @@ public interface ICreateDeviceService
     public CreateDevice selectCreateDeviceByKeyId(Long keyId);
 
     /**
+     * 查询创建设备
+     *
+     * @param keyIds 创建设备主键
+     * @return 创建设备
+     */
+    public List<CreateDevice> selectCreateDeviceByKeyIds(Long[] keyIds);
+
+    /**
      * 查询创建设备列表
      * 
      * @param createDevice 创建设备
      * @return 创建设备集合
      */
     public List<CreateDevice> selectCreateDeviceList(CreateDevice createDevice);
+
+    /**
+     * 通过账号ID查找设备
+     * @param id
+     * @return
+     */
+    public CreateDevice selectCreateDeviceByCreateId(String id);
 
     /**
      * 新增创建设备
@@ -73,5 +89,18 @@ public interface ICreateDeviceService
      * @param createInfo
      * @return
      */
-    public String CreateAccounnt(AppiumDriver appiumDriver, CreateInfo createInfo);
+    public String CreateAccounnt(AppiumDriver appiumDriver, CreateDevice createDevice, CreateInfo createInfo);
+
+    /**
+     * 登录账号
+     * @param appiumDriver
+     * @param fbAccountForSell
+     */
+    public void loginAccount(AppiumDriver appiumDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 搜索没绑定账号的设备
+     * @return
+     */
+    public CreateDevice selectMinNoAccountDevice();
 }

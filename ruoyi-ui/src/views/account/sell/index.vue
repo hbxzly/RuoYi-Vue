@@ -57,14 +57,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-<!--      <el-form-item label="性别" prop="gender">
+      <el-form-item label="性别" prop="gender">
         <el-input
           v-model="queryParams.gender"
           placeholder="请输入性别"
           clearable
           @keyup.enter.native="handleQuery"
         />
-      </el-form-item>-->
+      </el-form-item>
 <!--      <el-form-item label="创建日期" prop="createDate">
         <el-input
           v-model="queryParams.createDate"
@@ -296,7 +296,6 @@
           plain
           icon="el-icon-sell"
           size="mini"
-          :disabled="single"
           @click="handleSellAccount"
         >卖出</el-button>
       </el-col>
@@ -316,7 +315,6 @@
           plain
           icon="el-icon-view"
           size="mini"
-          :disabled="multiple"
           @click="handleAddFriend"
         >添加好友</el-button>
       </el-col>
@@ -374,9 +372,19 @@
           plain
           icon="el-icon-edit"
           size="mini"
-          :disabled="single"
+          :disabled="multiple"
           @click="handleUnlockEmail"
         >解锁邮箱</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="multiple"
+          @click="handleUnlockWSVerify"
+        >解WS验证</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -384,9 +392,19 @@
           plain
           icon="el-icon-document"
           size="mini"
-          :disabled="single"
+          :disabled="multiple"
           @click="handleChangeAccountName"
         >修改账号名字</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="single"
+          @click="handleLoginInPhone"
+        >手机登录</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -398,10 +416,30 @@
           @click="handleGetTwoFA"
         >2FA</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-document"
+          size="mini"
+          :disabled="multiple"
+          @click="handleChangeAccountNote"
+        >修改备注</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-document"
+          size="mini"
+          :disabled="single"
+          @click="handleLoginEmail"
+        >登录Email</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="sellList" @selection-change="handleSelectionChange" height="500">
+    <el-table v-loading="loading" :data="sellList" @selection-change="handleSelectionChange" height="800">
       <el-table-column type="expand">
         <template v-slot="props">
           <el-form label-position="top" class="demo-table-expand">
@@ -419,12 +457,18 @@
       <el-table-column label="邮箱" align="center" width="100" prop="email" show-overflow-tooltip/>
 <!--      <el-table-column  label="密码" align="center" width="155" prop="password" />
       <el-table-column  label="邮箱密码" align="center" width="100" prop="emailPassword" />-->
-      <el-table-column label="名字" align="center" width="100" prop="name" />
+      <el-table-column label="名字" align="center" width="200" prop="name" />
 <!--      <el-table-column  label="秘钥" align="center" prop="secretKey" show-overflow-tooltip/>
-      <el-table-column label="性别" align="center" prop="gender" show-overflow-tooltip/>
       <el-table-column  label="创建日期" align="center" prop="createDate" show-overflow-tooltip/>-->
+      <el-table-column label="性别" align="center" prop="gender" show-overflow-tooltip/>
       <el-table-column label="备注" align="center" width="100" prop="note" show-overflow-tooltip/>
-      <el-table-column label="地区" align="center" prop="region" show-overflow-tooltip/>
+      <el-table-column label="地区" align="center" prop="region" show-overflow-tooltip>
+        <template slot-scope="scope">
+          <span style="cursor:pointer;color:#409EFF" @dblclick="handleDblClick(scope.row)">
+            {{ scope.row.region }}
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column  label="能否登录" align="center" width="50" prop="canLogin">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.can_login" :value="scope.row.canLogin"/>
@@ -461,11 +505,11 @@
           <dict-tag :options="dict.type.email_status" :value="scope.row.emailStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="好友数量" align="center" prop="friendNumber" show-overflow-tooltip/>
-      <el-table-column label="主页数量" align="center" prop="pageNumber" show-overflow-tooltip/>
-      <el-table-column label="bm数量" align="center" prop="bmNumber" show-overflow-tooltip/>
-      <el-table-column label="帖子数量" align="center" prop="postsNumber" show-overflow-tooltip/>
-      <el-table-column label="最近帖子时间" align="center" prop="lastPostsTime" show-overflow-tooltip/>
+      <el-table-column label="好友数量" align="center" prop="friendNumber" width="60" show-overflow-tooltip/>
+      <el-table-column label="主页数量" align="center" prop="pageNumber" width="60" show-overflow-tooltip/>
+      <el-table-column label="bm数量" align="center" prop="bmNumber" width="60" show-overflow-tooltip/>
+      <el-table-column label="帖子数量" align="center" prop="postsNumber" width="60" show-overflow-tooltip/>
+      <el-table-column label="登录记录" align="center" prop="lastPostsTime" width="250" show-overflow-tooltip/>
       <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width" fixed="right" >
         <template slot-scope="scope">
           <el-button
@@ -479,9 +523,16 @@
             size="mini"
             type="text"
             icon="el-icon-switch-button"
-            @click="handleCloseBrowser(scope.row)"
+            @click="handleOpenHubBrowser(scope.row)"
             v-hasPermi="['account:sell:edit']"
-          >关闭</el-button>
+          >hub</el-button>
+<!--          <el-button-->
+<!--            size="mini"-->
+<!--            type="text"-->
+<!--            icon="el-icon-switch-button"-->
+<!--            @click="handleCloseBrowser(scope.row)"-->
+<!--            v-hasPermi="['account:sell:edit']"-->
+<!--          >关闭</el-button>-->
           <el-dropdown size="mini" @command="(command) => handleCommand(command, scope.row)">
             <el-button size="mini" type="text" icon="el-icon-d-arrow-right">更多</el-button>
             <el-dropdown-menu slot="dropdown">
@@ -503,137 +554,147 @@
     />
 
     <!-- 添加或修改卖号对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="ID" prop="id">
-          <el-input v-model="form.id" placeholder="请输入ID" />
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" placeholder="请输入密码" />
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="form.email" placeholder="请输入邮箱" />
-        </el-form-item>
-        <el-form-item label="邮箱密码" prop="emailPassword">
-          <el-input v-model="form.emailPassword" placeholder="请输入邮箱密码" />
-        </el-form-item>
-        <el-form-item label="账户生日" prop="birthday">
-          <el-input v-model="form.birthday" placeholder="请输入账户生日" />
-        </el-form-item>
-        <el-form-item label="名字" prop="name">
-          <el-input v-model="form.name" placeholder="请输入名字" />
-        </el-form-item>
-        <el-form-item label="秘钥" prop="secretKey">
-          <el-input v-model="form.secretKey" placeholder="请输入秘钥" />
-        </el-form-item>
-        <el-form-item label="性别" prop="gender">
-          <el-input v-model="form.gender" placeholder="请输入性别" />
-        </el-form-item>
-        <el-form-item label="创建日期" prop="createDate">
-          <el-input v-model="form.createDate" placeholder="请输入创建日期" />
-        </el-form-item>
-        <el-form-item label="备注" prop="note">
-          <el-input v-model="form.note" placeholder="请输入备注" />
-        </el-form-item>
-        <el-form-item label="地区" prop="region">
-          <el-input v-model="form.region" placeholder="请输入地区" />
-        </el-form-item>
-        <el-form-item label="能否登录" prop="canLogin">
-          <el-radio-group v-model="form.canLogin">
-            <el-radio
-              v-for="dict in dict.type.can_login"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="是否商城" prop="isMarketplace">
-          <el-radio-group v-model="form.isMarketplace">
-            <el-radio
-              v-for="dict in dict.type.is_marketplace"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="能否广告" prop="canAds">
-          <el-radio-group v-model="form.canAds">
-            <el-radio
-              v-for="dict in dict.type.can_ads"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="个人户" prop="canAds">
-          <el-radio-group v-model="form.adAccountStatus">
-            <el-radio
-              v-for="dict in dict.type.ad_account_status"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="是否上架" prop="isShelf">
-          <el-radio-group v-model="form.isShelf">
-            <el-radio
-              v-for="dict in dict.type.is_shelf"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="是否卖出" prop="isSell">
-          <el-radio-group v-model="form.isSell">
-            <el-radio
-              v-for="dict in dict.type.is_sell"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="卖出日期" prop="sellDate">
-          <el-date-picker clearable
-                          v-model="form.sellDate"
-                          type="date"
-                          value-format="yyyy-MM-dd"
-                          placeholder="请选择卖出日期">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="邮箱是否可用" prop="emailStatus">
-          <el-radio-group v-model="form.emailStatus">
-            <el-radio
-              v-for="dict in dict.type.email_status"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="好友数量" prop="friendNumber">
-          <el-input v-model="form.friendNumber" placeholder="请输入好友数量" />
-        </el-form-item>
-        <el-form-item label="主页数量" prop="pageNumber">
-          <el-input v-model="form.pageNumber" placeholder="请输入主页数量" />
-        </el-form-item>
-        <el-form-item label="bm数量" prop="bmNumber">
-          <el-input v-model="form.bmNumber" placeholder="请输入bm数量" />
-        </el-form-item>
-        <el-form-item label="帖子数量" prop="postsNumber">
-          <el-input v-model="form.postsNumber" placeholder="请输入帖子数量" />
-        </el-form-item>
-        <el-form-item label="UA" prop="ua">
-          <el-input v-model="form.ua" placeholder="请输入UA" />
-        </el-form-item>
-        <el-form-item label="浏览器" prop="browserStatus">
-          <el-radio-group v-model="form.browserStatus">
-            <el-radio
-              v-for="dict in dict.type.browser_status"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
+    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body class="sell-dialog">
+      <div class="sell-dialog-body">
+        <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+          <el-form-item label="ID" prop="id">
+            <el-input v-model="form.id" placeholder="请输入ID"/>
+          </el-form-item>
+          <el-form-item label="密码" prop="password">
+            <el-input v-model="form.password" placeholder="请输入密码"/>
+          </el-form-item>
+          <el-form-item label="邮箱" prop="email">
+            <el-input v-model="form.email" placeholder="请输入邮箱"/>
+          </el-form-item>
+          <el-form-item label="邮箱密码" prop="emailPassword">
+            <el-input v-model="form.emailPassword" placeholder="请输入邮箱密码"/>
+          </el-form-item>
+          <el-form-item label="账户生日" prop="birthday">
+            <el-input v-model="form.birthday" placeholder="请输入账户生日"/>
+          </el-form-item>
+          <el-form-item label="名字" prop="name">
+            <el-input v-model="form.name" placeholder="请输入名字"/>
+          </el-form-item>
+          <el-form-item label="秘钥" prop="secretKey">
+            <el-input v-model="form.secretKey" placeholder="请输入秘钥"/>
+          </el-form-item>
+          <el-form-item label="性别" prop="gender">
+            <el-input v-model="form.gender" placeholder="请输入性别"/>
+          </el-form-item>
+          <el-form-item label="创建日期" prop="createDate">
+            <el-input v-model="form.createDate" placeholder="请输入创建日期"/>
+          </el-form-item>
+          <el-form-item label="备注" prop="note">
+            <el-input v-model="form.note" placeholder="请输入备注"/>
+          </el-form-item>
+          <el-form-item label="地区" prop="region">
+            <el-input v-model="form.region" placeholder="请输入地区"/>
+          </el-form-item>
+          <el-form-item label="能否登录" prop="canLogin">
+            <el-radio-group v-model="form.canLogin">
+              <el-radio
+                v-for="dict in dict.type.can_login"
+                :key="dict.value"
+                :label="dict.value"
+              >{{ dict.label }}
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="是否商城" prop="isMarketplace">
+            <el-radio-group v-model="form.isMarketplace">
+              <el-radio
+                v-for="dict in dict.type.is_marketplace"
+                :key="dict.value"
+                :label="dict.value"
+              >{{ dict.label }}
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="能否广告" prop="canAds">
+            <el-radio-group v-model="form.canAds">
+              <el-radio
+                v-for="dict in dict.type.can_ads"
+                :key="dict.value"
+                :label="dict.value"
+              >{{ dict.label }}
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="个人户" prop="canAds">
+            <el-radio-group v-model="form.adAccountStatus">
+              <el-radio
+                v-for="dict in dict.type.ad_account_status"
+                :key="dict.value"
+                :label="dict.value"
+              >{{ dict.label }}
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="是否上架" prop="isShelf">
+            <el-radio-group v-model="form.isShelf">
+              <el-radio
+                v-for="dict in dict.type.is_shelf"
+                :key="dict.value"
+                :label="dict.value"
+              >{{ dict.label }}
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="是否卖出" prop="isSell">
+            <el-radio-group v-model="form.isSell">
+              <el-radio
+                v-for="dict in dict.type.is_sell"
+                :key="dict.value"
+                :label="dict.value"
+              >{{ dict.label }}
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="卖出日期" prop="sellDate">
+            <el-date-picker clearable
+                            v-model="form.sellDate"
+                            type="date"
+                            value-format="yyyy-MM-dd"
+                            placeholder="请选择卖出日期">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="邮箱是否可用" prop="emailStatus">
+            <el-radio-group v-model="form.emailStatus">
+              <el-radio
+                v-for="dict in dict.type.email_status"
+                :key="dict.value"
+                :label="dict.value"
+              >{{ dict.label }}
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="好友数量" prop="friendNumber">
+            <el-input v-model="form.friendNumber" placeholder="请输入好友数量"/>
+          </el-form-item>
+          <el-form-item label="主页数量" prop="pageNumber">
+            <el-input v-model="form.pageNumber" placeholder="请输入主页数量"/>
+          </el-form-item>
+          <el-form-item label="bm数量" prop="bmNumber">
+            <el-input v-model="form.bmNumber" placeholder="请输入bm数量"/>
+          </el-form-item>
+          <el-form-item label="帖子数量" prop="postsNumber">
+            <el-input v-model="form.postsNumber" placeholder="请输入帖子数量"/>
+          </el-form-item>
+          <el-form-item label="UA" prop="ua">
+            <el-input v-model="form.ua" placeholder="请输入UA"/>
+          </el-form-item>
+          <el-form-item label="浏览器" prop="browserStatus">
+            <el-radio-group v-model="form.browserStatus">
+              <el-radio
+                v-for="dict in dict.type.browser_status"
+                :key="dict.value"
+                :label="dict.value"
+              >{{ dict.label }}
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+        </el-form>
+      </div>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
@@ -671,9 +732,9 @@
     </el-dialog>
 
     <!--展示信息-->
-    <el-dialog :title="title" :visible.sync="sellAccount" width="700px" append-to-body>
+<!--    <el-dialog :title="title" :visible.sync="sellAccount" width="700px" append-to-body>
       <el-form ref="sellForm" :model="sellForm" label-width="80px">
-        <!-- 动态渲染字段内容 -->
+        &lt;!&ndash; 动态渲染字段内容 &ndash;&gt;
         <p><strong>ID：</strong>{{ sellForm.id }}</p>
         <p><strong>{{ labels.password }}：</strong>{{ sellForm.password }}</p>
         <p><strong>{{ labels.email }}：</strong>{{ sellForm.email }}</p>
@@ -687,13 +748,61 @@
         <el-button type="primary" @click="submitSellAccount">确 定</el-button>
         <el-button @click="cancelSellAccount">取 消</el-button>
       </div>
+    </el-dialog>-->
+    <el-dialog
+      :title="title"
+      :visible.sync="sellAccount"
+      width="700px"
+      append-to-body
+      class="sell-dialog"
+    >
+      <div class="sell-dialog-body">
+        <div v-for="(item, index) in sellFormList" :key="item.id" class="sell-item">
+          <el-divider>账号 {{ index + 1 }}</el-divider>
+          <el-form :model="item" label-width="80px">
+            <p><strong>ID：</strong>{{ item.id }}</p>
+            <p><strong>{{ labels.password }}：</strong>{{ item.password }}</p>
+            <p><strong>{{ labels.email }}：</strong>{{ item.email }}</p>
+            <p><strong>{{ labels.emailPassword }}：</strong>{{ item.emailPassword }}</p>
+            <p><strong>{{ labels.secretKey }}：</strong>{{ item.secretKey }}</p>
+            <p><strong>{{ labels.name }}：</strong>{{ item.name }}</p>
+          </el-form>
+        </div>
+      </div>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="toggleLabels">切换语言</el-button>
+        <el-button @click="copySellInfoToClipboard">复制</el-button>
+        <el-button type="primary" @click="submitSellAccount">确 定</el-button>
+        <el-button @click="cancelSellAccount">取 消</el-button>
+      </div>
     </el-dialog>
 
     <!--添加好友-->
     <el-dialog :title="title" :visible.sync="openAddFriend" width="500px" append-to-body>
       <el-form ref="addFriendForm" :model="addFriendFormData" :rules="addFriendRules" size="medium" label-width="100px">
         <el-form-item label="添加账号" prop="accountId">
-          <el-input v-model="addFriendFormData.accountId" placeholder="请输入好友账号ID" clearable :style="{width: '100%'}">
+          <el-input v-model="addFriendFormData.accountId" placeholder="请输入好友账号ID" clearable >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="开始序号" prop="startKeyId">
+          <el-input v-model="addFriendFormData.startKeyId" placeholder="开始序号" clearable >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="结束序号" prop="endKeyId">
+          <el-input v-model="addFriendFormData.endKeyId" placeholder="结束序号" clearable >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="地区" prop="region">
+          <el-input v-model="addFriendFormData.region" placeholder="地区" clearable >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="备注" prop="note">
+          <el-input v-model="addFriendFormData.note" placeholder="备注" clearable >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="添加数量" prop="number">
+          <el-input v-model="addFriendFormData.number" placeholder="数量" clearable >
           </el-input>
         </el-form-item>
       </el-form>
@@ -728,6 +837,20 @@
       <div slot="footer">
         <el-button @click="closeChangeAccountName">取消</el-button>
         <el-button type="primary" @click="submitChangeAccountName">确定</el-button>
+      </div>
+    </el-dialog>
+
+    <!--修改备注-->
+    <el-dialog :title="title" :visible.sync="openChangeAccountNote" width="500px" append-to-body>
+      <el-form ref="changeAccountNoteForm" :model="changeAccountNoteFormData"  size="medium" label-width="100px">
+        <el-form-item label="备注" prop="accountNote">
+          <el-input v-model="changeAccountNoteFormData.accountNote" placeholder="备注" clearable :style="{width: '100%'}">
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="closeChangeAccountNote">取消</el-button>
+        <el-button type="primary" @click="submitChangeAccountNote">确定</el-button>
       </div>
     </el-dialog>
 
@@ -775,9 +898,35 @@
 
 
 <script>
-import { listSell, getSell, delSell, addSell, updateSell, checkAccount, updateSellForSell,
-  openBrowser, closeBrowser, accountPost, addFriend, jumpPage, checkAccountActive, createPage,
-  confirmAddFriend, getEmail, unlockEmail, getAccountInfo, changeAccountName, batchSearch, get2FACode } from "@/api/account/sell";
+import {
+  listSell,
+  getSell,
+  delSell,
+  addSell,
+  updateSell,
+  checkAccount,
+  updateSellForSell,
+  openBrowser,
+  openBitBrowser,
+  openHubBrowser,
+  accountPost,
+  addFriend,
+  jumpPage,
+  checkAccountActive,
+  createPage,
+  confirmAddFriend,
+  getEmail,
+  unlockEmail,
+  getAccountInfo,
+  changeAccountName,
+  changeAccountNote,
+  batchSearch,
+  get2FACode,
+  getSellForShow,
+  unlockWSVerify,
+  loginEmail,
+  loginInPhone
+} from "@/api/account/sell";
 import { getToken } from "@/utils/auth";
 
 export default {
@@ -810,6 +959,8 @@ export default {
       openCreatePage: false,
       //修改账号名
       openChangeAccountName: false,
+      //修改备注
+      openChangeAccountNote: false,
       //批量搜索弹出层
       openBatchSearch: false,
       //卖出账号
@@ -832,8 +983,9 @@ export default {
         region: null,
         canLogin: null,
         isMarketplace: null,
-        isSell: null,
+        isSell: "0",
         emailStatus: null,
+        adAccountStatus: null,
         friendNumber: null,
         canAds: null,
         pageNumber: null,
@@ -853,6 +1005,8 @@ export default {
 
       isSimplified: true,
 
+      sellFormList: [],//多选
+
       labels: {
         password: "密码",
         email: "邮箱",
@@ -862,7 +1016,12 @@ export default {
       },
       //添加好友表单参数
       addFriendFormData: {
-        accountId: ''
+        accountId: '',
+        startKeyId: '',
+        endKeyId: '',
+        region: '',
+        note: '',
+        number: ''
       },
 
       //创建主页参数
@@ -873,6 +1032,11 @@ export default {
       //修改账号名字
       changeAccountNameFormData:{
         accountName: ''
+      },
+
+      //修改账号名字
+      changeAccountNoteFormData:{
+        accountNote: ''
       },
 
       //批量搜索数据
@@ -886,7 +1050,7 @@ export default {
       },
       //添加好友校验
       addFriendRules: {
-        accountId: [{ required: true, message: '请输入好友账号ID', trigger: 'blur' }],
+        accountId: [{ required: false, message: '请输入好友账号ID', trigger: 'blur' }],
       },
       // 导入参数
       upload: {
@@ -911,12 +1075,17 @@ export default {
       },
 
       checkedUpdateOption:[],
-      options: ['账号名字','名字好友','是否商城','主页数量','BM数量','广告状态','帖子数量','登录记录'],
+      options: ['单纯登录','名字好友','是否商城','主页数量','BM数量','广告状态','帖子数量','登录记录','台湾号'],
       isIndeterminate: true,
       checkAll: false
     };
   },
   created() {
+
+    if (this.$route.query.id) {
+      this.queryParams.id = this.$route.query.id;
+      this.getList();
+    }
     this.getList();
   },
   methods: {
@@ -1006,6 +1175,11 @@ export default {
       this.$refs.changeAccountNameForm.resetFields();
     },
 
+ // 创建主页表单重置
+    resetChangeAccountNoteForm() {
+      this.$refs.changeAccountNoteForm.resetFields();
+    },
+
 
     /** 搜索按钮操作 */
     handleQuery() {
@@ -1031,7 +1205,7 @@ export default {
       this.title = "添加卖号";
     },
     /** 修改按钮操作 */
-    handleUpdate(row) {1
+    handleUpdate(row) {
       this.reset();
       const keyId = row.keyId || this.keyIds
       getSell(keyId).then(response => {
@@ -1142,7 +1316,7 @@ export default {
     },
 
     //打开账号详细信息面板，复制卖出
-    handleSellAccount(row){
+    /*handleSellAccount(row){
       this.reset();
       const keyId = row.keyId || this.keyIds
       getSell(keyId).then(response => {
@@ -1150,9 +1324,18 @@ export default {
         this.sellAccount = true;
         this.title = "卖出";
       });
+    },*/
+    handleSellAccount(row) {
+      this.reset();
+      const keyIds = row?.keyId ? [row.keyId] : this.ids; // 兼容单选和多选
+      getSellForShow(keyIds).then(response => {
+        this.sellFormList = Array.isArray(response.data) ? response.data : [response.data];
+        this.sellAccount = true;
+        this.title = "卖出";
+      });
     },
 
-    copySellInfoToClipboard() {
+    /*copySellInfoToClipboard() {
       const textContent = `
 ID：${this.sellForm.id}
 ${this.labels.password}：${this.sellForm.password}
@@ -1170,6 +1353,26 @@ ${this.labels.name}：${this.sellForm.name}
       document.body.removeChild(textarea);
 
       this.$message.success("信息已复制到剪贴板");
+    },*/
+
+    copySellInfoToClipboard() {
+      const textContent = this.sellFormList.map((item, index) => `
+ID：${item.id}
+${this.labels.password}：${item.password}
+${this.labels.email}：${item.email}
+${this.labels.emailPassword}：${item.emailPassword}
+${this.labels.secretKey}：${item.secretKey}
+${this.labels.name}：${item.name}
+  `).join("").trim();
+
+      const textarea = document.createElement('textarea');
+      textarea.value = textContent;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      this.$message.success("所有账号信息已复制到剪贴板");
     },
 
     //提交卖出操作
@@ -1195,10 +1398,26 @@ ${this.labels.name}：${this.sellForm.name}
       })
     },
 
+   //打开浏览器
+    handleOpenBitBrowser(row){
+      const keyId = row.keyId
+      openBitBrowser(keyId).then(response => {
+
+      })
+    },
+
+   //打开浏览器
+    handleOpenHubBrowser(row){
+      const keyId = row.keyId
+      openHubBrowser(keyId).then(response => {
+
+      })
+    },
+
     //关闭浏览器
     handleCloseBrowser(row){
       const keyId = row.keyId
-      closeBrowser(keyId).then(response => {
+      closeBitBrowser(keyId).then(response => {
 
       })
     },
@@ -1227,6 +1446,12 @@ ${this.labels.name}：${this.sellForm.name}
     handleChangeAccountName(){
       this.title = "修改名字";
       this.openChangeAccountName = true;
+    },
+
+    //修改备注
+    handleChangeAccountNote(){
+      this.title = "修改备注";
+      this.openChangeAccountNote = true;
     },
 
     //获取双重验证码
@@ -1258,17 +1483,27 @@ ${this.labels.name}：${this.sellForm.name}
       this.openChangeAccountName = false;
       this.resetChangeAccountNameForm();
     },
+    /** 添加好友弹出窗取消按钮 */
+    closeChangeAccountNote(){
+      this.openChangeAccountNote = false;
+      this.resetChangeAccountNoteForm();
+    },
 
 
     /** 添加好友弹出窗确定按钮 */
     submitAddFriend(){
-      const operationAccount = this.ids;
+      const keyIds = this.ids;
       const id = this.addFriendFormData.accountId;
+      const startKeyId = this.addFriendFormData.startKeyId;
+      const endKeyId = this.addFriendFormData.endKeyId;
+      const region = this.addFriendFormData.region;
+      const note = this.addFriendFormData.note;
+      const number = this.addFriendFormData.number;
       this.$refs.addFriendForm.validate((valid) => {
         if (valid) {
           this.resetAddFriendForm();// 提交后重置表单
           this.openAddFriend = false;
-          addFriend(operationAccount,id);
+          addFriend(keyIds,id,startKeyId,endKeyId,region,note,number);
         }
       });
     },
@@ -1283,13 +1518,22 @@ ${this.labels.name}：${this.sellForm.name}
       createPage(operationAccount,pageName);
     },
 
-    /** 创建主页弹出窗确定按钮 */
+    /** 创建修改名字弹出窗确定按钮 */
     submitChangeAccountName(){
       const operationAccount = this.ids;
       const accountName = this.changeAccountNameFormData.accountName;
       this.resetChangeAccountNameForm();// 提交后重置表单
       this.openChangeAccountName = false;
       changeAccountName(operationAccount,accountName);
+    },
+
+    /** 创建修改备注弹出窗确定按钮 */
+    submitChangeAccountNote(){
+      const operationAccount = this.ids;
+      const accountNote = this.changeAccountNoteFormData.accountNote;
+      this.resetChangeAccountNoteForm();// 提交后重置表单
+      this.openChangeAccountNote = false;
+      changeAccountNote(operationAccount,accountNote);
     },
 
 
@@ -1322,8 +1566,8 @@ ${this.labels.name}：${this.sellForm.name}
         searchType: this.batchSearchFormData.searchType,
         values: processedInputData
       }).then(response => {
-        this.sellList = response.rows;
-        this.total = response.total;
+        this.sellList = response.data;
+        this.total = response.data.length;
         this.loading = false;
       }).catch(() => {
         this.$message.error('批量查询失败');
@@ -1382,7 +1626,7 @@ ${this.labels.name}：${this.sellForm.name}
     modelOne() {
       this.queryParams = {
         ...this.queryParams, // 保留其他字段
-        region: '中文',
+        region: '',
         canLogin: '1',
         canAds: '1',
         isSell: '0',
@@ -1403,9 +1647,9 @@ ${this.labels.name}：${this.sellForm.name}
       this.queryParams = {
         ...this.queryParams,
         region: '',
-        canLogin: '1',
-        isSell: '0',
-        emailStatus: '2',
+        canLogin: '',
+        isSell: '',
+        emailStatus: '',
         sellDate: '',
         friendNumber: '',
         note: ''
@@ -1419,11 +1663,64 @@ ${this.labels.name}：${this.sellForm.name}
     },
 
     handleUnlockEmail(row) {
-      const keyId = row.keyId || this.keyIds
-      unlockEmail(keyId).then(response => {
+      const keyIds = row.keyId || this.keyIds
+      unlockEmail(keyIds).then(response => {
 
       })
     },
+
+    handleUnlockWSVerify(row) {
+      const keyIds = row.keyId || this.keyIds
+      unlockWSVerify(keyIds).then(response => {
+
+      })
+    },
+
+    handleLoginEmail(){
+      const keyId = this.keyIds
+      loginEmail(keyId)
+    },
+
+    handleDblClick(row){
+      const id = row.id;
+
+      // 跳转到目标页面（例如账号列表页）
+      const routeUrl = this.$router.resolve({
+        path: "/account/sell", // 你要跳转的页面路径
+        query: {
+          id: id
+        }
+      });
+
+      window.open(routeUrl.href, "_blank");
+    },
+
+    handleLoginInPhone(row){
+      const keyId = this.keyIds
+      loginInPhone(keyId).then(response => {
+        this.$modal.alertSuccess(response.msg)
+      })
+    }
   }
 };
 </script>
+
+<style scoped>
+.sell-dialog .el-dialog__body {
+  padding: 0; /* 去掉默认内边距，避免双层滚动 */
+}
+
+.sell-dialog-body {
+  max-height: 70vh; /* 固定内容区域最大高度，可根据需要调整 */
+  overflow-y: auto; /* 超出滚动 */
+  padding: 20px; /* 内容留白 */
+}
+
+.sell-item {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+</style>

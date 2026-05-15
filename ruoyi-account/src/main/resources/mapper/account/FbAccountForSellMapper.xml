@@ -44,11 +44,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectFbAccountForSellListByQuery" parameterType="FbAccountForSellQuery" resultMap="FbAccountForSellResult">
         <include refid="selectFbAccountForSellVo"/>
         <where>
-            <if test="fbAccountForSellQuery.beforeKeyId != null and fbAccountForSellQuery.beforeKeyId != ''">
-                AND key_id &gt;= #{fbAccountForSellQuery.beforeKeyId}
+            <if test="fbAccountForSellQuery.startKeyId != null and fbAccountForSellQuery.startKeyId != ''">
+                AND key_id &gt;= #{fbAccountForSellQuery.startKeyId}
             </if>
-            <if test="fbAccountForSellQuery.afterKeyId != null and fbAccountForSellQuery.afterKeyId != ''">
-                AND key_id &lt;= #{fbAccountForSellQuery.afterKeyId}
+            <if test="fbAccountForSellQuery.endKeyId != null and fbAccountForSellQuery.endKeyId != ''">
+                AND key_id &lt;= #{fbAccountForSellQuery.endKeyId}
             </if>
 
             <if test="fbAccountForSellQuery.region != null  and fbAccountForSellQuery.region != ''"> and region like concat('%', #{fbAccountForSellQuery.region}, '%')</if>
@@ -56,16 +56,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="fbAccountForSellQuery.isSell != null  and fbAccountForSellQuery.isSell != ''"> and is_sell = #{fbAccountForSellQuery.isSell}</if>
             AND note NOT LIKE CONCAT('%', '在用', '%')
         </where>
-        order by key_id DESC
+        order by key_id ASC
     </select>
 
     <select id="selectFbAccountForSellList" parameterType="FbAccountForSellQuery" resultMap="FbAccountForSellResult">
         <include refid="selectFbAccountForSellVo"/>
         <where>
             <if test="keyId != null  and keyId != ''"> and key_id = #{keyId}</if>
-            <if test="id != null  and id != ''"> and id = #{id}</if>
+            <if test="id != null  and id != ''"> and id like concat('%', #{id}, '%')</if>
             <if test="password != null  and password != ''"> and password = #{password}</if>
-            <if test="email != null  and email != ''"> and email = #{email}</if>
+            <if test="email != null  and email != ''"> and email like concat('%', #{email}, '%')</if>
             <if test="emailPassword != null  and emailPassword != ''"> and email_password = #{emailPassword}</if>
             <if test="birthday != null  and birthday != ''"> and birthday = #{birthday}</if>
             <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
@@ -207,7 +207,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="secretKey != null">secret_key = #{secretKey},</if>
             <if test="gender != null">gender = #{gender},</if>
             <if test="createDate != null">create_date = #{createDate},</if>
-            <if test="note != null">note = #{note},</if>
+            note = #{note},
             <if test="region != null">region = #{region},</if>
             <if test="canLogin != null">can_login = #{canLogin},</if>
             <if test="adAccountStatus != null">ad_account_status = #{adAccountStatus},</if>
@@ -224,6 +224,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="isShelf != null">is_shelf = #{isShelf},</if>
             <if test="emailStatus != null">email_status = #{emailStatus},</if>
             <if test="isSell != null">is_sell = #{isSell},</if>
+            <if test="cookie != null">cookie = #{cookie},</if>
             sell_date = #{sellDate}
         </trim>
         where key_id = #{keyId}
@@ -258,9 +259,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
 
-    <select id="selectFbAccountForSellListByAccountIds" parameterType="String" resultMap="FbAccountForSellResult">
+    <select id="selectFbAccountForSellListByAccountIdsStr" parameterType="String" resultMap="FbAccountForSellResult">
         <include refid="selectFbAccountForSellVo"/> where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectFbAccountForSellListByAccountIdsList" parameterType="list" resultMap="FbAccountForSellResult">
+        <include refid="selectFbAccountForSellVo"/>
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
     </select>

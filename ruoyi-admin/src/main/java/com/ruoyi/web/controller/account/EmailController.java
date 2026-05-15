@@ -5,19 +5,25 @@ import com.ruoyi.account.domain.Email;
 import com.ruoyi.account.domain.ProxyIp;
 import com.ruoyi.account.service.IEmailService;
 import com.ruoyi.account.service.IProxyIpService;
+import com.ruoyi.browser.client.HubstudioClient;
+import com.ruoyi.browser.service.IHubEnvService;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
+import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * emailController
@@ -34,6 +40,14 @@ public class EmailController extends BaseController
 
     @Autowired
     private IProxyIpService proxyIpService;
+
+    @Autowired
+    private IHubEnvService  hubEnvService;
+
+    @Autowired
+    HubstudioClient hubstudioClient;
+
+
     /**
      * 查询email列表
      */
@@ -151,11 +165,47 @@ public class EmailController extends BaseController
         List<ProxyIp> proxyIps = proxyIpService.selectProxyIpListByStatus("1");
         ProxyIp proxyIp = proxyIps.get(proxyIps.size() - 1);
         if (unlockType == 1){
-            emailService.unlockEmail(e,proxyIp);
+            Map<String, Object> map = hubEnvService.openOrCreateAndOpenEnvForEmail(proxyIp);
+            Object webDriver = map.get("webDriver");
+            emailService.unlockEmail(e, (WebDriver) webDriver);
+            Long containerCoder = (Long) map.get("containerCoder");
+            HashMap<String, Object> paramsMap = new HashMap<>();
+            paramsMap.put("containerCoders", Arrays.asList(containerCoder));
+            hubstudioClient.deleteEnv(paramsMap);
         }
         if (unlockType == 2){
             emailService.unlockEmailAddTelephone(e,proxyIp);
         }
+        return success();
+    }
+
+
+    /**
+     * 获取email
+     */
+    @PreAuthorize("@ss.hasPermi('account:email:edit')")
+    @GetMapping("/tempEmailLogin/{tempEmail}")
+    @ResponseBody
+    public AjaxResult tempEmailLogin(@PathVariable("tempEmail") String emailStr) {
+
+        String[] strings = emailStr.split("-");
+        String email = strings[0];
+        String password = strings[1];
+        List<ProxyIp> proxyIps = proxyIpService.selectProxyIpListByStatus("1");
+        ProxyIp proxyIp = proxyIps.get(proxyIps.size() - 1);
+        emailService.tempLogin(email, password, proxyIp);
+        return success();
+    }
+
+
+    /**
+     * 获取email详细信息
+     */
+    @GetMapping(value = "/loginEmail/{keyId}")
+    @ResponseBody
+    public AjaxResult loginEmail(@PathVariable("keyId") Long keyId) {
+
+        System.out.println(keyId);
         return success();
     }
 }

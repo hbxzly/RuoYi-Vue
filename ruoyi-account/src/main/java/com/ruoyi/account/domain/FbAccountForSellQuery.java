@@ -2,376 +2,140 @@ package com.ruoyi.account.domain;
 
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 
 /**
  * 卖号对象 fb_account_for_sell
- * 
+ *
  * @author ruoyi
  * @date 2024-11-01
  */
-public class FbAccountForSellQuery extends BaseEntity
-{
-    private static final long serialVersionUID = 1L;
+public class FbAccountForSellQuery extends BaseEntity {
 
-    /** 前序号 */
-    private Long beforeKeyId;
-
-    /** 后序号 */
-    private Long afterKeyId;
+    /** 主键 */
+    private Long keyId;
 
     /** 邮箱 */
-    @Excel(name = "邮箱")
     private String email;
 
-    /** 密码 */
-    @Excel(name = "密码")
-    private String password;
-
-    /** 邮箱密码 */
-    @Excel(name = "邮箱密码")
-    private String emailPassword;
-
     /** ID */
-    @Excel(name = "ID")
     private String id;
 
-    /** 账户生日 */
-    @Excel(name = "账户生日")
-    private String birthday;
-
-    /** 秘钥 */
-    @Excel(name = "秘钥")
-    private String secretKey;
-
-    /** 是否商城号 */
-    @Excel(name = "是否商城号")
-    private String isMarketplace;
-
-    /** 名字 */
-    @Excel(name = "名字")
-    private String name;
-
-    /** 性别 */
-    @Excel(name = "性别")
-    private String gender;
-
-    /** 创建日期 */
-    @Excel(name = "创建日期")
-    private String createDate;
-
     /** 地区 */
-    @Excel(name = "地区")
     private String region;
 
-    /** 备注 */
-    @Excel(name = "备注")
-    private String note;
+    /** 是否商城号 */
+    private String isMarketplace;
 
-    /** 能否登录 */
-    @Excel(name = "能否登录")
+    /** 是否可登录 */
     private String canLogin;
 
-    /** 好友数量 */
-    @Excel(name = "好友数量")
-    private String friendNumber;
-
-    /** 能否广告 */
-    @Excel(name = "能否广告")
+    /** 是否可投广告 */
     private String canAds;
 
-    /** 主页数量 */
-    @Excel(name = "主页数量")
-    private String pageNumber;
-
-    /** bm数量 */
-    @Excel(name = "BM数量")
-    private String bmNumber;
-
-    /** 帖子数量 */
-    @Excel(name = "帖子数量")
-    private String postsNumber;
-
-    /** UA */
-    private String ua;
-
-    /** 浏览器状态 */
-    private String browserStatus;
-
-    /** 浏览器文件 */
-    @Excel(name = "浏览器文件")
-    private String browserProfile;
-
-    /** 文件路径 */
-    @Excel(name = "文件路径")
-    private String filePath;
-
-    /** 最近发帖时间 */
-    @Excel(name = "最近发帖时间")
-    private String lastPostsTime;
-
     /** 是否上架 */
-    @Excel(name = "是否上架")
     private String isShelf;
 
-    /** 邮箱状态 */
-    @Excel(name = "邮箱状态")
-    private String emailStatus;
-
     /** 是否卖出 */
-    @Excel(name = "是否卖出")
     private String isSell;
 
-    /** 卖出日期 */
+    /** ========== 核心：邮箱状态多选 ========== */
+    private List<String> emailStatusList;
+
+    /** 个人户状态 */
+    private String adAccountStatus;
+
+    /** 好友数范围 */
+    private Integer friendNumberMin;
+    private Integer friendNumberMax;
+
+    /** 主页数量范围 */
+    private Integer pageNumberMin;
+    private Integer pageNumberMax;
+
+    /** BM 数量范围 */
+    private Integer bmNumberMin;
+    private Integer bmNumberMax;
+
+    /** 创建时间范围 */
+    private String createDateStart;
+    private String createDateEnd;
+
+    /** 卖出日期范围 */
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "卖出日期", width = 30, dateFormat = "yyyy-MM-dd")
-    private LocalDate sellDate;
+    private LocalDate sellDateStart;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate sellDateEnd;
 
-    public Long getBeforeKeyId() {
-        return beforeKeyId;
+    // ================== getter / setter ==================
+
+    public Long getKeyId() {
+        return keyId;
     }
 
-    public void setBeforeKeyId(Long beforeKeyId) {
-        this.beforeKeyId = beforeKeyId;
+    public void setKeyId(Long keyId) {
+        this.keyId = keyId;
     }
 
-    public Long getAfterKeyId() {
-        return afterKeyId;
+    public String getEmail() {
+        return email;
     }
 
-    public void setAfterKeyId(Long afterKeyId) {
-        this.afterKeyId = afterKeyId;
-    }
-
-    public void setId(String id)
-    {
-        this.id = id;
-    }
-
-    public String getId() 
-    {
-        return id;
-    }
-    public void setPassword(String password) 
-    {
-        this.password = password;
-    }
-
-    public String getPassword() 
-    {
-        return password;
-    }
-    public void setEmail(String email) 
-    {
+    public void setEmail(String email) {
         this.email = email;
     }
 
-    public String getEmail() 
-    {
-        return email;
-    }
-    public void setEmailPassword(String emailPassword) 
-    {
-        this.emailPassword = emailPassword;
+    public String getId() {
+        return id;
     }
 
-    public String getEmailPassword() 
-    {
-        return emailPassword;
-    }
-    public void setBirthday(String birthday) 
-    {
-        this.birthday = birthday;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public String getBirthday() 
-    {
-        return birthday;
-    }
-    public void setName(String name) 
-    {
-        this.name = name;
+    public String getRegion() {
+        return region;
     }
 
-    public String getName() 
-    {
-        return name;
-    }
-    public void setSecretKey(String secretKey) 
-    {
-        this.secretKey = secretKey;
-    }
-
-    public String getSecretKey() 
-    {
-        return secretKey;
-    }
-    public void setGender(String gender) 
-    {
-        this.gender = gender;
-    }
-
-    public String getGender() 
-    {
-        return gender;
-    }
-    public void setCreateDate(String createDate) 
-    {
-        this.createDate = createDate;
-    }
-
-    public String getCreateDate() 
-    {
-        return createDate;
-    }
-    public void setNote(String note) 
-    {
-        this.note = note;
-    }
-
-    public String getNote() 
-    {
-        return note;
-    }
-    public void setRegion(String region) 
-    {
+    public void setRegion(String region) {
         this.region = region;
     }
 
-    public String getRegion() 
-    {
-        return region;
-    }
-    public void setCanLogin(String canLogin) 
-    {
-        this.canLogin = canLogin;
+    public String getIsMarketplace() {
+        return isMarketplace;
     }
 
-    public String getCanLogin() 
-    {
-        return canLogin;
-    }
-    public void setIsMarketplace(String isMarketplace) 
-    {
+    public void setIsMarketplace(String isMarketplace) {
         this.isMarketplace = isMarketplace;
     }
 
-    public String getIsMarketplace() 
-    {
-        return isMarketplace;
-    }
-    public void setFriendNumber(String friendNumber) 
-    {
-        this.friendNumber = friendNumber;
+    public String getCanLogin() {
+        return canLogin;
     }
 
-    public String getFriendNumber() 
-    {
-        return friendNumber;
-    }
-    public void setCanAds(String canAds) 
-    {
-        this.canAds = canAds;
+    public void setCanLogin(String canLogin) {
+        this.canLogin = canLogin;
     }
 
-    public String getCanAds() 
-    {
+    public String getCanAds() {
         return canAds;
     }
-    public void setPageNumber(String pageNumber) 
-    {
-        this.pageNumber = pageNumber;
-    }
 
-    public String getPageNumber() 
-    {
-        return pageNumber;
-    }
-    public void setBmNumber(String bmNumber) 
-    {
-        this.bmNumber = bmNumber;
-    }
-
-    public String getBmNumber() 
-    {
-        return bmNumber;
-    }
-    public void setPostsNumber(String postsNumber) 
-    {
-        this.postsNumber = postsNumber;
-    }
-
-    public String getPostsNumber() 
-    {
-        return postsNumber;
-    }
-    public void setUa(String ua) 
-    {
-        this.ua = ua;
-    }
-
-    public String getUa() 
-    {
-        return ua;
-    }
-    public void setBrowserStatus(String browserStatus) 
-    {
-        this.browserStatus = browserStatus;
-    }
-
-    public String getBrowserStatus() 
-    {
-        return browserStatus;
-    }
-    public void setBrowserProfile(String browserProfile) 
-    {
-        this.browserProfile = browserProfile;
-    }
-
-    public String getBrowserProfile() 
-    {
-        return browserProfile;
-    }
-    public void setFilePath(String filePath) 
-    {
-        this.filePath = filePath;
-    }
-
-    public String getFilePath() 
-    {
-        return filePath;
-    }
-
-    public void setLastPostsTime(String lastPostsTime)
-    {
-        this.lastPostsTime = lastPostsTime;
-    }
-
-    public String getLastPostsTime()
-    {
-        return lastPostsTime;
-    }
-
-    public void setIsShelf(String isShelf) {
-        this.isShelf = isShelf;
+    public void setCanAds(String canAds) {
+        this.canAds = canAds;
     }
 
     public String getIsShelf() {
         return isShelf;
     }
 
-    public void setEmailStatus(String emailStatus) {
-        this.emailStatus = emailStatus;
-    }
-
-    public String getEmailStatus() {
-        return emailStatus;
+    public void setIsShelf(String isShelf) {
+        this.isShelf = isShelf;
     }
 
     public String getIsSell() {
@@ -382,24 +146,99 @@ public class FbAccountForSellQuery extends BaseEntity
         this.isSell = isSell;
     }
 
-    public LocalDate getSellDate() {
-        return sellDate;
+    public List<String> getEmailStatusList() {
+        return emailStatusList;
     }
 
-    public void setSellDate(LocalDate sellDate) {
-        this.sellDate = sellDate;
+    public void setEmailStatusList(List<String> emailStatusList) {
+        this.emailStatusList = emailStatusList;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        FbAccountForSellQuery that = (FbAccountForSellQuery) obj;
-        return Objects.equals(id, that.id); // 假设使用 id 作为唯一标识
+    public String getAdAccountStatus() {
+        return adAccountStatus;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    public void setAdAccountStatus(String adAccountStatus) {
+        this.adAccountStatus = adAccountStatus;
+    }
+
+    public Integer getFriendNumberMin() {
+        return friendNumberMin;
+    }
+
+    public void setFriendNumberMin(Integer friendNumberMin) {
+        this.friendNumberMin = friendNumberMin;
+    }
+
+    public Integer getFriendNumberMax() {
+        return friendNumberMax;
+    }
+
+    public void setFriendNumberMax(Integer friendNumberMax) {
+        this.friendNumberMax = friendNumberMax;
+    }
+
+    public Integer getPageNumberMin() {
+        return pageNumberMin;
+    }
+
+    public void setPageNumberMin(Integer pageNumberMin) {
+        this.pageNumberMin = pageNumberMin;
+    }
+
+    public Integer getPageNumberMax() {
+        return pageNumberMax;
+    }
+
+    public void setPageNumberMax(Integer pageNumberMax) {
+        this.pageNumberMax = pageNumberMax;
+    }
+
+    public Integer getBmNumberMin() {
+        return bmNumberMin;
+    }
+
+    public void setBmNumberMin(Integer bmNumberMin) {
+        this.bmNumberMin = bmNumberMin;
+    }
+
+    public Integer getBmNumberMax() {
+        return bmNumberMax;
+    }
+
+    public void setBmNumberMax(Integer bmNumberMax) {
+        this.bmNumberMax = bmNumberMax;
+    }
+
+    public String getCreateDateStart() {
+        return createDateStart;
+    }
+
+    public void setCreateDateStart(String createDateStart) {
+        this.createDateStart = createDateStart;
+    }
+
+    public String getCreateDateEnd() {
+        return createDateEnd;
+    }
+
+    public void setCreateDateEnd(String createDateEnd) {
+        this.createDateEnd = createDateEnd;
+    }
+
+    public LocalDate getSellDateStart() {
+        return sellDateStart;
+    }
+
+    public void setSellDateStart(LocalDate sellDateStart) {
+        this.sellDateStart = sellDateStart;
+    }
+
+    public LocalDate getSellDateEnd() {
+        return sellDateEnd;
+    }
+
+    public void setSellDateEnd(LocalDate sellDateEnd) {
+        this.sellDateEnd = sellDateEnd;
     }
 }

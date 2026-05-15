@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.browser.mapper.HubEnvMapper">
+
+    <resultMap type="HubEnv" id="HubEnvResult">
+        <result property="id"    column="id"    />
+        <result property="containerCode"    column="container_code"    />
+        <result property="serialNumber"    column="serial_number"    />
+        <result property="containerName"    column="container_name"    />
+        <result property="accountName"    column="accountName"    />
+        <result property="platformName"    column="platformName"    />
+        <result property="tagName"    column="tag_name"    />
+        <result property="tagCode"    column="tag_code"    />
+        <result property="asDynamicType"    column="as_dynamic_type"    />
+        <result property="proxyTypeName"    column="proxy_type_name"    />
+        <result property="proxyHost"    column="proxy_host"    />
+        <result property="proxyPort"    column="proxy_port"    />
+        <result property="proxyAccount"    column="proxy_account"    />
+        <result property="proxyPassword"    column="proxy_password"    />
+        <result property="lastUsedIp"    column="last_used_ip"    />
+        <result property="lastCountry"    column="last_country"    />
+        <result property="lastRegion"    column="last_region"    />
+        <result property="lastCity"    column="last_city"    />
+        <result property="ua"    column="ua"    />
+        <result property="refreshUrl"    column="refresh_url"    />
+        <result property="openTime"    column="open_time"    />
+        <result property="allOpenTime"    column="all_open_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectHubEnvVo">
+        select id, container_code, serial_number, container_name, accountName, platformName, tag_name, tag_code, as_dynamic_type, proxy_type_name, proxy_host, proxy_port, proxy_account, proxy_password, last_used_ip, last_country, last_region, last_city, ua, refresh_url, open_time, all_open_time, create_time, create_by, remark from hub_env
+    </sql>
+
+    <select id="selectHubEnvList" parameterType="HubEnv" resultMap="HubEnvResult">
+        <include refid="selectHubEnvVo"/>
+        <where>
+            <if test="containerCode != null "> and container_code = #{containerCode}</if>
+            <if test="serialNumber != null "> and serial_number = #{serialNumber}</if>
+            <if test="containerName != null  and containerName != ''"> and container_name like concat('%', #{containerName}, '%')</if>
+            <if test="accountName != null  and accountName != ''"> and accountName like concat('%', #{accountName}, '%')</if>
+            <if test="platformName != null  and platformName != ''"> and platformName like concat('%', #{platformName}, '%')</if>
+            <if test="tagName != null  and tagName != ''"> and tag_name like concat('%', #{tagName}, '%')</if>
+            <if test="tagCode != null  and tagCode != ''"> and tag_code = #{tagCode}</if>
+            <if test="asDynamicType != null "> and as_dynamic_type = #{asDynamicType}</if>
+            <if test="proxyTypeName != null  and proxyTypeName != ''"> and proxy_type_name like concat('%', #{proxyTypeName}, '%')</if>
+            <if test="proxyHost != null  and proxyHost != ''"> and proxy_host = #{proxyHost}</if>
+            <if test="proxyPort != null "> and proxy_port = #{proxyPort}</if>
+            <if test="proxyAccount != null  and proxyAccount != ''"> and proxy_account = #{proxyAccount}</if>
+            <if test="proxyPassword != null  and proxyPassword != ''"> and proxy_password = #{proxyPassword}</if>
+            <if test="lastUsedIp != null  and lastUsedIp != ''"> and last_used_ip = #{lastUsedIp}</if>
+            <if test="lastCountry != null  and lastCountry != ''"> and last_country = #{lastCountry}</if>
+            <if test="lastRegion != null  and lastRegion != ''"> and last_region = #{lastRegion}</if>
+            <if test="lastCity != null  and lastCity != ''"> and last_city = #{lastCity}</if>
+            <if test="ua != null  and ua != ''"> and ua = #{ua}</if>
+            <if test="refreshUrl != null  and refreshUrl != ''"> and refresh_url = #{refreshUrl}</if>
+            <if test="openTime != null "> and open_time = #{openTime}</if>
+            <if test="allOpenTime != null  and allOpenTime != ''"> and all_open_time = #{allOpenTime}</if>
+        </where>
+    </select>
+
+    <select id="selectHubEnvById" parameterType="Long" resultMap="HubEnvResult">
+        <include refid="selectHubEnvVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectHubEnvByAccountName" parameterType="String" resultMap="HubEnvResult">
+        <include refid="selectHubEnvVo"/>
+        where accountName = #{accountName}
+    </select>
+
+    <insert id="insertHubEnv" parameterType="HubEnv" useGeneratedKeys="true" keyProperty="id">
+        insert into hub_env
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="containerCode != null">container_code,</if>
+            <if test="serialNumber != null">serial_number,</if>
+            <if test="containerName != null">container_name,</if>
+            <if test="accountName != null">accountName,</if>
+            <if test="platformName != null">platformName,</if>
+            <if test="tagName != null">tag_name,</if>
+            <if test="tagCode != null">tag_code,</if>
+            <if test="asDynamicType != null">as_dynamic_type,</if>
+            <if test="proxyTypeName != null">proxy_type_name,</if>
+            <if test="proxyHost != null">proxy_host,</if>
+            <if test="proxyPort != null">proxy_port,</if>
+            <if test="proxyAccount != null">proxy_account,</if>
+            <if test="proxyPassword != null">proxy_password,</if>
+            <if test="lastUsedIp != null">last_used_ip,</if>
+            <if test="lastCountry != null">last_country,</if>
+            <if test="lastRegion != null">last_region,</if>
+            <if test="lastCity != null">last_city,</if>
+            <if test="ua != null">ua,</if>
+            <if test="refreshUrl != null">refresh_url,</if>
+            <if test="openTime != null">open_time,</if>
+            <if test="allOpenTime != null">all_open_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="containerCode != null">#{containerCode},</if>
+            <if test="serialNumber != null">#{serialNumber},</if>
+            <if test="containerName != null">#{containerName},</if>
+            <if test="accountName != null">#{accountName},</if>
+            <if test="platformName != null">#{platformName},</if>
+            <if test="tagName != null">#{tagName},</if>
+            <if test="tagCode != null">#{tagCode},</if>
+            <if test="asDynamicType != null">#{asDynamicType},</if>
+            <if test="proxyTypeName != null">#{proxyTypeName},</if>
+            <if test="proxyHost != null">#{proxyHost},</if>
+            <if test="proxyPort != null">#{proxyPort},</if>
+            <if test="proxyAccount != null">#{proxyAccount},</if>
+            <if test="proxyPassword != null">#{proxyPassword},</if>
+            <if test="lastUsedIp != null">#{lastUsedIp},</if>
+            <if test="lastCountry != null">#{lastCountry},</if>
+            <if test="lastRegion != null">#{lastRegion},</if>
+            <if test="lastCity != null">#{lastCity},</if>
+            <if test="ua != null">#{ua},</if>
+            <if test="refreshUrl != null">#{refreshUrl},</if>
+            <if test="openTime != null">#{openTime},</if>
+            <if test="allOpenTime != null">#{allOpenTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateHubEnv" parameterType="HubEnv">
+        update hub_env
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="containerCode != null">container_code = #{containerCode},</if>
+            <if test="serialNumber != null">serial_number = #{serialNumber},</if>
+            <if test="containerName != null">container_name = #{containerName},</if>
+            <if test="accountName != null">accountName = #{accountName},</if>
+            <if test="platformName != null">platformName = #{platformName},</if>
+            <if test="tagName != null">tag_name = #{tagName},</if>
+            <if test="tagCode != null">tag_code = #{tagCode},</if>
+            <if test="asDynamicType != null">as_dynamic_type = #{asDynamicType},</if>
+            <if test="proxyTypeName != null">proxy_type_name = #{proxyTypeName},</if>
+            <if test="proxyHost != null">proxy_host = #{proxyHost},</if>
+            <if test="proxyPort != null">proxy_port = #{proxyPort},</if>
+            <if test="proxyAccount != null">proxy_account = #{proxyAccount},</if>
+            <if test="proxyPassword != null">proxy_password = #{proxyPassword},</if>
+            <if test="lastUsedIp != null">last_used_ip = #{lastUsedIp},</if>
+            <if test="lastCountry != null">last_country = #{lastCountry},</if>
+            <if test="lastRegion != null">last_region = #{lastRegion},</if>
+            <if test="lastCity != null">last_city = #{lastCity},</if>
+            <if test="ua != null">ua = #{ua},</if>
+            <if test="refreshUrl != null">refresh_url = #{refreshUrl},</if>
+            <if test="openTime != null">open_time = #{openTime},</if>
+            <if test="allOpenTime != null">all_open_time = #{allOpenTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteHubEnvById" parameterType="Long">
+        delete from hub_env where id = #{id}
+    </delete>
+
+    <delete id="deleteHubEnvByIds" parameterType="String">
+        delete from hub_env where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

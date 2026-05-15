@@ -1,9 +1,7 @@
 package com.ruoyi.web.controller.account;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,9 +13,15 @@ import javax.servlet.http.HttpServletResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruoyi.account.domain.*;
 import com.ruoyi.account.mapper.FbAccountForSellMapper;
-import com.ruoyi.account.mapper.FbAccountMapper;
 import com.ruoyi.account.service.*;
 import com.ruoyi.account.util.FBAccountUtil;
+import com.ruoyi.account.util.VmCommandHolder;
+import com.ruoyi.browser.builder.HubEnvParamBuilder;
+import com.ruoyi.browser.client.HubstudioClient;
+import com.ruoyi.browser.convert.HubstudioConvert;
+import com.ruoyi.browser.domain.HubEnv;
+import com.ruoyi.browser.service.IHubEnvService;
+import io.appium.java_client.AppiumDriver;
 import org.openqa.selenium.WebDriver;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +59,18 @@ public class FbAccountForSellController extends BaseController {
     @Autowired
     FbAccountForSellMapper fbAccountForSellMapper;
 
+    @Autowired
+    private ICreateDeviceService createDeviceService;
+
+    @Autowired
+    HubstudioClient hubstudioClient;
+
+    @Autowired
+    IHubEnvService hubEnvService;
+
+    @Autowired
+    HubstudioConvert hubstudioConvert;
+
     HashMap<String,WebDriver> webDriverMap = new HashMap<>();
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -67,6 +83,17 @@ public class FbAccountForSellController extends BaseController {
     @PreDestroy
     public void destroy() {
         scheduler.shutdownNow();
+    }
+
+    @Autowired
+    private VmCommandHolder vmCommandHolder;
+
+    @GetMapping("/getCommand")
+    public String getCommand() {
+        String cmd = vmCommandHolder.getCommand();
+        // 打印值
+        vmCommandHolder.clear();  // 避免重复执行
+        return cmd;
     }
 
     private void cleanUpWebDrivers() {
@@ -97,10 +124,10 @@ public class FbAccountForSellController extends BaseController {
     }
 
     @PostMapping("/batchSearch")
-    public TableDataInfo batchSearch(@RequestBody FbAccountForSell account) {
-        startPage(); // 若依分页
+    public AjaxResult  batchSearch(@RequestBody FbAccountForSell account) {
+
         List<FbAccountForSell> list = fbAccountForSellService.batchSearch(account);
-        return getDataTable(list);
+        return AjaxResult.success(list);
     }
 
     /**
@@ -127,6 +154,16 @@ public class FbAccountForSellController extends BaseController {
     }
 
     /**
+     * 获取卖号详细信息
+     */
+    @GetMapping(value = "/getSellForShow")
+    @ResponseBody
+    public AjaxResult getSellForShow(@RequestParam("ids") List<Long> ids)
+    {
+        return success(fbAccountForSellService.selectFbAccountForSellListByAccountIds(ids.toArray(new Long[0])));
+    }
+
+    /**
      * 新增卖号
      */
     @PreAuthorize("@ss.hasPermi('account:sell:add')")
@@ -141,7 +178,7 @@ public class FbAccountForSellController extends BaseController {
      * 修改卖号
      */
     @PreAuthorize("@ss.hasPermi('account:sell:edit')")
-    @Log(title = "卖号", businessType = BusinessType.UPDATE)
+
     @PutMapping
     public AjaxResult edit(@RequestBody FbAccountForSell fbAccountForSell)
     {
@@ -156,6 +193,22 @@ public class FbAccountForSellController extends BaseController {
 	@DeleteMapping("/{keyIds}")
     public AjaxResult remove(@PathVariable Long[] keyIds)
     {
+        List<Long> containerCode = new ArrayList<>();
+        for (Long keyId : keyIds){
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+            HubEnv hubEnv = hubEnvService.selectHubEnvByAccountName(fbAccountForSell.getId());
+            if (hubEnv != null){
+                containerCode.add(hubEnv.getContainerCode());
+                hubEnvService.closeEnv(hubEnv);
+                hubEnvService.deleteHubEnvById(hubEnv.getId());
+            }
+        }
+        if (containerCode.size() > 0){
+            System.out.println("开始删除");
+            System.out.println(containerCode);
+            Map<String, Object> deleteEnvParam = HubEnvParamBuilder.builderDeleteEnvParam(containerCode);
+            hubstudioClient.deleteEnv(deleteEnvParam);
+        }
         return toAjax(fbAccountForSellService.deleteFbAccountForSellByKeyIds(keyIds));
     }
 
@@ -186,7 +239,6 @@ public class FbAccountForSellController extends BaseController {
         util.importTemplateExcel(response, "帖子数据");
     }
 
-
     /**
      * 检测
      */
@@ -205,7 +257,8 @@ public class FbAccountForSellController extends BaseController {
                     if (!fbAccountForSell.getNote().equals("账号或密码无效") && !fbAccountForSell.getNote().equals("无法登录-需要输入验证码")
                             && !fbAccountForSell.getNote().equals("无法登录-秘钥错误") && !fbAccountForSell.getNote().equals("无法登录-需要WhatsApp验证码")
                             && !fbAccountForSell.getNote().equals("无法登录-账号被锁") && !fbAccountForSell.getNote().equals("无法登录-改过密码") ){
-                        fbAccountForSell.setNote("无法登录-未知情况");
+                        String oldNote = fbAccountForSell.getNote();
+                        fbAccountForSell.setNote("无法登录-未知情况|"+oldNote);
                         fbAccountForSell.setCanLogin("0");
                         fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
                     }
@@ -231,13 +284,16 @@ public class FbAccountForSellController extends BaseController {
      */
     @PreAuthorize("@ss.hasPermi('account:sell:edit')")
     @Log(title = "卖号", businessType = BusinessType.UPDATE)
-    @GetMapping("/updateSellForSell/{keyId}")
+    @GetMapping("/updateSellForSell/{keyIds}")
     @ResponseBody
-    public AjaxResult updateSellForSell(@PathVariable Long keyId) {
-        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
-        fbAccountForSell.setIsSell("1");
-        fbAccountForSell.setSellDate(LocalDate.now());
-        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+    public AjaxResult updateSellForSell(@PathVariable Long[] keyIds) {
+        for (Long keyId : keyIds) {
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+            fbAccountForSell.setIsSell("1");
+            fbAccountForSell.setSellDate(LocalDate.now());
+            fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+        }
+
         return success();
     }
 
@@ -255,6 +311,39 @@ public class FbAccountForSellController extends BaseController {
     }
 
     /**
+     * 打开账号
+     */
+    @GetMapping("/openBitBrowser/{keyId}")
+    @ResponseBody
+    public AjaxResult openBitBrowser(@PathVariable Long keyId) {
+        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+        WebDriver webDriver = seleniumService.openBitBrowser(new HashMap<>());
+        webDriverMap.put(fbAccountForSell.getId(), webDriver);
+        fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell);
+        return success();
+    }
+
+    @GetMapping("/openHubBrowser/{keyId}")
+    @ResponseBody
+    public AjaxResult openHubBrowser(@PathVariable Long keyId) {
+        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+
+        //accountName 是账号ID
+        HubEnv hubEnv =
+                hubEnvService.selectHubEnvByAccountName(fbAccountForSell.getId());
+
+        if (hubEnv == null) {
+            hubEnv = hubEnvService.createAndBindEnv(fbAccountForSell);
+        }
+
+        WebDriver webDriver =hubstudioClient.openEnv(hubEnv.getContainerCode());
+
+        fbAccountForSellService.loginFbAccountForSell(webDriver,fbAccountForSellService.selectFbAccountForSellByKeyId(keyId));
+
+        return success();
+    }
+
+    /**
      * 关闭账号
      */
     @GetMapping("/closeBrowser/{keyId}")
@@ -265,7 +354,6 @@ public class FbAccountForSellController extends BaseController {
         webDriverMap.remove(fbAccountForSell.getId());
         return success();
     }
-
 
     @GetMapping("/accountPost/{keyIds}")
     @ResponseBody
@@ -287,28 +375,36 @@ public class FbAccountForSellController extends BaseController {
      */
     @GetMapping("/addFriend")
     @ResponseBody
-    public AjaxResult addFriend(@RequestParam("keyIds") List<Long> keyIds, @RequestParam("id") String id){
+    public AjaxResult addFriend(@RequestParam(value = "keyIds",defaultValue = "") List<Long> keyIds, @RequestParam(value = "id", defaultValue = "") String id, @RequestParam(value = "startKeyId", defaultValue = "") Long startKeyId,
+                                    @RequestParam(value = "endKeyId",defaultValue = "") Long endKeyId, @RequestParam(value = "region",defaultValue = "") String region, @RequestParam(value = "note",defaultValue = "") String note){
+        if (!keyIds.isEmpty()){
+            if (id.equals("") || id == null){
+                return error("添加id为空");
+            }
+            List<FbAccountForSell> fbAccountForSellList = fbAccountForSellService.selectFbAccountForSellListByAccountIds(keyIds.toArray(new Long[0]));
+            for (FbAccountForSell fbAccountForSell : fbAccountForSellList) {
+                WebDriver webDriver = seleniumService.openBrowserForAccountSell(fbAccountForSell);
+                webDriver.get("https://www.facebook.com/");
+                boolean login = fbAccountForSellService.isLogin(webDriver, fbAccountForSell);
+                if (!login){
+                    fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell );
+                }
+                login = fbAccountForSellService.isLogin(webDriver, fbAccountForSell);
+                if (login){
+                    fbAccountForSellService.addFriend(fbAccountForSell,id,webDriver);
+                }
+                webDriver.quit();
+                webDriverMap.remove(fbAccountForSell.getId());
+            }
+            return success();
+        }
 
-        /*List<FbAccountForSell> fbAccountForSellList = fbAccountForSellService.selectFbAccountForSellListByAccountIds(keyIds.toArray(new Long[0]));
-        for (FbAccountForSell fbAccountForSell : fbAccountForSellList) {
-            WebDriver webDriver = seleniumService.openBrowserForAccountSell(fbAccountForSell);
-            webDriver.get("https://www.facebook.com/");
-            boolean login = fbAccountForSellService.isLogin(webDriver, fbAccountForSell);
-            if (!login){
-                fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell );
-            }
-            login = fbAccountForSellService.isLogin(webDriver, fbAccountForSell);
-            if (login){
-                fbAccountForSellService.addFriend(fbAccountForSell,id,webDriver);
-            }
-            webDriver.quit();
-            webDriverMap.remove(fbAccountForSell.getId());
-        }*/
+        if (null == startKeyId || null == endKeyId || null == region || null == note){
+            return error("请填写完整信息");
+        }
         // 构造查询条件
         FbAccountForSellQuery query = new FbAccountForSellQuery();
-        query.setAfterKeyId(3361L);
-        query.setBeforeKeyId(29L);
-        query.setRegion("中文");
+        query.setRegion(region);
         query.setCanLogin("1");
         query.setIsSell("0");
 
@@ -317,11 +413,11 @@ public class FbAccountForSellController extends BaseController {
 
         // 获取备注为0807的账号，作为被加好友的目标
         FbAccountForSell accountForSell = new FbAccountForSell();
-        accountForSell.setNote("rich");
+        accountForSell.setNote(note);
         accountForSell.setIsSell("0");
         List<FbAccountForSell> accountForSells = fbAccountForSellService.selectFbAccountForSellList(accountForSell);
 
-        int batchSize = 11; // 每个目标最多被加13次
+        int batchSize = 9; // 每个目标最多被加13次
         int operatorIndex = 0; // 操作者索引
 
         for (FbAccountForSell target : accountForSells) {
@@ -372,6 +468,7 @@ public class FbAccountForSellController extends BaseController {
     @GetMapping("/checkAccountActive/{keyIds}")
     @ResponseBody
     public AjaxResult checkAccountActive(@PathVariable Long[] keyIds) {
+
         // 创建固定大小的线程池（可以根据 CPU 核心数调整）
         int threadCount = Runtime.getRuntime().availableProcessors(); // 获取 CPU 核心数
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
@@ -382,7 +479,8 @@ public class FbAccountForSellController extends BaseController {
                     boolean b = FBAccountUtil.checkAccountActive(fbAccountForSell.getId());
                     if (!b) {
                         fbAccountForSell.setCanLogin("0");
-                        fbAccountForSell.setNote("被封/被锁");
+                        String oldNote = fbAccountForSell.getNote();
+                        fbAccountForSell.setNote("被封/被锁|"+oldNote);
                         fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
                     }
                     if (b) {
@@ -398,11 +496,52 @@ public class FbAccountForSellController extends BaseController {
         return success();
     }
 
+    /**
+     *
+     *修改名字
+     */
     @GetMapping("/changeAccountName")
     @ResponseBody
-    public AjaxResult changeAccountName(@RequestParam("keyId") List<Long> keyId, @RequestParam("accountName") String accountName){
-        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellListByAccountIds(keyId.toArray(new Long[0])).get(0);
-        fbAccountForSellService.changeAccountName(fbAccountForSell,accountName);
+    public AjaxResult changeAccountName(@RequestParam("keyId") List<Long> keyId, @RequestParam(value = "accountName", defaultValue = "") String accountName){
+        if (!accountName.equals("")){
+            if (keyId.size() == 1){
+                FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellById(keyId.get(0).toString());
+                WebDriver webDriver = hubEnvService.openOrCreateAndOpenEnvForFb(fbAccountForSell.getKeyId());
+                fbAccountForSellService.changeAccountName(webDriver, fbAccountForSell, accountName);
+                fbAccountForSellService.closeBrowser(fbAccountForSell);
+                return success();
+            }else {
+                return error("不支持对多个账号修改同一名字");
+            }
+        }
+        for (Long id : keyId){
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellById(Long.toString(id));
+            WebDriver webDriver = hubEnvService.openOrCreateAndOpenEnvForFb(fbAccountForSell.getKeyId());
+            fbAccountForSellService.changeRandomAccountName(webDriver, fbAccountForSell, accountName);
+            fbAccountForSellService.closeBrowser(fbAccountForSell);
+        }
+        return success();
+    }
+
+    /**
+     *
+     * 修改备注
+     */
+    @GetMapping("/changeAccountNote")
+    @ResponseBody
+    public AjaxResult changeAccountNote(@RequestParam("id") List<Long> id, @RequestParam(value = "accountNote", defaultValue = "") String accountNote){
+
+        List<FbAccountForSell> fbAccountForSellList = fbAccountForSellService.selectFbAccountForSellListByAccountIds(id.toArray(new Long[0]));
+        for (FbAccountForSell fbAccountForSell : fbAccountForSellList) {
+            if (accountNote.isEmpty()){
+                fbAccountForSell.setNote(accountNote);
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }else {
+            String note = fbAccountForSell.getNote();
+            fbAccountForSell.setNote(accountNote+" | "+note);
+            fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }
+        }
         return success();
     }
 
@@ -413,7 +552,8 @@ public class FbAccountForSellController extends BaseController {
         for (FbAccountForSell fbAccountForSell : fbAccountForSellList) {
             String createPageResult = null;
             try {
-                createPageResult = fbAccountForSellService.createPage(fbAccountForSell, pageName);
+                WebDriver webDriver = hubEnvService.openOrCreateAndOpenEnvForFb(fbAccountForSell.getKeyId());
+                createPageResult = fbAccountForSellService.createPage(webDriver, fbAccountForSell, pageName);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -432,6 +572,9 @@ public class FbAccountForSellController extends BaseController {
         return success();
     }
 
+    /**
+     * 获取邮件
+     */
     @GetMapping("/getEmail/{keyId}")
     @ResponseBody
     public AjaxResult getEmail(@PathVariable Long keyId){
@@ -451,36 +594,90 @@ public class FbAccountForSellController extends BaseController {
         return success(message);
     }
 
-    @GetMapping("/unlockEmail/{keyId}")
+    @GetMapping("/unlockEmail/{keyIds}")
     @ResponseBody
-    public AjaxResult unlockEmail(@PathVariable Long keyId){
-        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
-        Email email = emailService.selectEmailByEmail(fbAccountForSell.getEmail());
-        List<ProxyIp> proxyIps = proxyIpService.selectProxyIpListByStatus("1");
-        ProxyIp proxyIp = proxyIps.get(proxyIps.size() - 1);
-        emailService.unlockEmail(email,proxyIp);
+    public AjaxResult unlockEmail(@PathVariable Long[] keyIds){
 
+        for (Long keyId : keyIds){
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+            Email email = emailService.selectEmailByEmail(fbAccountForSell.getEmail());
+            if (email == null){
+                email = new Email();
+                email.setEmail(fbAccountForSell.getEmail());
+                email.setPassword(fbAccountForSell.getPassword());
+                email.setAccountId(fbAccountForSell.getId());
+                email.setIsBoundAccount("1");
+                emailService.insertEmail(email);
+            }
+            List<ProxyIp> proxyIps = proxyIpService.selectProxyIpListByStatus("1");
+            ProxyIp proxyIp = proxyIps.get(proxyIps.size() - 1);
+            Map<String, Object> map = hubEnvService.openOrCreateAndOpenEnvForEmail(proxyIp);
+            Object webDriver = map.get("webDriver");
+            emailService.unlockEmail(email, (WebDriver) webDriver);
+        }
         return success();
     }
+
+    @GetMapping("/unlockWSVerify/{keyIds}")
+    @ResponseBody
+    public AjaxResult unlockWSVerify(@PathVariable Long[] keyIds){
+        for (Long keyId : keyIds){
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+            HubEnv hubEnv = hubEnvService.selectHubEnvByAccountName(fbAccountForSell.getId());
+            WebDriver webDriver = hubEnvService.openOrCreateAndOpenEnvForFb(fbAccountForSell.getKeyId());
+            fbAccountForSellService.loginFbAccountForSell(webDriver,fbAccountForSell);
+            fbAccountForSellService.superAccount(webDriver,fbAccountForSell);
+            HubEnv latestHubEnv = hubEnvService.selectHubEnvByAccountName(fbAccountForSell.getId());
+//            hubEnvService.closeEnv(latestHubEnv);
+        }
+        return success();
+    }
+
 
     @PostMapping("/getAccountInfo")
     @ResponseBody
     public AjaxResult getAccountInfo(@RequestBody Map<String, Object> payload) throws JsonProcessingException {
+
         // 从请求体中解析 keyIds 和 selectedOptions
         List<String> keyIds = (List<String>) payload.get("keyIds");
         List<String> selectedOptions = (List<String>) payload.get("selectedOptions");
 
-        int count = 0; // 计数器
+
+        List<HubEnv> hubEnvList = new ArrayList<>();
+        List<FbAccountForSell> accountList = new ArrayList<>();
 
         for (String id : keyIds) {
-            try {
-                FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellById(id);
-                WebDriver webDriver = fbAccountForSellService.openBrowser(fbAccountForSell);
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellById(id);
 
+            //accountName 是账号ID
+            HubEnv hubEnv =
+                    hubEnvService.selectHubEnvByAccountName(fbAccountForSell.getId());
+
+            if (hubEnv == null) {
+                hubEnv = hubEnvService.createAndBindEnv(fbAccountForSell);
+            }
+
+            hubEnvList.add(hubEnv);
+            accountList.add(fbAccountForSell);
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+
+        for (int i = 0; i < hubEnvList.size(); i++) {
+
+            // ⭐ 关键：必须用 final 变量
+            final HubEnv hubEnv = hubEnvList.get(i);
+            final FbAccountForSell fbAccountForSell = accountList.get(i);
+
+            executor.submit(() -> {
+                WebDriver webDriver = null;
                 try {
+
+                    webDriver = hubstudioClient.openEnv(hubEnv.getContainerCode());
+
                     fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell);
 
-                    if (selectedOptions.contains("账号名字")) {
+                    if (selectedOptions.contains("单纯登录")) {
                         // TODO: 填入对应逻辑
                     }
                     if (selectedOptions.contains("名字好友")) {
@@ -504,28 +701,65 @@ public class FbAccountForSellController extends BaseController {
                     if (selectedOptions.contains("帖子数量")) {
                         fbAccountForSellService.getAccountPostCount(webDriver, fbAccountForSell);
                     }
+                    if(selectedOptions.contains("台湾号")){
+                        fbAccountForSellService.changeTWAccount(webDriver, fbAccountForSell);
+                    }
+
+                } catch (Exception e) {
+                    System.err.println("账号异常: " + fbAccountForSell.getId());
+                    e.printStackTrace();
+                } finally {
+                    webDriver.quit();
+                }
+            });
+        }
+
+        /*for (String id : keyIds) {
+            try {
+                FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellById(id);
+                WebDriver webDriver = hubEnvService.openOrCreateAndOpenEnvForFb(fbAccountForSell.getKeyId());
+
+                try {
+                    fbAccountForSellService.loginFbAccountForSell(webDriver, fbAccountForSell);
+
+                    if (selectedOptions.contains("单纯登录")) {
+                        // TODO: 填入对应逻辑
+                    }
+                    if (selectedOptions.contains("名字好友")) {
+                        fbAccountForSellService.getAccountNameAndFriendNumber(webDriver, fbAccountForSell);
+                    }
+                    if (selectedOptions.contains("登录记录")) {
+                        fbAccountForSellService.getAccountLoginLog(webDriver, fbAccountForSell);
+                    }
+                    if (selectedOptions.contains("是否商城")) {
+                        fbAccountForSellService.getIsMarketplace(webDriver, fbAccountForSell);
+                    }
+                    if (selectedOptions.contains("主页数量")) {
+                        fbAccountForSellService.getAccountPage(webDriver, fbAccountForSell);
+                    }
+                    if (selectedOptions.contains("BM数量")) {
+                        fbAccountForSellService.getAccountBm(webDriver, fbAccountForSell);
+                    }
+                    if (selectedOptions.contains("广告状态")) {
+                        fbAccountForSellService.getAccountAdStatus(webDriver, fbAccountForSell);
+                    }
+                    if (selectedOptions.contains("帖子数量")) {
+                        fbAccountForSellService.getAccountPostCount(webDriver, fbAccountForSell);
+                    }
+                    if(selectedOptions.contains("台湾号")){
+                        fbAccountForSellService.changeTWAccount(webDriver, fbAccountForSell);
+                    }
                 } catch (Exception innerEx) {
                     System.err.println("处理账号 [" + id + "] 时出错: " + innerEx.getMessage());
                     innerEx.printStackTrace();
                 } finally {
                     webDriver.quit(); // 无论是否出错都关闭浏览器
-                    count++;
-                    if (count > 1 && count % 5 == 0) {
-//                    if (count > 1) {
-                        System.out.println("该换了");
-                        seleniumService.changeIP();// 每处理5个账号执行一次方法A
-                        seleniumService.threadSleep(30);
-                    }
                 }
-
-
             } catch (Exception outerEx) {
                 System.err.println("账号 [" + id + "] 无法初始化或登录，跳过。错误信息: " + outerEx.getMessage());
                 outerEx.printStackTrace();
             }
-
-        }
-
+        }*/
         return success();
     }
 
@@ -540,6 +774,83 @@ public class FbAccountForSellController extends BaseController {
 
         return success(code);
     }
+
+    @GetMapping("/loginEmail/{keyId}")
+    @ResponseBody
+    public AjaxResult loginEmail(@PathVariable Long keyId){
+        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+        List<ProxyIp> proxyIps = proxyIpService.selectProxyIpListByStatus("1");
+        ProxyIp proxyIp = proxyIps.get(proxyIps.size() - 1);
+        emailService.tempLogin(fbAccountForSell.getEmail(),fbAccountForSell.getEmailPassword(),proxyIp);
+        return success();
+    }
+
+    @GetMapping("/loginInPhone/{keyId}")
+    @ResponseBody
+    public AjaxResult loginInPhone(@PathVariable Long keyId){
+        // FB账号
+        FbAccountForSell fbAccountForSell =
+                fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+
+        if (fbAccountForSell == null){
+            return error("账号不存在");
+        }
+
+        // 2️⃣ 先查是否已有绑定设备
+        CreateDevice createDevice =
+                createDeviceService.selectCreateDeviceByCreateId(fbAccountForSell.getId());
+
+        // 3️⃣ 如果没有，再查空闲设备
+        if (createDevice == null){
+            createDevice = createDeviceService.selectMinNoAccountDevice();
+        }
+
+        // 4️⃣ 如果还是没有
+        if (createDevice == null){
+            return error("没有可用设备");
+        }
+
+        try {
+
+            // 锁定设备（防止并发重复使用）
+            createDevice.setCreateAccountId(
+                    fbAccountForSell.getId()
+            );
+
+            createDeviceService.updateCreateDevice(createDevice);
+
+            // 打开APP
+            AppiumDriver appiumDriver =
+                    createDeviceService.openApp(createDevice);
+
+            createDevice.setCreateAccountId(fbAccountForSell.getId());
+            createDeviceService.updateCreateDevice(createDevice);
+
+            String oldNote = fbAccountForSell.getNote();
+            if(!oldNote.contains("已登手机")){
+                fbAccountForSell.setNote("已登手机|"+oldNote);
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }
+
+            // 登录
+            createDeviceService.loginAccount(
+                    appiumDriver,
+                    fbAccountForSell
+            );
+
+            return success("登录成功");
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return error(e.getMessage());
+
+        }
+    }
+
+
+
 
 }
 

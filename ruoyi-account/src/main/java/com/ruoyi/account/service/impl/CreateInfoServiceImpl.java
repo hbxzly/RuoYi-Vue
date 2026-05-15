@@ -14,11 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.ruoyi.account.domain.Email;
-import com.ruoyi.account.domain.FbAccount;
+import com.ruoyi.account.domain.*;
 import com.ruoyi.account.mapper.EmailMapper;
-import com.ruoyi.account.service.IEmailService;
-import com.ruoyi.account.service.ISeleniumService;
+import com.ruoyi.account.service.*;
 import com.ruoyi.account.util.*;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
@@ -28,6 +26,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.openqa.selenium.*;
+import org.openqa.selenium.Point;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -37,8 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import com.ruoyi.account.mapper.CreateInfoMapper;
-import com.ruoyi.account.domain.CreateInfo;
-import com.ruoyi.account.service.ICreateInfoService;
 
 
 /**
@@ -63,6 +60,12 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
 
     @Autowired
     private IEmailService emailService;
+
+    @Autowired
+    private IOperationLogService operationLogService;
+
+    @Autowired
+    private IPostsService postsService;
 
     //webDriver集合
     HashMap<String,WebDriver> webDriverMap = new HashMap<>();
@@ -234,11 +237,11 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
     @Override
     public void createAccountByOE(WebDriver webDriver, CreateInfo createInfo) throws InterruptedException {
 //        String projectId = "907996----U165DS";
-        String projectId = "907996----97G9AP";
+        String projectId = "936068----SBE1P2";
 //        String projectId = "907996----B22T60";
 //        String projectId = "907996";
 //        String mobile = DefuUtil.getMobile(projectId,"","192","");
-        String mobile = DefuUtil.getMobile(projectId,"170","192");
+        String mobile = DefuUtil.getMobile(projectId,"","0","192");
         createInfo.setPhone(mobile);
         createInfoMapper.updateCreateInfo(createInfo);
 
@@ -536,14 +539,10 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
         if (isLogin(createInfo, webDriver)){
             return "ok";
         }
+        WebDriverWait webDriverWait = new WebDriverWait(webDriver, 10, 1);
+        seleniumService.threadSleep(2);
         try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            WebDriverWait wait = new WebDriverWait(webDriver, 10, 1);
-            WebElement email = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("email")));
+            WebElement email = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.name("email")));
             WebElement password = webDriver.findElement(By.name("pass"));
             try {
                 email.click();
@@ -556,31 +555,54 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
                         .perform();
                 Thread.sleep(500);
                 actions.sendKeys(Keys.DELETE).perform();
-                for (char c : createInfo.getId().toCharArray()) {
-                    email.sendKeys(String.valueOf(c));
-                    // 可选：添加延迟，模拟更真实的逐字符输入
-                    Thread.sleep(100); // 延迟100毫秒
+                if (createInfo.getId() ==null || "".equals(createInfo.getId())) {
+                    for (char c : createInfo.getEmail().toCharArray()) {
+                        email.sendKeys(String.valueOf(c));
+                        // 可选：添加延迟，模拟更真实的逐字符输入
+                        Thread.sleep(100); // 延迟100毫秒
+                    }
+                    Thread.sleep(1000);
+                    password.click();
+                    // 模拟Ctrl+A组合键
+                    actions.keyDown(Keys.CONTROL)
+                            .sendKeys("a")
+                            .keyUp(Keys.CONTROL)
+                            .perform();
+                    Thread.sleep(500);
+                    actions.sendKeys(Keys.DELETE).perform();
+                    for (char c : createInfo.getPassword().toCharArray()) {
+                        password.sendKeys(String.valueOf(c));
+                        // 可选：添加延迟，模拟更真实的逐字符输入
+                        Thread.sleep(100); // 延迟100毫秒
+                    }
+                    Thread.sleep(2000);
+                }else {
+                    for (char c : createInfo.getId().toCharArray()) {
+                        email.sendKeys(String.valueOf(c));
+                        // 可选：添加延迟，模拟更真实的逐字符输入
+                        Thread.sleep(100); // 延迟100毫秒
+                    }
+                    Thread.sleep(1000);
+                    password.click();
+                    // 模拟Ctrl+A组合键
+                    actions.keyDown(Keys.CONTROL)
+                            .sendKeys("a")
+                            .keyUp(Keys.CONTROL)
+                            .perform();
+                    Thread.sleep(500);
+                    actions.sendKeys(Keys.DELETE).perform();
+                    for (char c : createInfo.getPassword().toCharArray()) {
+                        password.sendKeys(String.valueOf(c));
+                        // 可选：添加延迟，模拟更真实的逐字符输入
+                        Thread.sleep(100); // 延迟100毫秒
+                    }
+                    Thread.sleep(2000);
                 }
-                Thread.sleep(1000);
-                password.click();
-                // 模拟Ctrl+A组合键
-                actions.keyDown(Keys.CONTROL)
-                        .sendKeys("a")
-                        .keyUp(Keys.CONTROL)
-                        .perform();
-                Thread.sleep(500);
-                actions.sendKeys(Keys.DELETE).perform();
-                for (char c : createInfo.getPassword().toCharArray()) {
-                    password.sendKeys(String.valueOf(c));
-                    // 可选：添加延迟，模拟更真实的逐字符输入
-                    Thread.sleep(100); // 延迟100毫秒
-                }
-                Thread.sleep(2000);
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            WebElement loginButton = webDriver.findElement(By.name("login"));
-            loginButton.click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[text()='登录']"))).click();
             boolean b = seleniumService.waitingForContent(10, webDriver, "• Facebook");
             seleniumService.threadSleep(1);
             String pageSource = webDriver.getPageSource();
@@ -597,7 +619,7 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
             }
             Element element = document.select("input[type=text]").first();
             if (element != null) {
-                WebElement approvalsCode = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']")));
+                WebElement approvalsCode = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']")));
                 approvalsCode.sendKeys(FBAccountUtil.getGoogleVerificationCode(createInfo.getSecretKey()));
                 approvalsCode.sendKeys(Keys.ENTER);
                 if (seleniumService.waitingForContent(2, webDriver, "currentColor")) {
@@ -655,9 +677,9 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
      */
     @Override
     public WebDriver openBrowser(CreateInfo createInfo) {
-        if (webDriverMap.containsKey(createInfo.getId())){
+        /*if (webDriverMap.containsKey(createInfo.getId())){
             seleniumService.showBrowser(processMap.get(createInfo.getId()));
-        }
+        }*/
         List<Integer> beforeListWindows = seleniumService.getListWindows();
         WebDriver webDriver = seleniumService.openBrowser(BrowserConfig.getCreateInfoBrowserConfig(createInfo));
         List<Integer> afterListWindows = seleniumService.getListWindows();
@@ -687,21 +709,20 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
     @Override
     public String updateAccountAvatar(WebDriver webDriver, CreateInfo createInfo) {
 
-        if (!isLogin(createInfo, webDriver)){
-            createInfo.setCreateStatus("被锁");
-            updateCreateInfo(createInfo);
-            return "error";
-        }
 
         Integer i = processMap.get(createInfo.getId());
         seleniumService.showBrowser(i);
 
-        webDriver.get("https://www.facebook.com/" + createInfo.getId());
+        webDriver.get("https://www.facebook.com/profile.php?id=" + createInfo.getId()+"&sk=photos");
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 25, 1);
 
-        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@aria-label='更换头像']"))).click();
+        try {
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space()='添加照片/视频' or normalize-space()='新增相片／影片']"))).click();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("没点到");
+        }
         seleniumService.threadSleep(1);
-        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[text()='上传照片']"))).click();
         // 等待一段时间以确保文件对话框已打开（可以根据实际情况调整等待时间）
         seleniumService.threadSleep(1);
         String filePath = "";
@@ -719,9 +740,23 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
         seleniumService.simulateKeyPress(KeyEvent.VK_ENTER);
         seleniumService.threadSleep(3);
         try {
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[text()='保存']"))).click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated( By.xpath("//div[@role='button' and @aria-label='发帖' or @aria-label='發佈']"))).click();
+            seleniumService.threadSleep(10);
+            webDriver.navigate().refresh();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@aria-label='这张照片的更多编辑选项' or @aria-label='適用此相片的更多選項']"))).click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[text()='设为头像' or text()='設定為大頭貼照']"))).click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[text()='保存' or text()='儲存']"))).click();
+
         } catch (Exception e) {
-            createInfo.setNote("头像设置失败");
+            e.printStackTrace();
+            String oldNote = createInfo.getNote();
+
+            if (oldNote == null || oldNote.isEmpty()) {
+                createInfo.setNote("头像设置失败");
+            } else {
+                createInfo.setNote(oldNote + " | 头像设置失败");
+            }
+
             updateCreateInfo(createInfo);
         }
         seleniumService.threadSleep(5);
@@ -898,7 +933,7 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
         String fa = "";
         try {
             seleniumService.threadSleep(10);
-            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='button' and text()='复制密钥' or text()='' ]"))).click();
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='button' and text()='复制密钥' or text()='複製金鑰' ]"))).click();
             seleniumService.threadSleep(2);
             // 获取系统剪贴板
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -939,7 +974,7 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
         if (!fa.equals("")){
             seleniumService.threadSleep(2);
             try {
-                List<WebElement> elements = webDriver.findElements(By.xpath("//span[text()='继续']"));
+                List<WebElement> elements = webDriver.findElements(By.xpath("//span[text()='输入验证码' or text()='輸入驗證碼']"));
                 elements.get(elements.size()-1).click();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -949,21 +984,18 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@maxlength='6']"))).sendKeys(verificationCode);
             try {
                 seleniumService.threadSleep(2);
-                List<WebElement> elements = webDriver.findElements(By.xpath("//span[text()='继续']"));
-                elements.get(elements.size()-1).click();
+                List<WebElement> elements = webDriver.findElements(By.xpath("//span[text()='继续' or text()='繼續']"));
+                elements.get(elements.size() - 1).click();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            seleniumService.threadSleep(5);;
-            pageSource = webDriver.getPageSource();
-            if (pageSource.contains("前往你的身份验证应用")){
-                seleniumService.threadSleep(30);
-                String erificationCode = FBAccountUtil.getGoogleVerificationCode(fa);
-                List<WebElement> inputElements = webDriver.findElements(By.xpath("//input[@type='text']"));
-                inputElements.get(inputElements.size()-1).sendKeys(erificationCode);
-                List<WebElement> spanElements = webDriver.findElements(By.xpath("//span[text()='继续']"));
-                spanElements.get(spanElements.size()-1).click();
-            }
+
+
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='password']"))).sendKeys(createInfo.getPassword());
+            List<WebElement> elements = webDriver.findElements(By.xpath("//span[text()='继续' or text()='繼續']"));
+            elements.get(elements.size() - 1).click();
+
+
             try {
                 webDriverWait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()='完成']"))).click();
             } catch (Exception e) {
@@ -973,7 +1005,14 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
             updateCreateInfo(createInfo);
             return "";
         }else {
-            createInfo.setNote("添加双重验证码失败");
+            String oldNote = createInfo.getNote();
+
+            if (oldNote == null || oldNote.isEmpty()) {
+                createInfo.setNote("添加双重验证码失败");
+            } else {
+                createInfo.setNote(oldNote + " | 添加双重验证码失败");
+            }
+
             updateCreateInfo(createInfo);
             return "";
         }
@@ -1015,6 +1054,125 @@ public class CreateInfoServiceImpl implements ICreateInfoService {
         ((JavascriptExecutor) webDriver).executeScript("window.open('https://outlook.live.com/mail/0/?refd=account.microsoft.com&fref=home.banner.viewinbox', '_blank');");
 
 
+        return "";
+    }
+
+    /**
+     * 删除电话
+     *
+     * @param webDriver
+     * @param createInfo
+     * @return
+     */
+    @Override
+    public String deleteAccountPhoneNumber(WebDriver webDriver, CreateInfo createInfo) {
+        webDriver.get("https://accountscenter.facebook.com/personal_info/contact_points/?contact_point_type=phone_number&contact_point_value=%2B86"+createInfo.getPhone()+"&dialog_type=contact_detail");
+        WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[normalize-space(text())='删除手机号']"))).click();
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space(text())='删除']"))).click();
+        boolean b = seleniumService.waitingForContent(10, webDriver, "你已删除之前的手机号");
+        if (b){
+            createInfo.setPhone("");
+            updateCreateInfo(createInfo);
+            return "1";
+        }
+        return "";
+    }
+
+    /**
+     * 改成繁体
+     *
+     * @param webDriver
+     * @param createInfo
+     * @return
+     */
+    @Override
+    public String changeToTraditional(WebDriver webDriver, CreateInfo createInfo) {
+        webDriver.get("https://www.facebook.com/settings/?tab=language_and_region");
+        WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space(text())='账户语言']"))).click();
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@placeholder='搜索语言']"))).sendKeys("台");
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space(text())='繁体中文（台湾）']"))).click();
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space(text())='确定']"))).click();
+        webDriver.get("https://www.facebook.com/");
+        return "";
+    }
+
+    /**
+     * 发帖
+     *
+     * @param webDriver
+     * @param createInfo
+     * @return
+     */
+    @Override
+    public String posts(WebDriver webDriver, CreateInfo createInfo) {
+        OperationLog operationLog = new OperationLog();
+
+        try {
+            webDriver.manage().window().maximize();
+            seleniumService.simulateKeyPress(KeyEvent.VK_ESCAPE);
+            int[] numbers = {3, 4, 5};
+            Random random = new Random();
+            int randomIndex = random.nextInt(numbers.length);
+            for (int i = 0; i < numbers[randomIndex]; i++) {
+                seleniumService.simulateKeyPress(KeyEvent.VK_PAGE_DOWN);
+                seleniumService.threadSleep(1);
+            }
+            seleniumService.simulateKeyPress(KeyEvent.VK_HOME);
+            seleniumService.threadSleep(2);
+            WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[contains(normalize-space(.), '在想些什麼')]"))).click();
+            seleniumService.threadSleep(1);
+            String pageSource = webDriver.getPageSource();
+            //如果仅朋友可见
+            String xpath = "";
+            if (pageSource.contains("https://static.xx.fbcdn.net/rsrc.php/v4/yJ/r/zPcex_q0TM1.png")) {
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v4/yJ/r/zPcex_q0TM1.png']"))).click();
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v4/yC/r/uaBHGktnPxt.png']"))).click();
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space(text())='完成']"))).click();
+
+            }
+
+            Posts posts = new Posts();
+            posts.setType("fbAccount");
+            List<Posts> postsList = postsService.selectPostsList(posts);
+            random = new Random();
+            randomIndex = random.nextInt(postsList.size());
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='textbox' and @contenteditable='true']"))).sendKeys(postsList.get(randomIndex).getContent());
+            seleniumService.threadSleep(2);
+            pageSource = webDriver.getPageSource();
+            if (pageSource.contains("role=\"dialog\"")) {
+                if (pageSource.contains("<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">Post</span>")) {
+                    webDriver.findElement(By.xpath("//span[text()='Post']")).click();
+                }
+                if (pageSource.contains("<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">發佈</span>")) {
+                    webDriver.findElement(By.xpath("//span[text()='發佈']")).click();
+                }
+                if (pageSource.contains("<span class=\"x1lliihq x6ikm8r x10wlt62 x1n2onr6 xlyipyv xuxw1ft\">发帖</span>")) {
+                    webDriver.findElement(By.xpath("//span[text()='发帖']")).click();
+                }
+            }
+            seleniumService.threadSleep(2);
+            pageSource = webDriver.getPageSource();
+            if (pageSource.contains(postsList.get(randomIndex).getContent())){
+                operationLog.setOperationAccount(createInfo.getId());
+                operationLog.setOperationAccountKeyId(createInfo.getKeyId());
+                operationLog.setOperationContent("新号发帖");
+                operationLog.setOperationStatus("成功");
+                operationLog.setOperationTime(new Date());
+                operationLogService.insertOperationLog(operationLog);
+            }
+            seleniumService.simulateKeyPress(KeyEvent.VK_F5);
+            random = new Random();
+            randomIndex = random.nextInt(numbers.length);
+            for (int i = 0; i < numbers[randomIndex]; i++) {
+                seleniumService.simulateKeyPress(KeyEvent.VK_PAGE_DOWN);
+                seleniumService.threadSleep(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return "";
     }
 

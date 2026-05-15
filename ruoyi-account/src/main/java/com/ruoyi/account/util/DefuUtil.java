@@ -157,7 +157,7 @@ public class DefuUtil {
      * 获取号码
      * @return
      */
-    public static String getMobile(String projectId, String scope, String scope_black, String operator){
+    public static String getMobile(String projectId, String scope, String operator, String scope_black){
 
         try {
             // 指定要请求的URL

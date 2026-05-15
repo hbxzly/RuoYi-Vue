@@ -24,6 +24,13 @@ public interface ISeleniumService {
 
     /**
      * 打开打单个浏览器
+     * @param configMap
+     * @return
+     */
+    WebDriver openBitBrowser(Map<String,String> configMap);
+
+    /**
+     * 打开打单个浏览器
      * @param fbAccountForSell
      * @return
      */

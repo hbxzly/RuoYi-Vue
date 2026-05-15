@@ -8,23 +8,29 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.Cookie;
+import org.openqa.selenium.WebDriver;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JsonDataUtil {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    public static String getValueByNodeName(String jsonData, String nodeName) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(jsonData);
-        return jsonNode.get(nodeName).asText();
+    public static String getValueByNodeName(String json, String... nodes) {
+        try {
+            JsonNode node = MAPPER.readTree(json);
+            for (String n : nodes) {
+                if (node == null) return null;
+                node = node.get(n);
+            }
+            return node == null ? null : node.asText();
+        } catch (Exception e) {
+            throw new RuntimeException("JSON解析失败", e);
+        }
     }
-
     /**
      * 返回字符串集合：个人号ID-广告账户名称-广告账户ID
      * @param id
@@ -76,6 +82,37 @@ public class JsonDataUtil {
             return matcher.group(1);
         } else {
             return null;
+        }
+    }
+
+    /**
+     * 获取当前 WebDriver 的所有 cookies 并拼接成字符串
+     * 格式：name=value;name=value;...
+     */
+    public static String getCookiesAsString(WebDriver driver) {
+        Set<Cookie> cookies = driver.manage().getCookies();
+        StringJoiner joiner = new StringJoiner(";");
+        for (Cookie cookie : cookies) {
+            joiner.add(cookie.getName() + "=" + cookie.getValue());
+        }
+        return joiner.toString();
+    }
+
+    /**
+     * 把数据库里取出的 cookie 字符串重新导入到浏览器
+     */
+    public static void addCookiesToDriver(WebDriver driver, String cookieStr) {
+        if (cookieStr == null || cookieStr.isEmpty()) {
+            return;
+        }
+        String[] cookieArray = cookieStr.split(";");
+        for (String cookieItem : cookieArray) {
+            String[] parts = cookieItem.split("=", 2); // 只分割成 name 和 value
+            if (parts.length == 2) {
+                String name = parts[0].trim();
+                String value = parts[1].trim();
+                driver.manage().addCookie(new Cookie(name, value));
+            }
         }
     }
 

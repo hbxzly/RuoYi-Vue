@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.account.mapper.AccountNameMapper">
+    
+    <resultMap type="AccountName" id="AccountNameResult">
+        <result property="keyId"    column="key_id"    />
+        <result property="name"    column="name"    />
+        <result property="gender"    column="gender"    />
+        <result property="isUse"    column="is_use"    />
+    </resultMap>
+
+    <sql id="selectAccountNameVo">
+        select key_id, name, gender, is_use from account_name
+    </sql>
+
+    <select id="selectAccountNameList" parameterType="AccountName" resultMap="AccountNameResult">
+        <include refid="selectAccountNameVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="gender != null  and gender != ''"> and gender = #{gender}</if>
+            <if test="isUse != null  and isUse != ''"> and is_use = #{isUse}</if>
+        </where>
+    </select>
+    
+    <select id="selectAccountNameByKeyId" parameterType="Long" resultMap="AccountNameResult">
+        <include refid="selectAccountNameVo"/>
+        where key_id = #{keyId}
+    </select>
+        
+    <insert id="insertAccountName" parameterType="AccountName" useGeneratedKeys="true" keyProperty="keyId">
+        insert into account_name
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="gender != null">gender,</if>
+            <if test="isUse != null">is_use,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="gender != null">#{gender},</if>
+            <if test="isUse != null">#{isUse},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAccountName" parameterType="AccountName">
+        update account_name
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="isUse != null">is_use = #{isUse},</if>
+        </trim>
+        where key_id = #{keyId}
+    </update>
+
+    <delete id="deleteAccountNameByKeyId" parameterType="Long">
+        delete from account_name where key_id = #{keyId}
+    </delete>
+
+    <delete id="deleteAccountNameByKeyIds" parameterType="String">
+        delete from account_name where key_id in 
+        <foreach item="keyId" collection="array" open="(" separator="," close=")">
+            #{keyId}
+        </foreach>
+    </delete>
+</mapper>

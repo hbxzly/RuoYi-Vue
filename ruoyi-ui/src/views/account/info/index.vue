@@ -1,6 +1,14 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="ID" prop="id">
+        <el-input
+          v-model="queryParams.id"
+          placeholder="请输入id"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="邮箱" prop="email">
         <el-input
           v-model="queryParams.email"
@@ -232,7 +240,7 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange" height="500">
+    <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange" height="850">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" prop="keyId" />
       <el-table-column label="ID" align="center" prop="id" />
@@ -352,6 +360,9 @@
         <el-form-item label="创建状态" prop="createStatus">
           <el-input v-model="form.createStatus" placeholder="请输入创建状态" />
         </el-form-item>
+        <el-form-item label="账号其他信息" prop="accountOtherInfo">
+          <el-input v-model="form.accountOtherInfo" placeholder="请输入账号其他信息" />
+        </el-form-item>
         <el-form-item label="备注" prop="note">
           <el-input v-model="form.note" placeholder="请输入备注" />
         </el-form-item>
@@ -438,6 +449,7 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
+        id: null,
         email: null,
         password: null,
         emailPassword: null,
@@ -489,7 +501,7 @@ export default {
         title: "",
       },
       checkedUpdateOption:[],
-      options: ['上传头像','添加邮箱','开启双重验证','发帖','登录邮箱','删除手机'],
+      options: ['上传头像','添加邮箱','开启双重验证','发帖','登录邮箱','删除手机','改成繁体'],
       isIndeterminate: true,
       checkAll: false
     };

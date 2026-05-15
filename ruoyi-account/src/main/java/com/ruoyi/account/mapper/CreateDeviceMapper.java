@@ -20,6 +20,23 @@ public interface CreateDeviceMapper
     public CreateDevice selectCreateDeviceByKeyId(Long keyId);
 
     /**
+     * 查询创建设备
+     *
+     * @param keyIds 创建设备主键
+     * @return 创建设备
+     */
+    public List<CreateDevice> selectCreateDeviceByKeyIds(Long[] keyIds);
+
+
+    /**
+     * 通过账号ID查找设备
+     * @param id
+     * @return
+     */
+    public CreateDevice selectCreateDeviceByCreateId(String id);
+
+
+    /**
      * 查询创建设备列表
      * 
      * @param createDevice 创建设备
@@ -58,4 +75,10 @@ public interface CreateDeviceMapper
      * @return 结果
      */
     public int deleteCreateDeviceByKeyIds(Long[] keyIds);
+
+    /**
+     * 搜索没绑定账号设备
+     * @return
+     */
+    public CreateDevice selectMinNoAccountDevice();
 }

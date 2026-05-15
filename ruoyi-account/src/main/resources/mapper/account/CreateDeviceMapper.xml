@@ -32,7 +32,43 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <include refid="selectCreateDeviceVo"/>
         where key_id = #{keyId}
     </select>
-        
+
+    <select id="selectMinNoAccountDevice"
+            resultMap="CreateDeviceResult">
+
+        SELECT *
+        FROM create_device
+        WHERE create_account_id IS NULL
+           OR create_account_id = ''
+        ORDER BY key_id ASC
+            LIMIT 1
+
+    </select>
+
+    <select id="selectCreateDeviceByCreateId"
+            parameterType="String"
+            resultMap="CreateDeviceResult">
+        SELECT *
+        FROM create_device
+        WHERE create_account_id = #{id}
+            LIMIT 1
+    </select>
+
+    <select id="selectCreateDeviceByKeyIds"
+            parameterType="long"
+            resultMap="CreateDeviceResult">
+        SELECT *
+        FROM create_device
+        <where>
+            <if test="array != null and array.length > 0">
+                key_id IN
+                <foreach collection="array" item="keyId" open="(" separator="," close=")">
+                    #{keyId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
     <insert id="insertCreateDevice" parameterType="CreateDevice" useGeneratedKeys="true" keyProperty="keyId">
         insert into create_device
         <trim prefix="(" suffix=")" suffixOverrides=",">

@@ -17,10 +17,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="创建账号ID" prop="createAccountId">
+      <el-form-item label="账号ID" prop="createAccountId">
         <el-input
           v-model="queryParams.createAccountId"
-          placeholder="请输入创建账号ID"
+          placeholder="请输入账号ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -100,6 +100,16 @@
           v-hasPermi="['account:device:edit']"
         >获取</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-document"
+          size="mini"
+          :disabled="multiple"
+          @click="handleChangeNote"
+        >修改备注</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -108,8 +118,8 @@
       <el-table-column label="主键ID" align="center" prop="keyId" />
       <el-table-column label="设备名称" align="center" prop="deviceName" />
       <el-table-column label="包名" align="center" prop="packageName" />
-      <el-table-column label="创建账号ID" align="center" prop="createAccountId" />
-      <el-table-column label="创建日期" align="center" prop="createDate" width="180">
+      <el-table-column label="账号ID" align="center" prop="createAccountId" />
+      <el-table-column label="日期" align="center" prop="createDate" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createDate, '{y}-{m}-{d}') }}</span>
         </template>
@@ -159,7 +169,7 @@
         <el-form-item label="包名" prop="packageName">
           <el-input v-model="form.packageName" placeholder="请输入包名" />
         </el-form-item>
-        <el-form-item label="创建账号ID" prop="createAccountId">
+        <el-form-item label="账号ID" prop="createAccountId">
           <el-input v-model="form.createAccountId" placeholder="请输入创建账号ID" />
         </el-form-item>
         <el-form-item label="创建日期" prop="createDate">
@@ -179,11 +189,25 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!--修改备注-->
+    <el-dialog :title="title" :visible.sync="openChangeNote" width="500px" append-to-body>
+      <el-form ref="changeNoteForm" :model="changeNoteFormData"  size="medium" label-width="100px">
+        <el-form-item label="备注" prop="note">
+          <el-input v-model="changeNoteFormData.note" placeholder="备注" clearable :style="{width: '100%'}">
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="closeChangeNote">取消</el-button>
+        <el-button type="primary" @click="submitChangeNote">确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listDevice, getDevice, delDevice, addDevice, updateDevice, getDevices,openDevice } from "@/api/account/device";
+import { listDevice, getDevice, delDevice, addDevice, updateDevice, getDevices, openDevice, changeNote } from "@/api/account/device";
 
 export default {
   name: "Device",
@@ -199,6 +223,14 @@ export default {
       multiple: true,
       // 显示搜索条件
       showSearch: true,
+      //修改备注
+      openChangeNote: false,
+      //修改对话框
+      changeNoteFormData: {
+        keyId: null,
+        note: ""
+      },
+
       // 总条数
       total: 0,
       // 创建设备表格数据
@@ -334,6 +366,36 @@ export default {
     handleGetDevices() {
       getDevices().then(response => {
         this.$modal.msgSuccess("获取成功");
+      });
+    },
+
+  handleChangeNote(){
+    this.title = "修改备注";
+    this.openChangeNote = true;
+  },
+
+    //重置
+    resetChangeNote() {
+      this.changeNoteFormData = {
+        keyId: null,
+        note: ""
+      };
+      this.$refs.changeNoteForm.resetFields();
+    },
+
+    closeChangeNote() {
+      this.openChangeNote = false;
+      this.resetChangeNote();
+    },
+
+    /** 创建修改备注弹出窗确定按钮 */
+    submitChangeNote(){
+      const keyIds = this.ids;
+      const note = this.changeNoteFormData.note;
+      this.resetChangeNote();// 提交后重置表单
+      this.openChangeNote = false;
+      changeNote(keyIds,note).then(response => {
+        this.$modal.msgSuccess("修改成功");
       });
     }
   }

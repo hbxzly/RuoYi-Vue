@@ -61,3 +61,17 @@ export function unlockEmail(email,unlockType){
     }
   })
 }
+
+export function tempEmailLogin(tempEmail){
+  return request({
+    url: '/account/email/tempEmailLogin/'+tempEmail,
+    method: 'get',
+  })
+}
+
+export function loginEmail(keyId){
+  return request({
+    url: '/account/email/loginEmail/'+keyId,
+    method: 'get',
+  })
+}

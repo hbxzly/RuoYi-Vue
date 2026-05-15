@@ -147,4 +147,28 @@ public interface ICreateInfoService {
      */
     public String loginEmail(WebDriver webDriver, CreateInfo createInfo);
 
+    /**
+     * 删除电话
+     * @param webDriver
+     * @param createInfo
+     * @return
+     */
+    public String deleteAccountPhoneNumber(WebDriver webDriver, CreateInfo createInfo);
+
+    /**
+     * 改成繁体
+     * @param webDriver
+     * @param createInfo
+     * @return
+     */
+    public String changeToTraditional(WebDriver webDriver, CreateInfo createInfo);
+
+    /**
+     * 发帖
+     * @param webDriver
+     * @param createInfo
+     * @return
+     */
+    public String posts(WebDriver webDriver, CreateInfo createInfo);
+
 }

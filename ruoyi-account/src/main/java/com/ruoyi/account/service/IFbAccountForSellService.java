@@ -106,9 +106,9 @@ public interface IFbAccountForSellService
     /**
      * 获取名字和好友数量（简体）
      * @param webDriver
-     * @param fbAccountForSell
+     * @param fbAccount
      */
-    public void getAccountNameAndFriendNumber(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+    public void getAccountNameAndFriendNumber(WebDriver webDriver, FbAccountForSell fbAccount);
 
     /**
      * 获取商城信息（简体）
@@ -169,6 +169,13 @@ public interface IFbAccountForSellService
     public List<FbAccountForSell> selectFbAccountForSellListByAccountIds(Long[] ids);
 
     /**
+     * 查询账号
+     * @param ids
+     * @return
+     */
+    public List<FbAccountForSell> selectFbAccountForSellListByAccountIds(List<Long> ids);
+
+    /**
      * 检查是否登录
      * @param webDriver
      * @return
@@ -209,6 +216,12 @@ public interface IFbAccountForSellService
     public WebDriver openBrowser(FbAccountForSell fbAccountForSell);
 
     /**
+     * 关闭浏览器
+     * @param fbAccountForSell
+     */
+    public void closeBrowser(FbAccountForSell fbAccountForSell);
+
+    /**
      * 显示浏览器
      * @param fbAccountForSell
      */
@@ -217,10 +230,11 @@ public interface IFbAccountForSellService
     /**
      * 创建主页
      * @param fbAccountForSell
+     * @param webDriver
      * @param pageName
      * @return
      */
-    public String createPage(FbAccountForSell fbAccountForSell,String pageName);
+    public String createPage(WebDriver webDriver, FbAccountForSell fbAccountForSell,String pageName);
 
     /**
      * 打开比特浏览器
@@ -243,7 +257,15 @@ public interface IFbAccountForSellService
      * @param newName
      * @return
      */
-    public String changeAccountName(FbAccountForSell fbAccountForSell, String newName);
+    public String changeAccountName(WebDriver webDriver, FbAccountForSell fbAccountForSell, String newName);
+
+    /**
+     * 修改随机名字
+     * @param webDriver
+     * @param newName
+     * @return
+     */
+    public String changeRandomAccountName(WebDriver webDriver, FbAccountForSell fbAccountForSell, String newName);
 
 
     /**
@@ -252,5 +274,21 @@ public interface IFbAccountForSellService
      * @return
      */
     public List<FbAccountForSell> batchSearch(FbAccountForSell account);
+
+    /**
+     *
+     * @param webDriver
+     * @param fbAccountForSell
+     * @return
+     */
+    public String superAccount(WebDriver webDriver, FbAccountForSell fbAccountForSell);
+
+    /**
+     * 改成台湾号
+     * @param webDriver
+     * @param fbAccountForSell
+     * @return
+     */
+    public String changeTWAccount(WebDriver webDriver, FbAccountForSell fbAccountForSell);
 
 }

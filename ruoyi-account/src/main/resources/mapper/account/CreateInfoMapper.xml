@@ -46,6 +46,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="emailPassword != null  and emailPassword != ''"> and email_password = #{emailPassword}</if>
             <if test="phone != null  and phone != ''"> and phone = #{phone}</if>
             <if test="secretKey != null  and secretKey != ''"> and secret_key = #{secretKey}</if>
+            <if test="id != null  and id != ''"> and id = #{id}</if>
             <if test="nickName != null  and nickName != ''"> and nick_name like concat('%', #{nickName}, '%')</if>
             <if test="birthday != null  and birthday != ''"> and birthday = #{birthday}</if>
             <if test="isMarketplace != null  and isMarketplace != ''"> and is_marketplace = #{isMarketplace}</if>

@@ -98,7 +98,14 @@ public interface FbAccountForSellMapper
      * @param ids
      * @return
      */
-    public List<FbAccountForSell> selectFbAccountForSellListByAccountIds(Long[] ids);
+    public List<FbAccountForSell> selectFbAccountForSellListByAccountIdsStr(Long[] ids);
+
+    /**
+     * 多ID查询
+     * @param ids
+     * @return
+     */
+    public List<FbAccountForSell> selectFbAccountForSellListByAccountIdsList(List<Long> ids);
 
     /**
      * 修改账号浏览器状态

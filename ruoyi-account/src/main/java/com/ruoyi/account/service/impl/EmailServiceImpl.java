@@ -23,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +54,7 @@ public class EmailServiceImpl implements IEmailService {
 
     @Autowired
     IOperationLogService operationLogService;
+
 
 
 
@@ -97,7 +100,10 @@ public class EmailServiceImpl implements IEmailService {
      */
     @Override
     public int insertEmail(Email email) {
-        return emailMapper.insertEmail(email);
+        if (selectEmailByEmail(email.getEmail()) == null) {
+            return emailMapper.insertEmail(email);
+        }
+        return 0;
     }
 
     /**
@@ -218,7 +224,7 @@ public class EmailServiceImpl implements IEmailService {
         String url = "https://bsh.bhdata.com:30015/bhmailer?uid=492746380&sign=99277cf10db6483c92e3c6e142bb8db1&act=checkMail&email="+email.getEmail()+"&pass="+email.getPassword()+"&sent=-10000&t=-100000";
         String message = "";
         try {
-            message = HttpClientUtil.sendGet(url);
+            message = HttpClientUtil.get(url);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -271,6 +277,23 @@ public class EmailServiceImpl implements IEmailService {
                     fbAccountService.updateFbAccount(fbAccount);
                 }
             }
+
+        }
+        if (msg != null && msg.contains("We couldn't find an account with that username")){
+            email.setStatus("0");
+            updateEmail(email);
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+            if (fbAccountForSell != null) {
+                fbAccountForSell.setEmailStatus("0");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            }else {
+                FbAccount fbAccount = fbAccountService.selectFbAccountByEmail(email.getEmail());
+                if (fbAccount != null) {
+                    fbAccount.setNote(fbAccount.getNote() + "邮箱无法用");
+                    fbAccountService.updateFbAccount(fbAccount);
+                }
+            }
+
         }
         if (msg != null && msg.contains("sign in to account.live.com from a browser")){
             email.setStatus("0");
@@ -290,19 +313,20 @@ public class EmailServiceImpl implements IEmailService {
         return msg;
     }
 
-    @Override
-    public Email unlockEmail(Email email, ProxyIp proxyIp) {
+//    @Override
+    public String unlockEmailByBitBrowser(Email email, ProxyIp proxyIp) {
 
-        Map<String, Object> createAndUpdateConfig = BiteBrowserConfig.createAndUpdateBrowse();
+        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+        Map<String, Object> createAndUpdateConfig = BiteBrowser.createAndUpdateBrowse();
 
-        createAndUpdateConfig.put("proxyType", proxyIp.getProxyType());//['noproxy', 'http', 'https', 'socks5', 'ssh']
-        createAndUpdateConfig.put("host", proxyIp.getHostname());
-        createAndUpdateConfig.put("port", proxyIp.getPort());
-        createAndUpdateConfig.put("proxyUserName", proxyIp.getUsername());
-        createAndUpdateConfig.put("proxyPassword", proxyIp.getPassword());
+        createAndUpdateConfig.put("proxyType", "socks5");//['noproxy', 'http', 'https', 'socks5', 'ssh']
+        createAndUpdateConfig.put("host", "192.168.1.88");
+        createAndUpdateConfig.put("port", "10808");
+        createAndUpdateConfig.put("proxyUserName", "");
+        createAndUpdateConfig.put("proxyPassword", "");
 
         try {
-            Map<String, Object> resultMap = OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/update", createAndUpdateConfig);
+            Map<String, Object> resultMap = OkHttpUtil.post("http://127.0.0.1:54345/browser/update", createAndUpdateConfig);
             // 解析返回的 Map
             if (resultMap != null && (boolean) resultMap.get("success")) {
                 // 获取 "data" 部分
@@ -311,9 +335,9 @@ public class EmailServiceImpl implements IEmailService {
                 // 获取 "id" 值
                 if (dataMap != null) {
                     String id = (String) dataMap.get("id");
-                    Map<String, Object> openBrowseConfig = BiteBrowserConfig.openBrowse();
+                    Map<String, Object> openBrowseConfig = BiteBrowser.openBrowse();
                     openBrowseConfig.put("id", id);
-                    Map<String, Object> openResultMap = OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/open", openBrowseConfig);
+                    Map<String, Object> openResultMap = OkHttpUtil.post("http://127.0.0.1:54345/browser/open", openBrowseConfig);
                     if (openResultMap != null && (boolean) openResultMap.get("success")) {
                         Map<String, Object> openData = (Map<String, Object>) openResultMap.get("data");
                         openData.forEach((k, v) -> System.out.println(k+"="+v));
@@ -325,7 +349,11 @@ public class EmailServiceImpl implements IEmailService {
                                 options.setExperimentalOption("debuggerAddress", openData.get("http").toString());
                                 WebDriver webDriver = new ChromeDriver(options);
                                 try {
-                                    webDriver.get("https://login.live.com");
+                                    try {
+                                        webDriver.get("https://login.live.com");
+                                    } catch (Exception e) {
+                                        webDriver.get("https://login.live.com");
+                                    }
                                     WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
 //                                    boolean forContent = seleniumService.waitingForContent(10, webDriver, "使用你的 Microsoft 帐户");
                                     boolean forContent = seleniumService.waitingForContent(10, webDriver, "Use your Microsoft account");
@@ -333,9 +361,30 @@ public class EmailServiceImpl implements IEmailService {
                                         //输入邮箱
                                         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='usernameEntry']"))).sendKeys(email.getEmail());
                                         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+
+                                        seleniumService.threadSleep(2);
+
+                                        if (webDriver.getPageSource().contains("We couldn't find a Microsoft account")){
+                                            email.setStatus("0");
+                                            updateEmail(email);
+                                            webDriver.close();
+                                            webDriver.quit();
+                                            return "0";
+                                        }
+                                        //判断是否已绑有辅助邮箱
+                                        if (webDriver.getPageSource().contains("Use your password")){
+                                            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space(text())='Use your password']"))).click();
+                                        }
+                                        if (webDriver.getPageSource().contains("Other ways to sign in")){
+                                            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@role='button' and normalize-space(text())='Other ways to sign in']"))).click();
+                                            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@role='button' and normalize-space(text())='Use your password']"))).click();
+                                        }
+                                        seleniumService.threadSleep(2);
                                         //输入密码
                                         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='passwordEntry']"))).sendKeys(email.getPassword());
                                         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+
+
                                     }else {
                                         //输入邮箱
                                         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='i0116']"))).sendKeys(email.getEmail());
@@ -345,47 +394,75 @@ public class EmailServiceImpl implements IEmailService {
                                         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='idSIButton9']"))).click();
                                     }
 
-                                    boolean b = waitingForContent(5, webDriver, "你的帐户或密码不正确");
-                                    if (b){
-                                        email.setNote("账号密码不正确");
-                                        updateEmail(email);
-                                        webDriver.close();
-                                        webDriver.quit();
-                                        return email;
-                                    }
                                     String pageSource = webDriver.getPageSource();
-                                    if (pageSource.contains("该 Microsoft 帐户不存在")){
+                                    if (pageSource.contains("We couldn't find a Microsoft account")){
                                         email.setStatus("0");
                                         updateEmail(email);
                                         webDriver.close();
                                         webDriver.quit();
-                                        return email;
+                                        return "0";
                                     }
-                                    b = waitingForContent(5, webDriver, "我们即将更新条款");
-                                    if (b){
-                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='iNext']"))).click();
+                                    if (pageSource.contains("A quick note about your Microsoft account") || pageSource.contains("Sign in faster with your face, fingerprint, or PIN")){
+                                        email.setStatus("1");
+                                        updateEmail(email);
+                                        fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                                        fbAccountForSell.setEmailStatus("1");
+                                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return "1";
                                     }
-                                    waitingForContent(5, webDriver, "Your account has been locked");
-                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='StartAction']"))).click();
+                                    if (pageSource.contains("Setting up your passkey...")){
+                                        email.setStatus("1");
+                                        updateEmail(email);
+                                        fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                                        fbAccountForSell.setEmailStatus("1");
+                                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return "1";
+                                    }
 
-                                    String mobile = DefuUtil.getMobile("27030", "186","170,192,130,171");
-                                    WebElement countryDropdown = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='phoneCountry']")));
-                                    Select select = new Select(countryDropdown);
-                                    select.selectByValue("CN");
-                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='proofField']"))).sendKeys(mobile);
-                                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='nextButton']"))).click();
+                                    boolean b = seleniumService.waitingForContent(5, webDriver, "We're updating our terms");
+                                    if (b) {
+                                        //点击next
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+                                    }
+                                    String mobile = null;
+                                    try {
+                                        waitingForContent(5, webDriver, "Your account has been locked");
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='StartAction']"))).click();
+
+                                        mobile = HaoZhuUtil.getMobile(HaoZhuUtil.token,HaoZhuUtil.sid,0,"17","");
+                                        WebElement countryDropdown = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='phoneCountry']")));
+                                        Select select = new Select(countryDropdown);
+                                        select.selectByValue("CN");
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='proofField']"))).sendKeys(mobile);
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='nextButton']"))).click();
+                                    } catch (Exception e) {
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return "2";
+                                    }
 //                                    b = waitingForContent(5, webDriver, "该验证方法目前无效。请尝试其他方法。");
-                                    b = waitingForContent(5, webDriver, "Try another verification method");
+                                    b = waitingForContent(10, webDriver, "Try another verification method");
                                     if (b){
                                         email.setNote("该验证方法目前无效。请尝试其他方法。");
                                         updateEmail(email);
                                         webDriver.close();
                                         webDriver.quit();
+                                        return "2";
+                                    }
+                                    if (webDriver.getPageSource().contains("Help us beat the robots")){
+                                        String oldNote = fbAccountForSell.getNote();
+                                        fbAccountForSell.setNote("解邮箱机器验证|"+oldNote);
+                                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                                        return "";
                                     }
                                     //取码
                                     String code = "";
                                     for (int i = 0; i < 10; i++) {
-                                        code = DefuUtil.getCode(mobile, "27030");
+                                        code = HaoZhuUtil.getCode(HaoZhuUtil.token,HaoZhuUtil.sid,mobile);
                                         if (code .equals("wait")) {
                                             try {
                                                 Thread.sleep(10000);
@@ -397,19 +474,27 @@ public class EmailServiceImpl implements IEmailService {
                                         }
                                     }
                                     if (code.equals("wait")) {
+                                        LocalDateTime now = LocalDateTime.now();
+                                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+                                        String result = now.format(formatter);
+                                        String oldNote = fbAccountForSell.getNote();
+                                        fbAccountForSell.setNote("接不到码"+result+oldNote);
+                                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
                                         email.setNote("接不到码");
+                                        updateEmail(email);
                                         webDriver.close();
                                         webDriver.quit();
-                                        return email;
+                                        return "3";
                                     }
                                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='enter-code-input']"))).sendKeys(code);
                                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='nextButton']"))).click();
                                     seleniumService.threadSleep(5);
                                     webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@id='FinishAction']"))).click();
 //                                    boolean waitingForContent = waitingForContent(10, webDriver, "已取消阻止你的帐户");
-                                    boolean waitingForContent = waitingForContent(10, webDriver, "A quick note about your Microsoft account");
-                                    FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
-                                    if (waitingForContent){
+                                    boolean waitingForContentA = waitingForContent(10, webDriver, "A quick note about your Microsoft account");
+                                    boolean waitingForContentB = waitingForContent(3, webDriver, "Sign in faster with your face, fingerprint, or PIN");
+
+                                    if (waitingForContentA || waitingForContentB){
                                         email.setStatus("1");
                                         email.setNote("");
                                         updateEmail(email);
@@ -423,6 +508,7 @@ public class EmailServiceImpl implements IEmailService {
                                             operationLog.setOperationStatus("成功");
                                             operationLog.setOperationTime(new Date());
                                             operationLogService.insertOperationLog(operationLog);
+                                            return "1";
                                         }else {
                                             FbAccount fbAccount = fbAccountService.selectFbAccountByEmail(email.getEmail());
                                             OperationLog operationLog = new OperationLog();
@@ -435,20 +521,44 @@ public class EmailServiceImpl implements IEmailService {
                                         }
 
                                         seleniumService.threadSleep(2);
-                                        webDriver.close();
-                                        webDriver.quit();
+//                                        webDriver.close();
+//                                        webDriver.quit();
                                     }else {
                                         fbAccountForSell.setEmailStatus("3");
                                         email.setStatus("3");
                                         updateEmail(email);
                                         fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
                                         seleniumService.threadSleep(2);
-                                        webDriver.close();
-                                        webDriver.quit();
+//                                        webDriver.close();
+//                                        webDriver.quit();
                                     }
                                 } catch (Exception e) {
-                                    webDriver.close();
-                                    webDriver.quit();
+                                    if (webDriver.getPageSource().contains("We couldn't find a Microsoft account")){
+                                        fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                                        fbAccountForSell.setEmailStatus("0");
+                                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return "0";
+                                    }
+                                    if (webDriver.getPageSource().contains("We couldn't find a Microsoft account")){
+                                        fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                                        fbAccountForSell.setEmailStatus("0");
+                                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return "0";
+                                    }
+                                    if (webDriver.getPageSource().contains("A quick note about your Microsoft account")){
+                                        fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                                        fbAccountForSell.setEmailStatus("1");
+                                        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                                        webDriver.close();
+                                        webDriver.quit();
+                                        return "1";
+                                    }
+//                                    webDriver.close();
+//                                    webDriver.quit();
                                     e.printStackTrace();
                                 }
                             }catch (Exception e){
@@ -456,16 +566,251 @@ public class EmailServiceImpl implements IEmailService {
                             }
                         }
                     }
-                    Map<String, Object> closeBrowserConfig = BiteBrowserConfig.closeBrowse();
-                    closeBrowserConfig.put("id",id);
-                    OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/close",closeBrowserConfig);
+                    Map<String, Object> closeBrowserConfig = BiteBrowser.closeBrowse();
+//                    closeBrowserConfig.put("id",id);
+                    OkHttpUtil.post("http://127.0.0.1:54345/browser/close",closeBrowserConfig);
                 }
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            Map<String, Object> closeBrowserConfig = BiteBrowser.closeBrowse();
+//                    closeBrowserConfig.put("id",id);
+            try {
+                OkHttpUtil.post("http://127.0.0.1:54345/browser/close",closeBrowserConfig);
+            } catch (Exception ee) {
+                throw new RuntimeException(ee);
+            }
+            e.printStackTrace();
         }
 
-        return email;
+        return "";
+    }
+
+    @Override
+    public String unlockEmail(Email email, WebDriver webDriver){
+        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+        try {
+            try {
+                webDriver.get("https://login.live.com");
+            } catch (Exception e) {
+                webDriver.get("https://login.live.com");
+            }
+            WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
+//                                    boolean forContent = seleniumService.waitingForContent(10, webDriver, "使用你的 Microsoft 帐户");
+            boolean forContent = seleniumService.waitingForContent(10, webDriver, "Use your Microsoft account");
+            if (forContent) {
+                //输入邮箱
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='usernameEntry']"))).sendKeys(email.getEmail());
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+
+                seleniumService.threadSleep(2);
+
+                if (webDriver.getPageSource().contains("We couldn't find a Microsoft account")){
+                    email.setStatus("0");
+                    updateEmail(email);
+                    webDriver.close();
+                    webDriver.quit();
+                    return "0";
+                }
+                //判断是否已绑有辅助邮箱
+                if (webDriver.getPageSource().contains("Use your password")){
+                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space(text())='Use your password']"))).click();
+                }
+                if (webDriver.getPageSource().contains("To verify this is your email, enter it here")){
+                    seleniumService.threadSleep(2);
+                    if (webDriver.getPageSource().contains("Other ways to sign in")){
+                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@role='button' and normalize-space(text())='Other ways to sign in']"))).click();
+                    }
+                    webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@role='button' and normalize-space(text())='Use your password']"))).click();
+                }
+                seleniumService.threadSleep(2);
+                //输入密码
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='passwordEntry']"))).sendKeys(email.getPassword());
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+
+
+            }else {
+                //输入邮箱
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='i0116']"))).sendKeys(email.getEmail());
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='idSIButton9']"))).click();
+                //输入密码
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='i0118']"))).sendKeys(email.getPassword());
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='idSIButton9']"))).click();
+            }
+
+            String pageSource = webDriver.getPageSource();
+            if (pageSource.contains("We couldn't find a Microsoft account")){
+                email.setStatus("0");
+                updateEmail(email);
+                webDriver.close();
+                webDriver.quit();
+                return "0";
+            }
+            if (pageSource.contains("We have detected unusual activity on your Microsoft account "+email.getEmail()+", or believe your credentials are at risk.")){
+                email.setStatus("0");
+                updateEmail(email);
+                webDriver.close();
+                webDriver.quit();
+                return "0";
+            }
+            if (pageSource.contains("A quick note about your Microsoft account") || pageSource.contains("Sign in faster with your face, fingerprint, or PIN")){
+                email.setStatus("1");
+                updateEmail(email);
+                fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                fbAccountForSell.setEmailStatus("1");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                webDriver.close();
+                webDriver.quit();
+                return "1";
+            }
+            if (pageSource.contains("Setting up your passkey...")){
+                email.setStatus("1");
+                updateEmail(email);
+                fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                fbAccountForSell.setEmailStatus("1");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                webDriver.close();
+                webDriver.quit();
+                return "1";
+            }
+
+            boolean b = seleniumService.waitingForContent(5, webDriver, "We're updating our terms");
+            if (b) {
+                //点击next
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+            }
+            String mobile = null;
+            try {
+                waitingForContent(5, webDriver, "Your account has been locked");
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='StartAction']"))).click();
+
+                mobile = HaoZhuUtil.getMobile(HaoZhuUtil.token,HaoZhuUtil.sid,0,"197","");
+                WebElement countryDropdown = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='phoneCountry']")));
+                Select select = new Select(countryDropdown);
+                select.selectByValue("CN");
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='proofField']"))).sendKeys(mobile);
+                webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='nextButton']"))).click();
+            } catch (Exception e) {
+                webDriver.close();
+                webDriver.quit();
+                return "2";
+            }
+//                                    b = waitingForContent(5, webDriver, "该验证方法目前无效。请尝试其他方法。");
+            b = waitingForContent(10, webDriver, "Try another verification method");
+            if (b){
+                email.setNote("该验证方法目前无效。请尝试其他方法。");
+                updateEmail(email);
+                webDriver.close();
+                webDriver.quit();
+                return "2";
+            }
+            if (webDriver.getPageSource().contains("Help us beat the robots")){
+                fbAccountForSell.setNote("解邮箱机器验证");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                return "";
+            }
+            //取码
+            String code = "";
+            for (int i = 0; i < 10; i++) {
+                code = HaoZhuUtil.getCode(HaoZhuUtil.token,HaoZhuUtil.sid,mobile);
+                if (code .equals("wait")) {
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }else {
+                    break;
+                }
+            }
+            if (code.equals("wait")) {
+                LocalDateTime now = LocalDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+                String result = now.format(formatter);
+                String oldNote = fbAccountForSell.getNote();
+                fbAccountForSell.setNote("接不到码"+result+oldNote);
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                email.setNote("接不到码");
+                updateEmail(email);
+                webDriver.close();
+                webDriver.quit();
+                return "3";
+            }
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='enter-code-input']"))).sendKeys(code);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='nextButton']"))).click();
+            seleniumService.threadSleep(5);
+            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@id='FinishAction']"))).click();
+//                                    boolean waitingForContent = waitingForContent(10, webDriver, "已取消阻止你的帐户");
+            boolean waitingForContentA = waitingForContent(10, webDriver, "A quick note about your Microsoft account");
+            boolean waitingForContentB = waitingForContent(3, webDriver, "Sign in faster with your face, fingerprint, or PIN");
+
+            if (waitingForContentA || waitingForContentB){
+                email.setStatus("1");
+                email.setNote("");
+                updateEmail(email);
+                if (fbAccountForSell != null) {
+                    fbAccountForSell.setEmailStatus("1");
+                    fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                    OperationLog operationLog = new OperationLog();
+                    operationLog.setOperationAccount(fbAccountForSell.getId());
+                    operationLog.setOperationAccountKeyId(fbAccountForSell.getKeyId());
+                    operationLog.setOperationContent("解锁邮箱");
+                    operationLog.setOperationStatus("成功");
+                    operationLog.setOperationTime(new Date());
+                    operationLogService.insertOperationLog(operationLog);
+                    return "1";
+                }else {
+                    FbAccount fbAccount = fbAccountService.selectFbAccountByEmail(email.getEmail());
+                    OperationLog operationLog = new OperationLog();
+//                                            operationLog.setOperationAccount(fbAccount.getId());
+//                                            operationLog.setOperationAccountKeyId(fbAccount.getKeyId());
+                    operationLog.setOperationContent("解锁邮箱");
+                    operationLog.setOperationStatus("成功");
+                    operationLog.setOperationTime(new Date());
+                    operationLogService.insertOperationLog(operationLog);
+                }
+
+                seleniumService.threadSleep(2);
+//                                        webDriver.close();
+//                                        webDriver.quit();
+            }else {
+                fbAccountForSell.setEmailStatus("3");
+                email.setStatus("3");
+                updateEmail(email);
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                seleniumService.threadSleep(2);
+//                                        webDriver.close();
+//                                        webDriver.quit();
+            }
+        } catch (Exception e) {
+            if (webDriver.getPageSource().contains("We couldn't find a Microsoft account")){
+                fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                fbAccountForSell.setEmailStatus("0");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                webDriver.close();
+                webDriver.quit();
+                return "0";
+            }
+            if (webDriver.getPageSource().contains("We couldn't find a Microsoft account")){
+                fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                fbAccountForSell.setEmailStatus("0");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                webDriver.close();
+                webDriver.quit();
+                return "0";
+            }
+            if (webDriver.getPageSource().contains("A quick note about your Microsoft account")){
+                fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByEmail(email.getEmail());
+                fbAccountForSell.setEmailStatus("1");
+                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+                webDriver.close();
+                webDriver.quit();
+                return "1";
+            }
+//                                    webDriver.close();
+//                                    webDriver.quit();
+            e.printStackTrace();
+        }
+        return "";
     }
 
     /**
@@ -478,7 +823,7 @@ public class EmailServiceImpl implements IEmailService {
     @Override
     public Email unlockEmailAddTelephone(Email email, ProxyIp proxyIp) {
 
-        Map<String, Object> createAndUpdateConfig = BiteBrowserConfig.createAndUpdateBrowse();
+        Map<String, Object> createAndUpdateConfig = BiteBrowser.createAndUpdateBrowse();
         createAndUpdateConfig.put("proxyType", "socks5");//['noproxy', 'http', 'https', 'socks5', 'ssh']
         createAndUpdateConfig.put("host", proxyIp.getHostname());
         createAndUpdateConfig.put("port", proxyIp.getPort());
@@ -486,7 +831,7 @@ public class EmailServiceImpl implements IEmailService {
         createAndUpdateConfig.put("proxyPassword", proxyIp.getPassword());
 
         try {
-            Map<String, Object> resultMap = OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/update", createAndUpdateConfig);
+            Map<String, Object> resultMap = OkHttpUtil.post("http://127.0.0.1:54345/browser/update", createAndUpdateConfig);
             // 解析返回的 Map
             if (resultMap != null && (boolean) resultMap.get("success")) {
                 // 获取 "data" 部分
@@ -495,9 +840,9 @@ public class EmailServiceImpl implements IEmailService {
                 // 获取 "id" 值
                 if (dataMap != null) {
                     String id = (String) dataMap.get("id");
-                    Map<String, Object> openBrowseConfig = BiteBrowserConfig.openBrowse();
+                    Map<String, Object> openBrowseConfig = BiteBrowser.openBrowse();
                     openBrowseConfig.put("id", id);
-                    Map<String, Object> openResultMap = OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/open", openBrowseConfig);
+                    Map<String, Object> openResultMap = OkHttpUtil.post("http://127.0.0.1:54345/browser/open", openBrowseConfig);
                     if (openResultMap != null && (boolean) openResultMap.get("success")) {
                         Map<String, Object> openData = (Map<String, Object>) openResultMap.get("data");
                         openData.forEach((k, v) -> System.out.println(k+"="+v));
@@ -612,12 +957,12 @@ public class EmailServiceImpl implements IEmailService {
                             }
                         }
                     }
-                    Map<String, Object> closeBrowserConfig = BiteBrowserConfig.closeBrowse();
+                    Map<String, Object> closeBrowserConfig = BiteBrowser.closeBrowse();
                     closeBrowserConfig.put("id",id);
-                    OkHttpUtil.sendPostRequest("http://127.0.0.1:54345/browser/close",closeBrowserConfig);
+                    OkHttpUtil.post("http://127.0.0.1:54345/browser/close",closeBrowserConfig);
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -663,51 +1008,89 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     /**
-     * 导入数据
+     * 临时登录
      *
-     * @param emailList       数据列表
-     * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
-     * @param operName        操作用户
-     * @return 结果
+     * @param email
+     * @param password
      */
     @Override
-    public String importFbAccountForSell(List<Email> emailList, Boolean isUpdateSupport, String operName) {
-        if (StringUtils.isNull(emailList) || emailList.size() == 0) {
-            throw new ServiceException("导入数据不能为空！");
-        }
-        int successNum = 0;
-        int failureNum = 0;
-        StringBuilder successMsg = new StringBuilder();
-        StringBuilder failureMsg = new StringBuilder();
-        for (Email email : emailList) {
-            try {
-                // 验证是否存在这个用户
-                Email e = emailMapper.selectEmailByEmail(email.getEmail());
-                if (StringUtils.isNull(e)) {
-                    emailMapper.insertEmail(e);
-                    successNum++;
-                    successMsg.append("<br/>" + successNum + "、数据 " + email.getEmail() + " 导入成功");
-                } else if (isUpdateSupport) {
-                    updateEmail(email);
-                    successNum++;
-                    successMsg.append("<br/>" + successNum + "、数据 " + email.getEmail() + " 更新成功");
-                } else {
-                    failureNum++;
-                    failureMsg.append("<br/>" + failureNum + "、数据 " + email.getEmail() + " 已存在");
+    public void tempLogin(String email, String password, ProxyIp proxyIp) {
+        Map<String, Object> createAndUpdateConfig = BiteBrowser.createAndUpdateBrowse();
+
+        createAndUpdateConfig.put("proxyType", proxyIp.getProxyType());//['noproxy', 'http', 'https', 'socks5', 'ssh']
+        createAndUpdateConfig.put("host", proxyIp.getHostname());
+        createAndUpdateConfig.put("port", proxyIp.getPort());
+        createAndUpdateConfig.put("proxyUserName", proxyIp.getUsername());
+        createAndUpdateConfig.put("proxyPassword", proxyIp.getPassword());
+
+        try {
+            Map<String, Object> resultMap = OkHttpUtil.post("http://127.0.0.1:54345/browser/update", createAndUpdateConfig);
+            // 解析返回的 Map
+            if (resultMap != null && (boolean) resultMap.get("success")) {
+                // 获取 "data" 部分
+                Map<String, Object> dataMap = (Map<String, Object>) resultMap.get("data");
+
+                // 获取 "id" 值
+                if (dataMap != null) {
+                    String id = (String) dataMap.get("id");
+                    System.out.println(id);
+                    Map<String, Object> openBrowseConfig = BiteBrowser.openBrowse();
+                    openBrowseConfig.put("id", id);
+                    Map<String, Object> openResultMap = OkHttpUtil.post("http://127.0.0.1:54345/browser/open", openBrowseConfig);
+                    if (openResultMap != null && (boolean) openResultMap.get("success")) {
+                        Map<String, Object> openData = (Map<String, Object>) openResultMap.get("data");
+                        openData.forEach((k, v) -> System.out.println(k+"="+v));
+                        if (openData != null) {
+                            try {
+                                //参数配置
+                                System.setProperty("webdriver.chrome.driver", openData.get("driver").toString());
+                                ChromeOptions options = new ChromeOptions();
+                                options.setExperimentalOption("debuggerAddress", openData.get("http").toString());
+                                WebDriver webDriver = new ChromeDriver(options);
+                                try {
+                                    webDriver.get("https://login.live.com");
+                                    WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30, 1);
+//                                    boolean forContent = seleniumService.waitingForContent(10, webDriver, "使用你的 Microsoft 帐户");
+                                    boolean forContent = seleniumService.waitingForContent(10, webDriver, "Use your Microsoft account");
+                                    if (forContent) {
+                                        //输入邮箱
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='usernameEntry']"))).sendKeys(email);
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+
+                                        seleniumService.threadSleep(2);
+                                        //判断是否已绑有辅助邮箱
+                                        if (webDriver.getPageSource().contains("Use your password")){
+                                            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space(text())='Use your password']"))).click();
+                                        }
+                                        if (webDriver.getPageSource().contains("Other ways to sign in")){
+                                            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@role='button' and normalize-space(text())='Other ways to sign in']"))).click();
+                                            webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@role='button' and normalize-space(text())='Use your password']"))).click();
+                                        }
+                                        seleniumService.threadSleep(2);
+                                        //输入密码
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id='passwordEntry']"))).sendKeys(password);
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+                                    }
+                                    boolean b = seleniumService.waitingForContent(5, webDriver, "We're updating our terms");
+                                    if (b) {
+                                        //点击next
+                                        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@data-testid='primaryButton']"))).click();
+                                    }
+                                    seleniumService.threadSleep(2);
+//                                    webDriver.get("https://outlook.live.com/mail/0/?refd=account.microsoft.com&fref=home.banner.viewinbox");
+                                }catch (Exception e){
+                                e.printStackTrace();
+                                }
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                 }
-            } catch (Exception e) {
-                failureNum++;
-                String msg = "<br/>" + failureNum + "、数据 " + email.getEmail() + " 导入失败：";
-                failureMsg.append(msg + e.getMessage());
             }
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        if (failureNum > 0) {
-            failureMsg.insert(0, "很抱歉，导入失败！共 " + failureNum + " 条数据格式不正确，错误如下：");
-            throw new ServiceException(failureMsg.toString());
-        } else {
-            successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
-        }
-        return successMsg.toString();
     }
 
     //等待页面加载

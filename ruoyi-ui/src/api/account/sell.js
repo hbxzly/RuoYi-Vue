@@ -12,8 +12,19 @@ export function listSell(query) {
 // 查询卖号详细
 export function getSell(keyId) {
   return request({
-    url: '/account/sell/' + keyId,
+    url: '/account/sell/'+keyId ,
     method: 'get'
+  })
+}
+
+// 查询卖号展示
+export function getSellForShow(ids) {
+  return request({
+    url: '/account/sell/getSellForShow' ,
+    method: 'get',
+    params: {
+      ids: ids.join(',')
+    }
   })
 }
 
@@ -68,6 +79,22 @@ export function openBrowser(keyId){
 }
 
 //打开浏览器
+export function openBitBrowser(keyId){
+  return request({
+    url: "/account/sell/openBitBrowser/"+keyId,
+    method: 'get'
+  })
+}
+
+//打开浏览器
+export function openHubBrowser(keyId){
+  return request({
+    url: "/account/sell/openHubBrowser/"+keyId,
+    method: 'get'
+  })
+}
+
+//打开浏览器
 export function closeBrowser(keyId){
   return request({
     url: "/account/sell/closeBrowser/"+keyId,
@@ -85,13 +112,17 @@ export function accountPost(keyIds){
 
 
 // 添加好友
-export function addFriend(keyIds,id) {
+export function addFriend(keyIds,id,startKeyId,endKeyId,region,note,number) {
   return request({
     url: "/account/sell/addFriend",
     method: 'get',
     params: {
       keyIds: keyIds.join(','),
-      id: id
+      id: id,
+      startKeyId: startKeyId,
+      endKeyId: endKeyId,
+      region: region,
+      note: note
     }
   })
 }
@@ -137,6 +168,18 @@ export function changeAccountName(keyId, accountName){
   })
 }
 
+//修改备注
+export function changeAccountNote(keyId, accountNote){
+  return request({
+    url: "/account/sell/changeAccountNote",
+    method: 'get',
+    params: {
+      id: keyId.join(','),
+      accountNote: accountNote
+    }
+  })
+}
+
 export function getEmail(keyId){
   return request({
     url: "/account/sell/getEmail/"+keyId,
@@ -144,9 +187,16 @@ export function getEmail(keyId){
   })
 }
 
-export function unlockEmail(keyId){
+export function unlockEmail(keyIds){
   return request({
-    url: "/account/sell/unlockEmail/"+keyId,
+    url: "/account/sell/unlockEmail/"+keyIds,
+    method: "get",
+  })
+}
+
+export function unlockWSVerify(keyIds){
+  return request({
+    url: "/account/sell/unlockWSVerify/"+keyIds,
     method: "get",
   })
 }
@@ -186,3 +236,16 @@ export function batchSearch(data) {
 }
 
 
+export function loginEmail(keyId){
+  return request({
+    url: "/account/sell/loginEmail/"+keyId,
+    method: "get",
+  })
+}
+
+export function loginInPhone(keyId){
+  return request({
+    url: "/account/sell/loginInPhone/"+keyId,
+    method: "get",
+  })
+}
