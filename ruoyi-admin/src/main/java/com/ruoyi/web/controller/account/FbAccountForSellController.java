@@ -383,7 +383,7 @@ public class FbAccountForSellController extends BaseController {
             }
             List<FbAccountForSell> fbAccountForSellList = fbAccountForSellService.selectFbAccountForSellListByAccountIds(keyIds.toArray(new Long[0]));
             for (FbAccountForSell fbAccountForSell : fbAccountForSellList) {
-                WebDriver webDriver = seleniumService.openBrowserForAccountSell(fbAccountForSell);
+                WebDriver webDriver = hubEnvService.openOrCreateAndOpenEnvForFb(fbAccountForSell.getKeyId());
                 webDriver.get("https://www.facebook.com/");
                 boolean login = fbAccountForSellService.isLogin(webDriver, fbAccountForSell);
                 if (!login){
@@ -429,7 +429,7 @@ public class FbAccountForSellController extends BaseController {
                     seleniumService.threadSleep(30);
                 }
                 FbAccountForSell operator = fbAccountForSellList.get(operatorIndex);
-                WebDriver webDriver = fbAccountForSellService.openBrowser(operator);
+                WebDriver webDriver = hubEnvService.openOrCreateAndOpenEnvForFb(operator.getKeyId());
                 fbAccountForSellService.loginFbAccountForSell(webDriver, operator);
                 fbAccountForSellService.addFriend(operator, target.getId(), webDriver);
                 webDriver.quit();
