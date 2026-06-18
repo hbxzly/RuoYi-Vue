@@ -1,5 +1,8 @@
 package com.ruoyi.web.controller.account;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -22,7 +25,10 @@ import com.ruoyi.browser.convert.HubstudioConvert;
 import com.ruoyi.browser.domain.HubEnv;
 import com.ruoyi.browser.service.IHubEnvService;
 import io.appium.java_client.AppiumDriver;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -775,6 +781,21 @@ public class FbAccountForSellController extends BaseController {
         return success(code);
     }
 
+    @PostMapping("/get2FACode")
+    public AjaxResult get2FACodeBySecret(@RequestBody Map<String, String> payload) {
+        String secretKey = payload.get("secretKey");
+        if (secretKey == null || secretKey.trim().isEmpty()) {
+            return AjaxResult.error("请输入双重验证密钥");
+        }
+
+        try {
+            String normalizedSecretKey = secretKey.replaceAll("\\s+", "");
+            return success(FBAccountUtil.getGoogleVerificationCode(normalizedSecretKey));
+        } catch (Exception e) {
+            return AjaxResult.error("密钥格式不正确，无法生成验证码");
+        }
+    }
+
     @GetMapping("/loginEmail/{keyId}")
     @ResponseBody
     public AjaxResult loginEmail(@PathVariable Long keyId){
@@ -782,6 +803,77 @@ public class FbAccountForSellController extends BaseController {
         List<ProxyIp> proxyIps = proxyIpService.selectProxyIpListByStatus("1");
         ProxyIp proxyIp = proxyIps.get(proxyIps.size() - 1);
         emailService.tempLogin(fbAccountForSell.getEmail(),fbAccountForSell.getEmailPassword(),proxyIp);
+        return success();
+    }
+
+    @GetMapping("/aaa/{keyId}")
+    @ResponseBody
+    public AjaxResult aaa(@PathVariable Long keyId){
+        FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+
+        //accountName 是账号ID
+        HubEnv hubEnv =
+                hubEnvService.selectHubEnvByAccountName(fbAccountForSell.getId());
+
+        if (hubEnv == null) {
+            hubEnv = hubEnvService.createAndBindEnv(fbAccountForSell);
+        }
+
+        WebDriver webDriver =hubstudioClient.openEnv(hubEnv.getContainerCode());
+        WebDriverWait wait = new WebDriverWait(webDriver, 30, 1);
+        String filePath = "C:/Users/carrotKK/Desktop/sku.txt";
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                // 跳过空行
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                // 按 - 分割
+                String[] arr = line.split("-");
+
+                if (arr.length >= 3) {
+                    String code = arr[0].trim();
+                    String name = arr[1].trim();
+                    String price = arr[2].trim();
+
+                    webDriver.get("https://th.busytowin.com/product/product?ref=addtabs");
+                    seleniumService.threadSleep(15);
+                    webDriver.findElement(By.xpath("//span[@data-name='today' and normalize-space()='今天']")).click();
+                    webDriver.findElement(By.xpath("//input[@id='c-product_name']")).sendKeys(name);
+                    webDriver.findElement(By.xpath("//input[@id='c-description']")).sendKeys(name);
+                    webDriver.findElement(By.xpath("//input[@id='c-product_unit_id_text']")).click();
+                    seleniumService.threadSleep(1);
+                    webDriver.findElement(By.xpath("//li[@pkey='8' and normalize-space()='个']")).click();
+
+                    webDriver.findElement(By.xpath("//a[@data-toggle='tab' and @href='#attrs']")).click();
+                    seleniumService.threadSleep(0.5);
+                    webDriver.findElement(By.xpath("//input[@placeholder='输入规格名称']")).sendKeys("个");
+
+                    webDriver.findElement(By.xpath("//a[@id='btn-add-group']")).click();
+
+                    webDriver.findElement(By.xpath("/html/body/div[1]/div/div/div/div/div/form/div[1]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div/input")).sendKeys("1");
+
+                    seleniumService.threadSleep(1);
+                    webDriver.findElement(By.xpath("//span[normalize-space()='添加']")).click();
+                    webDriver.findElement(By.xpath("//input[@name='attrs[itemsku][]']")).sendKeys(code);
+                    webDriver.findElement(By.xpath("//input[@name='attrs[quantity][]']")).sendKeys("1");
+                    webDriver.findElement(By.xpath("//input[@name='attrs[price][]']")).sendKeys(price);
+                    webDriver.findElement(By.xpath("//button[@type='submit' and normalize-space()='确定']")).click();
+
+
+
+                } else {
+                    System.out.println("格式不正确：" + line);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return success();
     }
 

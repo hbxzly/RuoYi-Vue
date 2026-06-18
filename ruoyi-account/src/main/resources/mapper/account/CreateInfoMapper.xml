@@ -60,7 +60,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="companyName != null  and companyName != ''"> and company_name like concat('%', #{companyName}, '%')</if>
             <if test="address != null  and address != ''"> and address = #{address}</if>
             <if test="hometownAddress != null  and hometownAddress != ''"> and hometown_address = #{hometownAddress}</if>
-            <if test="accountOtherInfo != null  and accountOtherInfo != ''"> and account_other_info = #{accountOtherInfo}</if>
+            <if test="accountOtherInfo != null  and accountOtherInfo != ''"> and account_other_info like concat('%', #{accountOtherInfo}, '%')</if>
             <if test="note != null  and note != ''"> and note = #{note}</if>
             <if test="cookie != null  and cookie != ''"> and cookie = #{cookie}</if>
             <if test="isBoundEmail != null  and isBoundEmail != ''"> and is_bound_email = #{isBoundEmail}</if>

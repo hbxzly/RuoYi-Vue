@@ -1213,7 +1213,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        seleniumService.waitingForContent(10,webDriver,"https://static.xx.fbcdn.net/rsrc.php/v4/yK/r/r2FA830xjtI.png");
+        seleniumService.waitingForContent(10,webDriver,"https://static.xx.fbcdn.net/rsrc.php/yG/r/kpb0jgKR4ve.webp");
         List<WebElement> beforeDialogElementList = null;
         try {
             beforeDialogElementList = webDriver.findElements(By.xpath("//div[@role='dialog']"));
@@ -1221,7 +1221,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
             e.printStackTrace();
         }
         try {
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v4/yK/r/r2FA830xjtI.png']"))).click();
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/yG/r/kpb0jgKR4ve.webp']"))).click();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1257,7 +1257,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
         }
 
         try {
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/v4/yo/r/Qg9sXPTnmFb.png']")));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//img[@src='https://static.xx.fbcdn.net/rsrc.php/y2/r/J32fl0R_iDX.webp']")));
             operationLog.setOperationAccount(fbAccountForSell.getId());
             operationLog.setOperationAccountKeyId(fbAccountForSell.getKeyId());
             operationLog.setOperationContent("卖号添加"+id+"好友");
@@ -1823,8 +1823,13 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
         loginFbAccountForSell(webDriver, fbAccountForSell);
         seleniumService.threadSleep(1);
 
-        webDriver.get("https://accountscenter.facebook.com/profiles/"+fbAccountForSell.getId()+"/name");
+        webDriver.get("https://www.facebook.com/profile.php?id="+fbAccountForSell.getId());
         WebDriverWait webDriverWait =new WebDriverWait(webDriver, 30);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='button' and contains(@aria-label,'個人檔案設定」的「查看更多」')]"))).click();
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space()='開啟專業模式']"))).click();
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space()='開啟']"))).click();
+        seleniumService.waitingForContent(10,webDriver,"歡迎使用專業模式");
+        webDriver.get("https://accountscenter.facebook.com/profiles/"+fbAccountForSell.getId()+"/name");
         webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@type='text']")));
         List<WebElement> elements = webDriver.findElements(By.xpath("//input[@type='text']"));
         Actions actions = new Actions(webDriver);
@@ -1855,6 +1860,12 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
             return "";
         }
         getAccountNameAndFriendNumber(webDriver, fbAccountForSell);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='button' and contains(@aria-label,'個人檔案設定」的「查看更多」')]"))).click();
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[normalize-space()='關閉專業模式']"))).click();
+        seleniumService.threadSleep(2);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("(//span[normalize-space()='繼續'])[last()]"))).click();
+        seleniumService.threadSleep(2);
+        webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("(//span[normalize-space()='關閉'])[last()]"))).click();
         return "";
     }
 
