@@ -216,6 +216,17 @@ export function get2FACode(id){
   })
 }
 
+// 根据密钥获取双重验证码
+export function generate2FACode(secretKey){
+  return request({
+    url: "/account/sell/get2FACode",
+    method: "post",
+    data: {
+      secretKey: secretKey
+    }
+  })
+}
+
 //获取账号信息
 export function getAccountInfo(payload) {
   return request({
@@ -239,6 +250,13 @@ export function batchSearch(data) {
 export function loginEmail(keyId){
   return request({
     url: "/account/sell/loginEmail/"+keyId,
+    method: "get",
+  })
+}
+
+export function aaa(keyId){
+  return request({
+    url: "/account/sell/aaa/"+keyId,
     method: "get",
   })
 }

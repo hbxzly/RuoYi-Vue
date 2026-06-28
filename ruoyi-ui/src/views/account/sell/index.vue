@@ -1,7 +1,28 @@
 <template>
-  <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="序号" prop="keyId">
+  <div class="app-container sell-page">
+    <section v-show="showSearch" class="page-panel search-panel">
+      <div class="panel-heading search-heading">
+        <div>
+          <div class="panel-title">
+            <i class="el-icon-search"></i>
+            账号筛选
+          </div>
+          <div class="panel-subtitle">
+            {{ queryExpanded ? '组合筛选条件，快速定位目标账号' : '筛选条件已收起，点击展开后可继续编辑' }}
+          </div>
+        </div>
+        <el-button
+          type="text"
+          class="collapse-button"
+          :icon="queryExpanded ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
+          @click="queryExpanded = !queryExpanded"
+        >
+          {{ queryExpanded ? '收起筛选' : '展开筛选' }}
+        </el-button>
+      </div>
+      <el-collapse-transition>
+        <el-form v-show="queryExpanded" :model="queryParams" ref="queryForm" size="small" :inline="true" label-width="80px" class="search-form">
+      <el-form-item label="内部序号" prop="keyId">
         <el-input
           v-model="queryParams.keyId"
           placeholder="请输入序号"
@@ -49,7 +70,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>-->
-      <el-form-item label="名字" prop="name">
+      <el-form-item label="账号名称" prop="name">
         <el-input
           v-model="queryParams.name"
           placeholder="请输入名字"
@@ -119,8 +140,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="个人户" prop="canAds">
-        <el-select v-model="queryParams.adAccountStatus" placeholder="请选择能否广告" clearable>
+      <el-form-item label="广告账户" prop="canAds">
+        <el-select v-model="queryParams.adAccountStatus" placeholder="请选择广告账户状态" clearable>
           <el-option
             v-for="dict in dict.type.ad_account_status"
             :key="dict.value"
@@ -185,7 +206,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="bm数量" prop="bmNumber">
+      <el-form-item label="BM 数量" prop="bmNumber">
         <el-input
           v-model="queryParams.bmNumber"
           placeholder="请输入bm数量"
@@ -201,7 +222,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="浏览器" prop="browserStatus">
+      <el-form-item label="浏览器状态" prop="browserStatus">
         <el-select v-model="queryParams.browserStatus" placeholder="请选择浏览器状态" clearable>
           <el-option
             v-for="dict in dict.type.browser_status"
@@ -219,16 +240,30 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>-->
-      <el-form-item>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-        <el-button icon="" size="mini" @click="modelOne">预设1</el-button>
-        <el-button icon="" size="mini" @click="modelTwo">预设2</el-button>
-        <el-button icon="" size="mini" @click="modelThree">预设3</el-button>
+      <el-form-item class="search-actions">
+        <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
+        <el-button icon="el-icon-refresh" @click="resetQuery">重置</el-button>
+        <span class="preset-divider"></span>
+        <el-button plain @click="modelOne">预设 1</el-button>
+        <el-button plain @click="modelTwo">预设 2</el-button>
+        <el-button plain @click="modelThree">预设 3</el-button>
       </el-form-item>
-    </el-form>
+        </el-form>
+      </el-collapse-transition>
+    </section>
 
-    <el-row :gutter="10" class="mb8">
+    <section class="page-panel operation-panel">
+      <div class="panel-heading operation-heading">
+        <div>
+          <div class="panel-title">
+            <i class="el-icon-s-operation"></i>
+            账号操作
+          </div>
+          <div class="panel-subtitle">已选择 {{ keyIds.length }} 个账号</div>
+        </div>
+        <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      </div>
+      <el-row :gutter="8" class="action-grid">
       <el-col :span="1.5">
         <el-button
           type="primary"
@@ -284,17 +319,17 @@
         <el-button
           type="success"
           plain
-          icon="el-icon-first-aid-kit"
+          icon="el-icon-refresh"
           size="mini"
           :disabled="multiple"
           @click="handleGetAccountInfo"
-        >账号信息</el-button>
+        >更新账号信息</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
           type="success"
           plain
-          icon="el-icon-sell"
+          icon="el-icon-shopping-cart-full"
           size="mini"
           @click="handleSellAccount"
         >卖出</el-button>
@@ -303,7 +338,7 @@
         <el-button
           type="success"
           plain
-          icon="el-icon-camera"
+          icon="el-icon-edit-outline"
           size="mini"
           :disabled="multiple"
           @click="handlePost"
@@ -313,7 +348,7 @@
         <el-button
           type="success"
           plain
-          icon="el-icon-view"
+          icon="el-icon-user"
           size="mini"
           @click="handleAddFriend"
         >添加好友</el-button>
@@ -322,7 +357,7 @@
         <el-button
           type="success"
           plain
-          icon="el-icon-search"
+          icon="el-icon-zoom-in"
           size="mini"
           @click="handleBatchSearch"
         >批量搜索</el-button>
@@ -331,7 +366,7 @@
         <el-button
           type="success"
           plain
-          icon="el-icon-search"
+          icon="el-icon-position"
           size="mini"
           @click="handleJumpPage"
         >跳页</el-button>
@@ -340,7 +375,7 @@
         <el-button
           type="primary"
           plain
-          icon="el-icon-document"
+          icon="el-icon-document-add"
           size="mini"
           :disabled="multiple"
           @click="handleCreatePage"
@@ -350,27 +385,27 @@
         <el-button
           type="success"
           plain
-          icon="el-icon-edit"
+          icon="el-icon-circle-check"
           size="mini"
           :disabled="multiple"
           @click="handleCheckAccountActive"
-        >检测</el-button>
+        >检测状态</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
           type="success"
           plain
-          icon="el-icon-edit"
+          icon="el-icon-message"
           size="mini"
           :disabled="single"
           @click="handleGetEmail"
-        >取件</el-button>
+        >获取邮件</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
           type="success"
           plain
-          icon="el-icon-edit"
+          icon="el-icon-unlock"
           size="mini"
           :disabled="multiple"
           @click="handleUnlockEmail"
@@ -380,17 +415,17 @@
         <el-button
           type="success"
           plain
-          icon="el-icon-edit"
+          icon="el-icon-connection"
           size="mini"
           :disabled="multiple"
           @click="handleUnlockWSVerify"
-        >解WS验证</el-button>
+        >解除 WS 验证</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
           type="primary"
           plain
-          icon="el-icon-document"
+          icon="el-icon-user-solid"
           size="mini"
           :disabled="multiple"
           @click="handleChangeAccountName"
@@ -400,7 +435,7 @@
         <el-button
           type="success"
           plain
-          icon="el-icon-edit"
+          icon="el-icon-mobile-phone"
           size="mini"
           :disabled="single"
           @click="handleLoginInPhone"
@@ -410,9 +445,9 @@
         <el-button
           type="primary"
           plain
-          icon="el-icon-document"
+          icon="el-icon-key"
           size="mini"
-          :disabled="single"
+          :disabled="ids.length > 1"
           @click="handleGetTwoFA"
         >2FA</el-button>
       </el-col>
@@ -420,7 +455,7 @@
         <el-button
           type="primary"
           plain
-          icon="el-icon-document"
+          icon="el-icon-notebook-2"
           size="mini"
           :disabled="multiple"
           @click="handleChangeAccountNote"
@@ -430,16 +465,45 @@
         <el-button
           type="primary"
           plain
-          icon="el-icon-document"
+          icon="el-icon-message"
           size="mini"
           :disabled="single"
           @click="handleLoginEmail"
         >登录Email</el-button>
       </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
-    </el-row>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-tools"
+          size="mini"
+          :disabled="single"
+          @click="handleAaaa"
+        >临时操作</el-button>
+      </el-col>
+      </el-row>
+    </section>
 
-    <el-table v-loading="loading" :data="sellList" @selection-change="handleSelectionChange" height="800">
+    <section ref="tablePanel" class="page-panel table-panel">
+      <div class="panel-heading table-heading">
+        <div>
+          <div class="panel-title">
+            <i class="el-icon-tickets"></i>
+            账号列表
+          </div>
+          <div class="panel-subtitle">共 {{ total }} 条记录，双击地区可在新窗口查看账号</div>
+        </div>
+      </div>
+      <el-table
+        ref="sellTable"
+        v-loading="loading"
+        :data="sellList"
+        @selection-change="handleSelectionChange"
+        :height="tableHeight"
+        class="sell-table"
+        stripe
+        border
+      >
       <el-table-column type="expand">
         <template v-slot="props">
           <el-form label-position="top" class="demo-table-expand">
@@ -543,20 +607,23 @@
           </el-dropdown>
         </template>
       </el-table-column>
-    </el-table>
+      </el-table>
 
-    <pagination
-      v-show="total>0"
-      :total="total"
-      :page.sync="queryParams.pageNum"
-      :limit.sync="queryParams.pageSize"
-      @pagination="getList"
-    />
+      <div class="pagination-wrap">
+        <pagination
+          v-show="total>0"
+          :total="total"
+          :page.sync="queryParams.pageNum"
+          :limit.sync="queryParams.pageSize"
+          @pagination="getList"
+        />
+      </div>
+    </section>
 
     <!-- 添加或修改卖号对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body class="sell-dialog">
+    <el-dialog :title="title" :visible.sync="open" width="820px" append-to-body class="sell-dialog standard-dialog">
       <div class="sell-dialog-body">
-        <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form ref="form" :model="form" :rules="rules" label-width="100px" class="account-edit-form">
           <el-form-item label="ID" prop="id">
             <el-input v-model="form.id" placeholder="请输入ID"/>
           </el-form-item>
@@ -572,11 +639,11 @@
           <el-form-item label="账户生日" prop="birthday">
             <el-input v-model="form.birthday" placeholder="请输入账户生日"/>
           </el-form-item>
-          <el-form-item label="名字" prop="name">
+          <el-form-item label="账号名称" prop="name">
             <el-input v-model="form.name" placeholder="请输入名字"/>
           </el-form-item>
-          <el-form-item label="秘钥" prop="secretKey">
-            <el-input v-model="form.secretKey" placeholder="请输入秘钥"/>
+          <el-form-item label="2FA 密钥" prop="secretKey">
+            <el-input v-model="form.secretKey" placeholder="请输入 2FA 密钥"/>
           </el-form-item>
           <el-form-item label="性别" prop="gender">
             <el-input v-model="form.gender" placeholder="请输入性别"/>
@@ -620,7 +687,7 @@
               </el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-form-item label="个人户" prop="canAds">
+          <el-form-item label="广告账户" prop="canAds">
             <el-radio-group v-model="form.adAccountStatus">
               <el-radio
                 v-for="dict in dict.type.ad_account_status"
@@ -658,7 +725,7 @@
                             placeholder="请选择卖出日期">
             </el-date-picker>
           </el-form-item>
-          <el-form-item label="邮箱是否可用" prop="emailStatus">
+          <el-form-item label="邮箱状态" prop="emailStatus">
             <el-radio-group v-model="form.emailStatus">
               <el-radio
                 v-for="dict in dict.type.email_status"
@@ -674,16 +741,16 @@
           <el-form-item label="主页数量" prop="pageNumber">
             <el-input v-model="form.pageNumber" placeholder="请输入主页数量"/>
           </el-form-item>
-          <el-form-item label="bm数量" prop="bmNumber">
-            <el-input v-model="form.bmNumber" placeholder="请输入bm数量"/>
+          <el-form-item label="BM 数量" prop="bmNumber">
+            <el-input v-model="form.bmNumber" placeholder="请输入 BM 数量"/>
           </el-form-item>
           <el-form-item label="帖子数量" prop="postsNumber">
             <el-input v-model="form.postsNumber" placeholder="请输入帖子数量"/>
           </el-form-item>
-          <el-form-item label="UA" prop="ua">
-            <el-input v-model="form.ua" placeholder="请输入UA"/>
+          <el-form-item label="浏览器 UA" prop="ua">
+            <el-input v-model="form.ua" placeholder="请输入浏览器 UA"/>
           </el-form-item>
-          <el-form-item label="浏览器" prop="browserStatus">
+          <el-form-item label="浏览器状态" prop="browserStatus">
             <el-radio-group v-model="form.browserStatus">
               <el-radio
                 v-for="dict in dict.type.browser_status"
@@ -696,13 +763,13 @@
         </el-form>
       </div>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
+        <el-button @click="cancel">取消</el-button>
+        <el-button type="primary" @click="submitForm">保存</el-button>
       </div>
     </el-dialog>
 
     <!-- 导入对话框 -->
-    <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px" append-to-body>
+    <el-dialog :title="upload.title" :visible.sync="upload.open" width="520px" append-to-body class="standard-dialog upload-dialog">
       <el-upload
         ref="upload"
         :limit="1"
@@ -726,8 +793,8 @@
         </div>
       </el-upload>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitFileForm">确 定</el-button>
-        <el-button @click="upload.open = false">取 消</el-button>
+        <el-button @click="upload.open = false">取消</el-button>
+        <el-button type="primary" @click="submitFileForm">开始导入</el-button>
       </div>
     </el-dialog>
 
@@ -754,7 +821,7 @@
       :visible.sync="sellAccount"
       width="700px"
       append-to-body
-      class="sell-dialog"
+      class="sell-dialog standard-dialog"
     >
       <div class="sell-dialog-body">
         <div v-for="(item, index) in sellFormList" :key="item.id" class="sell-item">
@@ -771,17 +838,17 @@
       </div>
 
       <div slot="footer" class="dialog-footer">
+        <el-button @click="cancelSellAccount">取消</el-button>
         <el-button @click="toggleLabels">切换语言</el-button>
-        <el-button @click="copySellInfoToClipboard">复制</el-button>
-        <el-button type="primary" @click="submitSellAccount">确 定</el-button>
-        <el-button @click="cancelSellAccount">取 消</el-button>
+        <el-button @click="copySellInfoToClipboard">复制信息</el-button>
+        <el-button type="primary" @click="submitSellAccount">确认卖出</el-button>
       </div>
     </el-dialog>
 
     <!--添加好友-->
-    <el-dialog :title="title" :visible.sync="openAddFriend" width="500px" append-to-body>
-      <el-form ref="addFriendForm" :model="addFriendFormData" :rules="addFriendRules" size="medium" label-width="100px">
-        <el-form-item label="添加账号" prop="accountId">
+    <el-dialog :title="title" :visible.sync="openAddFriend" width="560px" append-to-body class="standard-dialog">
+      <el-form ref="addFriendForm" :model="addFriendFormData" :rules="addFriendRules" size="medium" label-width="110px" class="dialog-form">
+        <el-form-item label="目标账号 ID" prop="accountId">
           <el-input v-model="addFriendFormData.accountId" placeholder="请输入好友账号ID" clearable >
           </el-input>
         </el-form-item>
@@ -801,74 +868,77 @@
           <el-input v-model="addFriendFormData.note" placeholder="备注" clearable >
           </el-input>
         </el-form-item>
-        <el-form-item label="添加数量" prop="number">
+        <el-form-item label="好友数量" prop="number">
           <el-input v-model="addFriendFormData.number" placeholder="数量" clearable >
           </el-input>
         </el-form-item>
       </el-form>
-      <div slot="footer">
+      <div slot="footer" class="dialog-footer">
         <el-button @click="closeAddFriend">取消</el-button>
         <el-button type="primary" @click="submitAddFriend">确定</el-button>
       </div>
     </el-dialog>
 
     <!--创建主页-->
-    <el-dialog :title="title" :visible.sync="openCreatePage" width="500px" append-to-body>
-      <el-form ref="createPageForm" :model="createPageFormData"  size="medium" label-width="100px">
-        <el-form-item label="主页名" prop="pageName">
-          <el-input v-model="createPageFormData.pageName" placeholder="输入主页名" clearable :style="{width: '100%'}">
+    <el-dialog :title="title" :visible.sync="openCreatePage" width="520px" append-to-body class="standard-dialog">
+      <el-form ref="createPageForm" :model="createPageFormData" size="medium" label-width="100px" class="dialog-form">
+        <el-form-item label="主页名称" prop="pageName">
+          <el-input v-model="createPageFormData.pageName" placeholder="请输入主页名称" clearable :style="{width: '100%'}">
           </el-input>
         </el-form-item>
       </el-form>
-      <div slot="footer">
+      <div slot="footer" class="dialog-footer">
         <el-button @click="closeCreatePage">取消</el-button>
         <el-button type="primary" @click="submitCreatePage">确定</el-button>
       </div>
     </el-dialog>
 
     <!--创建修改名字-->
-    <el-dialog :title="title" :visible.sync="openChangeAccountName" width="500px" append-to-body>
-      <el-form ref="changeAccountNameForm" :model="changeAccountNameFormData"  size="medium" label-width="100px">
-        <el-form-item label="账号名字" prop="accountName">
-          <el-input v-model="changeAccountNameFormData.accountName" placeholder="账号名字" clearable :style="{width: '100%'}">
+    <el-dialog :title="title" :visible.sync="openChangeAccountName" width="520px" append-to-body class="standard-dialog">
+      <el-form ref="changeAccountNameForm" :model="changeAccountNameFormData" size="medium" label-width="100px" class="dialog-form">
+        <el-form-item label="账号名称" prop="accountName">
+          <el-input v-model="changeAccountNameFormData.accountName" placeholder="请输入新的账号名称" clearable :style="{width: '100%'}">
           </el-input>
         </el-form-item>
       </el-form>
-      <div slot="footer">
+      <div slot="footer" class="dialog-footer">
         <el-button @click="closeChangeAccountName">取消</el-button>
         <el-button type="primary" @click="submitChangeAccountName">确定</el-button>
       </div>
     </el-dialog>
 
     <!--修改备注-->
-    <el-dialog :title="title" :visible.sync="openChangeAccountNote" width="500px" append-to-body>
-      <el-form ref="changeAccountNoteForm" :model="changeAccountNoteFormData"  size="medium" label-width="100px">
-        <el-form-item label="备注" prop="accountNote">
-          <el-input v-model="changeAccountNoteFormData.accountNote" placeholder="备注" clearable :style="{width: '100%'}">
+    <el-dialog :title="title" :visible.sync="openChangeAccountNote" width="520px" append-to-body class="standard-dialog">
+      <el-form ref="changeAccountNoteForm" :model="changeAccountNoteFormData" size="medium" label-width="100px" class="dialog-form">
+        <el-form-item label="账号备注" prop="accountNote">
+          <el-input v-model="changeAccountNoteFormData.accountNote" type="textarea" :rows="4" placeholder="请输入新的账号备注" clearable :style="{width: '100%'}">
           </el-input>
         </el-form-item>
       </el-form>
-      <div slot="footer">
+      <div slot="footer" class="dialog-footer">
         <el-button @click="closeChangeAccountNote">取消</el-button>
         <el-button type="primary" @click="submitChangeAccountNote">确定</el-button>
       </div>
     </el-dialog>
 
     <!--更新选项-->
-    <el-dialog :title="getAccountInfo.title" :visible.sync="getAccountInfo.open" width="500px" append-to-body>
-      <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleSelectAllOption">全选</el-checkbox>
-      <el-checkbox-group v-model="checkedUpdateOption">
+    <el-dialog :title="getAccountInfo.title" :visible.sync="getAccountInfo.open" width="600px" append-to-body class="standard-dialog">
+      <div class="option-dialog-body">
+        <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleSelectAllOption">全选更新项</el-checkbox>
+        <el-divider></el-divider>
+        <el-checkbox-group v-model="checkedUpdateOption" class="update-option-grid">
         <el-checkbox v-for="option in options" :label="option" :key="option">{{option}}</el-checkbox>
-      </el-checkbox-group>
+        </el-checkbox-group>
+      </div>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitGetOption">确 定</el-button>
-        <el-button @click="getAccountInfo.open = false">取 消</el-button>
+        <el-button @click="getAccountInfo.open = false">取消</el-button>
+        <el-button type="primary" @click="submitGetOption">开始更新</el-button>
       </div>
     </el-dialog>
 
     <!--批量搜索-->
-    <el-dialog :title="title" :visible.sync="openBatchSearch" width="500px" append-to-body>
-      <el-form ref="batchSearchForm" :model="batchSearchFormData" size="medium" label-width="100px">
+    <el-dialog :title="title" :visible.sync="openBatchSearch" width="560px" append-to-body class="standard-dialog">
+      <el-form ref="batchSearchForm" :model="batchSearchFormData" size="medium" label-width="100px" class="dialog-form">
         <!-- 单选按钮组代替下拉框 -->
         <el-form-item label="搜索类型" prop="searchType">
           <el-radio-group v-model="batchSearchFormData.searchType">
@@ -877,18 +947,105 @@
           </el-radio-group>
         </el-form-item>
         <!-- 输入框 -->
-        <el-form-item label="输入信息" prop="inputData">
+        <el-form-item label="搜索内容" prop="inputData">
           <el-input
             v-model="batchSearchFormData.inputData"
             type="textarea"
-            placeholder="每行一个信息"
-            rows="5"
+            placeholder="每行输入一个账号 ID 或邮箱"
+            rows="7"
           ></el-input>
         </el-form-item>
       </el-form>
-      <div slot="footer">
+      <div slot="footer" class="dialog-footer">
         <el-button @click="closeBatchSearch">取消</el-button>
         <el-button type="primary" @click="submitBatchSearch">确定</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 双重验证码 -->
+    <el-dialog
+      title="双重验证码"
+      :visible.sync="twoFA.open"
+      width="520px"
+      append-to-body
+      class="standard-dialog two-fa-dialog"
+      @closed="resetTwoFA"
+    >
+      <div class="two-fa-body">
+        <div class="two-fa-icon">
+          <i class="el-icon-key"></i>
+        </div>
+        <div class="two-fa-title">
+          {{ ids.length === 1 ? '当前账号验证码' : '通过密钥获取验证码' }}
+        </div>
+        <div class="two-fa-description">
+          {{ ids.length === 1
+            ? `正在为账号 ${ids[0]} 获取当前有效的 2FA 验证码`
+            : '输入账号绑定的 2FA 密钥，获取当前有效的六位验证码'
+          }}
+        </div>
+
+        <el-form
+          v-if="ids.length === 0"
+          ref="twoFAForm"
+          :model="twoFA"
+          :rules="twoFARules"
+          class="two-fa-form"
+          @submit.native.prevent
+        >
+          <el-form-item prop="secretKey">
+            <el-input
+              v-model.trim="twoFA.secretKey"
+              placeholder="请输入 2FA 密钥"
+              clearable
+              type="text"
+              name="two-fa-secret-key"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              class="two-fa-secret-input"
+              @keyup.enter.native="getTwoFABySecret"
+            >
+              <template slot="prepend">
+                <i class="el-icon-key"></i>
+                2FA 密钥
+              </template>
+              <el-button
+                slot="append"
+                icon="el-icon-refresh"
+                :loading="twoFA.loading"
+                @click="getTwoFABySecret"
+              >获取</el-button>
+            </el-input>
+          </el-form-item>
+        </el-form>
+
+        <div v-loading="twoFA.loading" class="two-fa-code-card">
+          <template v-if="twoFA.code">
+            <div class="two-fa-code-label">当前验证码</div>
+            <div class="two-fa-code">{{ twoFA.code }}</div>
+            <div class="two-fa-code-tip">验证码会随时间自动失效，请尽快使用</div>
+          </template>
+          <div v-else class="two-fa-empty">
+            {{ twoFA.loading ? '正在获取验证码...' : '获取后将在此处显示验证码' }}
+          </div>
+        </div>
+      </div>
+
+      <div slot="footer" class="dialog-footer two-fa-footer">
+        <el-button @click="twoFA.open = false">关闭</el-button>
+        <el-button
+          v-if="ids.length === 1"
+          icon="el-icon-refresh"
+          :loading="twoFA.loading"
+          @click="getTwoFAByAccount"
+        >重新获取</el-button>
+        <el-button
+          type="primary"
+          icon="el-icon-document-copy"
+          :disabled="!twoFA.code"
+          @click="copyTwoFACode"
+        >复制验证码</el-button>
       </div>
     </el-dialog>
   </div>
@@ -922,10 +1079,12 @@ import {
   changeAccountNote,
   batchSearch,
   get2FACode,
+  generate2FACode,
   getSellForShow,
   unlockWSVerify,
   loginEmail,
-  loginInPhone
+  loginInPhone,
+  aaa
 } from "@/api/account/sell";
 import { getToken } from "@/utils/auth";
 
@@ -945,8 +1104,13 @@ export default {
       multiple: true,
       // 显示搜索条件
       showSearch: true,
+      // 展开搜索条件
+      queryExpanded: true,
       // 总条数
       total: 0,
+      // 根据窗口可用空间动态计算表格高度
+      tableHeight: 360,
+      tableResizeTimer: null,
       // 卖号表格数据
       sellList: [],
       // 弹出层标题
@@ -965,6 +1129,18 @@ export default {
       openBatchSearch: false,
       //卖出账号
       sellAccount: false,
+      // 双重验证码
+      twoFA: {
+        open: false,
+        loading: false,
+        secretKey: '',
+        code: ''
+      },
+      twoFARules: {
+        secretKey: [
+          { required: true, message: '请输入 2FA 密钥', trigger: 'blur' }
+        ]
+      },
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -1088,7 +1264,55 @@ export default {
     }
     this.getList();
   },
+  mounted() {
+    window.addEventListener('resize', this.scheduleTableResize);
+    this.scheduleTableResize();
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.scheduleTableResize);
+    if (this.tableResizeTimer) {
+      clearTimeout(this.tableResizeTimer);
+    }
+  },
+  watch: {
+    showSearch() {
+      this.scheduleTableResize();
+    },
+    queryExpanded() {
+      this.scheduleTableResize(320);
+    }
+  },
   methods: {
+    // 根据表格在当前窗口中的位置，计算剩余可用高度
+    scheduleTableResize(delay = 60) {
+      if (this.tableResizeTimer) {
+        clearTimeout(this.tableResizeTimer);
+      }
+      this.tableResizeTimer = setTimeout(() => {
+        this.$nextTick(() => {
+          this.updateTableHeight();
+        });
+      }, delay);
+    },
+    updateTableHeight() {
+      const table = this.$refs.sellTable && this.$refs.sellTable.$el;
+      if (!table) {
+        return;
+      }
+
+      const tableTop = table.getBoundingClientRect().top;
+      const pagination = this.$el.querySelector('.pagination-wrap');
+      const paginationHeight = pagination ? pagination.offsetHeight : 0;
+      const pageBottomSpace = 20;
+      const availableHeight = window.innerHeight - tableTop - paginationHeight - pageBottomSpace;
+
+      this.tableHeight = Math.max(180, Math.floor(availableHeight));
+      this.$nextTick(() => {
+        if (this.$refs.sellTable) {
+          this.$refs.sellTable.doLayout();
+        }
+      });
+    },
     /** 查询卖号列表 */
     getList() {
       this.loading = true;
@@ -1454,15 +1678,81 @@ ${this.labels.name}：${item.name}
       this.openChangeAccountNote = true;
     },
 
-    //获取双重验证码
+    // 打开双重验证码弹窗
     handleGetTwoFA() {
-      const id = this.ids; // 若依默认支持多选，取第一个
-      get2FACode(id).then(respone => {
-        console.log(respone)
-        this.$modal.alert(`当前验证码为：${respone.msg}`, "双重验证码", {
-          dangerouslyUseHTMLString: true
+      this.resetTwoFA();
+      this.twoFA.open = true;
+      if (this.ids.length === 1) {
+        this.getTwoFAByAccount();
+      }
+    },
+
+    // 根据选中账号获取双重验证码
+    getTwoFAByAccount() {
+      if (this.ids.length !== 1) {
+        return;
+      }
+      this.twoFA.loading = true;
+      get2FACode(this.ids[0]).then(response => {
+        this.twoFA.code = response.data || response.msg || '';
+      }).finally(() => {
+        this.twoFA.loading = false;
+      });
+    },
+
+    // 根据手动输入的密钥获取双重验证码
+    getTwoFABySecret() {
+      this.$refs.twoFAForm.validate(valid => {
+        if (!valid) {
+          return;
+        }
+        this.twoFA.loading = true;
+        generate2FACode(this.twoFA.secretKey).then(response => {
+          this.twoFA.code = response.data || response.msg || '';
+        }).finally(() => {
+          this.twoFA.loading = false;
         });
       });
+    },
+
+    // 复制双重验证码
+    copyTwoFACode() {
+      if (!this.twoFA.code) {
+        return;
+      }
+      const code = String(this.twoFA.code);
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(() => {
+          this.$message.success('验证码已复制');
+        }).catch(() => {
+          this.copyTextWithTextarea(code);
+        });
+        return;
+      }
+      this.copyTextWithTextarea(code);
+    },
+
+    copyTextWithTextarea(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      copied
+        ? this.$message.success('验证码已复制')
+        : this.$message.error('复制失败，请手动复制');
+    },
+
+    resetTwoFA() {
+      this.twoFA.loading = false;
+      this.twoFA.secretKey = '';
+      this.twoFA.code = '';
+      if (this.$refs.twoFAForm) {
+        this.$refs.twoFAForm.clearValidate();
+      }
     },
 
 
@@ -1681,6 +1971,11 @@ ${this.labels.name}：${item.name}
       loginEmail(keyId)
     },
 
+    handleAaaa(){
+      const keyId = this.keyIds
+      aaa(keyId)
+    },
+
     handleDblClick(row){
       const id = row.id;
 
@@ -1706,6 +2001,407 @@ ${this.labels.name}：${item.name}
 </script>
 
 <style scoped>
+.sell-page {
+  min-height: calc(100vh - 84px);
+  padding: 18px;
+  box-sizing: border-box;
+  background: #f4f7fb;
+}
+
+.page-panel {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid #e8edf4;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(31, 45, 61, 0.05);
+}
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  color: #1f2d3d;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.panel-title i {
+  margin-right: 8px;
+  color: #409eff;
+  font-size: 18px;
+}
+
+.panel-subtitle {
+  margin-top: 3px;
+  color: #909399;
+  font-size: 12px;
+}
+
+.search-heading {
+  margin-bottom: 0;
+}
+
+.collapse-button {
+  padding: 8px 4px;
+  font-weight: 500;
+}
+
+.search-heading + .el-collapse-transition {
+  display: block;
+}
+
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 18px -6px -12px;
+}
+
+.search-form ::v-deep .el-form-item {
+  display: flex;
+  width: calc(20% - 12px);
+  margin: 0 6px 14px;
+}
+
+.search-form ::v-deep .el-form-item__label {
+  flex-shrink: 0;
+  color: #606266;
+}
+
+.search-form ::v-deep .el-form-item__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-form ::v-deep .el-input,
+.search-form ::v-deep .el-select,
+.search-form ::v-deep .el-date-editor {
+  width: 100%;
+}
+
+.search-form ::v-deep .el-input__inner {
+  border-color: #dfe5ec;
+  border-radius: 6px;
+}
+
+.search-actions {
+  width: 100% !important;
+  padding-top: 2px;
+  border-top: 1px dashed #e8edf4;
+}
+
+.search-actions ::v-deep .el-form-item__content {
+  padding-top: 14px;
+  margin-left: 0 !important;
+}
+
+.preset-divider {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  margin: 0 10px;
+  vertical-align: middle;
+  background: #dcdfe6;
+}
+
+.operation-panel {
+  padding-bottom: 10px;
+}
+
+.operation-heading {
+  margin-bottom: 12px;
+}
+
+.action-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -4px !important;
+  margin-left: -4px !important;
+}
+
+.action-grid ::v-deep .el-col {
+  width: auto;
+  margin-bottom: 8px;
+  padding-right: 4px !important;
+  padding-left: 4px !important;
+}
+
+.action-grid ::v-deep .el-button {
+  min-width: 72px;
+  border-radius: 6px;
+}
+
+.table-panel {
+  margin-bottom: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-heading {
+  padding: 16px 20px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.sell-table {
+  width: 100%;
+}
+
+.sell-table ::v-deep th.el-table__cell {
+  padding: 10px 0;
+  color: #475669;
+  font-weight: 600;
+  background: #f7f9fc;
+}
+
+.sell-table ::v-deep td.el-table__cell {
+  padding: 9px 0;
+}
+
+.sell-table ::v-deep .el-table__row:hover > td.el-table__cell {
+  background: #f0f7ff;
+}
+
+.expand-container {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 4px 20px;
+}
+
+.expand-container p {
+  padding: 10px 12px;
+  margin: 0;
+  color: #606266;
+  background: #f7f9fc;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  word-break: break-all;
+}
+
+.pagination-wrap {
+  min-height: 52px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border-top: 1px solid #ebeef5;
+}
+
+.pagination-wrap ::v-deep .pagination-container {
+  height: auto;
+  padding: 12px 0 !important;
+  margin: 0;
+  background: transparent;
+}
+
+.standard-dialog ::v-deep .el-dialog {
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 18px 50px rgba(31, 45, 61, 0.2);
+}
+
+.standard-dialog ::v-deep .el-dialog__header {
+  padding: 18px 22px;
+  background: #f7f9fc;
+  border-bottom: 1px solid #e8edf4;
+}
+
+.standard-dialog ::v-deep .el-dialog__title {
+  color: #1f2d3d;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.standard-dialog ::v-deep .el-dialog__headerbtn {
+  top: 20px;
+  right: 22px;
+}
+
+.standard-dialog ::v-deep .el-dialog__body {
+  padding: 24px;
+}
+
+.standard-dialog ::v-deep .el-dialog__footer {
+  padding: 14px 22px;
+  background: #fafbfd;
+  border-top: 1px solid #e8edf4;
+}
+
+.standard-dialog ::v-deep .dialog-footer .el-button {
+  min-width: 82px;
+  border-radius: 6px;
+}
+
+.dialog-form ::v-deep .el-form-item {
+  margin-bottom: 20px;
+}
+
+.dialog-form ::v-deep .el-form-item:last-child {
+  margin-bottom: 0;
+}
+
+.dialog-form ::v-deep .el-input__inner,
+.dialog-form ::v-deep .el-textarea__inner {
+  border-radius: 6px;
+}
+
+.account-edit-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+}
+
+.account-edit-form ::v-deep .el-form-item {
+  margin-bottom: 18px;
+}
+
+.account-edit-form ::v-deep .el-input,
+.account-edit-form ::v-deep .el-select,
+.account-edit-form ::v-deep .el-date-editor {
+  width: 100%;
+}
+
+.account-edit-form ::v-deep .el-input__inner {
+  border-radius: 6px;
+}
+
+.account-edit-form ::v-deep .el-radio {
+  margin-right: 18px;
+}
+
+.upload-dialog ::v-deep .el-upload,
+.upload-dialog ::v-deep .el-upload-dragger {
+  width: 100%;
+}
+
+.option-dialog-body {
+  padding: 2px 4px;
+}
+
+.option-dialog-body ::v-deep .el-divider {
+  margin: 16px 0 18px;
+}
+
+.update-option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 12px;
+}
+
+.update-option-grid ::v-deep .el-checkbox {
+  margin-right: 0;
+}
+
+.two-fa-body {
+  text-align: center;
+}
+
+.two-fa-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  color: #409eff;
+  font-size: 26px;
+  background: #ecf5ff;
+  border-radius: 50%;
+}
+
+.two-fa-title {
+  color: #1f2d3d;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.two-fa-description {
+  margin-top: 7px;
+  color: #909399;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.two-fa-form {
+  margin-top: 22px;
+}
+
+.two-fa-form ::v-deep .el-form-item {
+  margin-bottom: 16px;
+}
+
+.two-fa-form ::v-deep .el-input-group__prepend,
+.two-fa-form ::v-deep .el-input-group__append {
+  color: #606266;
+  background: #f7f9fc;
+}
+
+.two-fa-secret-input ::v-deep .el-input__inner {
+  color: #303133;
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+  letter-spacing: 0.5px;
+}
+
+.two-fa-secret-input ::v-deep .el-input-group__prepend {
+  min-width: 88px;
+  color: #409eff;
+  font-weight: 500;
+  text-align: center;
+}
+
+.two-fa-secret-input ::v-deep .el-input-group__prepend i {
+  margin-right: 4px;
+}
+
+.two-fa-form ::v-deep .el-input-group__append .el-button {
+  color: #409eff;
+  font-weight: 500;
+}
+
+.two-fa-code-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 144px;
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f7faff 0%, #edf5ff 100%);
+  border: 1px solid #d9ecff;
+  border-radius: 10px;
+}
+
+.two-fa-code-label {
+  color: #909399;
+  font-size: 12px;
+}
+
+.two-fa-code {
+  margin: 8px 0;
+  color: #303133;
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: 10px;
+  line-height: 48px;
+}
+
+.two-fa-code-tip,
+.two-fa-empty {
+  color: #909399;
+  font-size: 12px;
+}
+
+.two-fa-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .sell-dialog .el-dialog__body {
   padding: 0; /* 去掉默认内边距，避免双层滚动 */
 }
@@ -1717,10 +2413,64 @@ ${this.labels.name}：${item.name}
 }
 
 .sell-item {
-  background: #fafafa;
+  background: #f7f9fc;
+  border: 1px solid #e8edf4;
   border-radius: 8px;
   padding: 10px 15px;
   margin-bottom: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+@media (max-width: 1600px) {
+  .search-form ::v-deep .el-form-item {
+    width: calc(25% - 12px);
+  }
+}
+
+@media (max-width: 1200px) {
+  .search-form ::v-deep .el-form-item {
+    width: calc(33.333% - 12px);
+  }
+}
+
+@media (max-width: 768px) {
+  .sell-page {
+    padding: 10px;
+  }
+
+  .page-panel {
+    padding: 14px;
+    border-radius: 8px;
+  }
+
+  .search-form ::v-deep .el-form-item {
+    width: calc(100% - 12px);
+  }
+
+  .search-actions ::v-deep .el-button {
+    margin: 0 6px 6px 0;
+  }
+
+  .preset-divider {
+    display: none;
+  }
+
+  .table-panel {
+    padding: 0;
+  }
+
+  .expand-container {
+    grid-template-columns: 1fr;
+  }
+
+  .standard-dialog ::v-deep .el-dialog {
+    width: calc(100% - 24px) !important;
+    margin-top: 4vh !important;
+  }
+
+  .account-edit-form,
+  .update-option-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
