@@ -79,6 +79,10 @@ public class FbAccountForSell extends BaseEntity
     @Excel(name = "好友数量")
     private String friendNumber;
 
+    /** 好友数量范围 */
+    private String friendNumberMin;
+    private String friendNumberMax;
+
     /** 能否广告 */
     @Excel(name = "能否广告")
     private String canAds;
@@ -91,13 +95,25 @@ public class FbAccountForSell extends BaseEntity
     @Excel(name = "主页数量")
     private String pageNumber;
 
+    /** 主页数量范围 */
+    private String pageNumberMin;
+    private String pageNumberMax;
+
     /** bm数量 */
     @Excel(name = "BM数量")
     private String bmNumber;
 
+    /** BM数量范围 */
+    private String bmNumberMin;
+    private String bmNumberMax;
+
     /** 帖子数量 */
     @Excel(name = "帖子数量")
     private String postsNumber;
+
+    /** 帖子数量范围 */
+    private String postsNumberMin;
+    private String postsNumberMax;
 
     /** UA */
     private String ua;
@@ -293,6 +309,24 @@ public class FbAccountForSell extends BaseEntity
     {
         return friendNumber;
     }
+    public void setFriendNumberMin(String friendNumberMin)
+    {
+        this.friendNumberMin = friendNumberMin;
+    }
+
+    public String getFriendNumberMin()
+    {
+        return friendNumberMin;
+    }
+    public void setFriendNumberMax(String friendNumberMax)
+    {
+        this.friendNumberMax = friendNumberMax;
+    }
+
+    public String getFriendNumberMax()
+    {
+        return friendNumberMax;
+    }
     public void setCanAds(String canAds)
     {
         this.canAds = canAds;
@@ -311,6 +345,24 @@ public class FbAccountForSell extends BaseEntity
     {
         return pageNumber;
     }
+    public void setPageNumberMin(String pageNumberMin)
+    {
+        this.pageNumberMin = pageNumberMin;
+    }
+
+    public String getPageNumberMin()
+    {
+        return pageNumberMin;
+    }
+    public void setPageNumberMax(String pageNumberMax)
+    {
+        this.pageNumberMax = pageNumberMax;
+    }
+
+    public String getPageNumberMax()
+    {
+        return pageNumberMax;
+    }
     public void setBmNumber(String bmNumber)
     {
         this.bmNumber = bmNumber;
@@ -320,6 +372,24 @@ public class FbAccountForSell extends BaseEntity
     {
         return bmNumber;
     }
+    public void setBmNumberMin(String bmNumberMin)
+    {
+        this.bmNumberMin = bmNumberMin;
+    }
+
+    public String getBmNumberMin()
+    {
+        return bmNumberMin;
+    }
+    public void setBmNumberMax(String bmNumberMax)
+    {
+        this.bmNumberMax = bmNumberMax;
+    }
+
+    public String getBmNumberMax()
+    {
+        return bmNumberMax;
+    }
     public void setPostsNumber(String postsNumber)
     {
         this.postsNumber = postsNumber;
@@ -328,6 +398,24 @@ public class FbAccountForSell extends BaseEntity
     public String getPostsNumber()
     {
         return postsNumber;
+    }
+    public void setPostsNumberMin(String postsNumberMin)
+    {
+        this.postsNumberMin = postsNumberMin;
+    }
+
+    public String getPostsNumberMin()
+    {
+        return postsNumberMin;
+    }
+    public void setPostsNumberMax(String postsNumberMax)
+    {
+        this.postsNumberMax = postsNumberMax;
+    }
+
+    public String getPostsNumberMax()
+    {
+        return postsNumberMax;
     }
     public void setUa(String ua)
     {
@@ -444,10 +532,18 @@ public class FbAccountForSell extends BaseEntity
                 .append("isMarketplace", getIsMarketplace())
                 .append("emailStatus", getEmailStatus())
                 .append("friendNumber", getFriendNumber())
+                .append("friendNumberMin", getFriendNumberMin())
+                .append("friendNumberMax", getFriendNumberMax())
                 .append("canAds", getCanAds())
                 .append("pageNumber", getPageNumber())
+                .append("pageNumberMin", getPageNumberMin())
+                .append("pageNumberMax", getPageNumberMax())
                 .append("bmNumber", getBmNumber())
+                .append("bmNumberMin", getBmNumberMin())
+                .append("bmNumberMax", getBmNumberMax())
                 .append("postsNumber", getPostsNumber())
+                .append("postsNumberMin", getPostsNumberMin())
+                .append("postsNumberMax", getPostsNumberMax())
                 .append("ua", getUa())
                 .append("browserStatus", getBrowserStatus())
                 .append("browserProfile", getBrowserProfile())

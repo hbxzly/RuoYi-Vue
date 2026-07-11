@@ -24,6 +24,10 @@ public class CreateDevice extends BaseEntity
     @Excel(name = "设备名称")
     private String deviceName;
 
+    /** 设备版本 */
+    @Excel(name = "设备版本")
+    private String deviceVersion;
+
     /** 包名 */
     @Excel(name = "包名")
     private String packageName;
@@ -58,6 +62,15 @@ public class CreateDevice extends BaseEntity
     public String getDeviceName() 
     {
         return deviceName;
+    }
+    public void setDeviceVersion(String deviceVersion)
+    {
+        this.deviceVersion = deviceVersion;
+    }
+
+    public String getDeviceVersion()
+    {
+        return deviceVersion;
     }
     public void setPackageName(String packageName) 
     {
@@ -101,6 +114,7 @@ public class CreateDevice extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("keyId", getKeyId())
             .append("deviceName", getDeviceName())
+            .append("deviceVersion", getDeviceVersion())
             .append("packageName", getPackageName())
             .append("createAccountId", getCreateAccountId())
             .append("createDate", getCreateDate())

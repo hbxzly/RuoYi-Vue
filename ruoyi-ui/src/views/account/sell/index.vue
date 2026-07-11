@@ -190,40 +190,76 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="好友数量" prop="friendNumber">
+      <el-form-item label="好友数量" class="range-search-item">
         <el-input
-          v-model="queryParams.friendNumber"
-          placeholder="请输入好友数量"
+          v-model="queryParams.friendNumberMin"
+          type="number"
+          placeholder="最小"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+        <span class="range-separator">-</span>
+        <el-input
+          v-model="queryParams.friendNumberMax"
+          type="number"
+          placeholder="最大"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="主页数量" prop="pageNumber">
+      <el-form-item label="主页数量" class="range-search-item">
         <el-input
-          v-model="queryParams.pageNumber"
-          placeholder="请输入主页数量"
+          v-model="queryParams.pageNumberMin"
+          type="number"
+          placeholder="最小"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+        <span class="range-separator">-</span>
+        <el-input
+          v-model="queryParams.pageNumberMax"
+          type="number"
+          placeholder="最大"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="BM 数量" prop="bmNumber">
+      <el-form-item label="BM 数量" class="range-search-item">
         <el-input
-          v-model="queryParams.bmNumber"
-          placeholder="请输入bm数量"
+          v-model="queryParams.bmNumberMin"
+          type="number"
+          placeholder="最小"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+        <span class="range-separator">-</span>
+        <el-input
+          v-model="queryParams.bmNumberMax"
+          type="number"
+          placeholder="最大"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="帖子数量" prop="postsNumber">
+      <el-form-item label="帖子数量" class="range-search-item">
         <el-input
-          v-model="queryParams.postsNumber"
-          placeholder="请输入帖子数量"
+          v-model="queryParams.postsNumberMin"
+          type="number"
+          placeholder="最小"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+        <span class="range-separator">-</span>
+        <el-input
+          v-model="queryParams.postsNumberMax"
+          type="number"
+          placeholder="最大"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="浏览器状态" prop="browserStatus">
-        <el-select v-model="queryParams.browserStatus" placeholder="请选择浏览器状态" clearable>
+      <el-form-item label="浏览器" prop="browserStatus">
+        <el-select v-model="queryParams.browserStatus" placeholder="请选择浏览器" clearable>
           <el-option
             v-for="dict in dict.type.browser_status"
             :key="dict.value"
@@ -261,8 +297,6 @@
           </div>
           <div class="panel-subtitle">已选择 {{ keyIds.length }} 个账号</div>
         </div>
-        <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
-      </div>
       <el-row :gutter="8" class="action-grid">
       <el-col :span="1.5">
         <el-button
@@ -482,6 +516,8 @@
         >临时操作</el-button>
       </el-col>
       </el-row>
+      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      </div>
     </section>
 
     <section ref="tablePanel" class="page-panel table-panel">
@@ -499,6 +535,7 @@
         v-loading="loading"
         :data="sellList"
         @selection-change="handleSelectionChange"
+        @sort-change="handleSortChange"
         :height="tableHeight"
         class="sell-table"
         stripe
@@ -516,7 +553,17 @@
         </template>
       </el-table-column>
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" align="center" width="60" prop="keyId" />
+      <el-table-column label="序号" align="center" width="60" prop="keyId" sortable="custom" :sort-orders="['descending', 'ascending']">
+        <template slot-scope="scope">
+          <span
+            class="row-index-selector"
+            @mousedown.prevent.stop="startIndexSelection(scope.row)"
+            @mouseenter="dragIndexSelection(scope.row)"
+          >
+            {{ scope.row.keyId }}
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column label="ID" align="center" width="150" prop="id" />
       <el-table-column label="邮箱" align="center" width="100" prop="email" show-overflow-tooltip/>
 <!--      <el-table-column  label="密码" align="center" width="155" prop="password" />
@@ -569,10 +616,10 @@
           <dict-tag :options="dict.type.email_status" :value="scope.row.emailStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="好友数量" align="center" prop="friendNumber" width="60" show-overflow-tooltip/>
-      <el-table-column label="主页数量" align="center" prop="pageNumber" width="60" show-overflow-tooltip/>
-      <el-table-column label="bm数量" align="center" prop="bmNumber" width="60" show-overflow-tooltip/>
-      <el-table-column label="帖子数量" align="center" prop="postsNumber" width="60" show-overflow-tooltip/>
+      <el-table-column label="好友数量" align="center" prop="friendNumber" width="60" sortable="custom" :sort-orders="['descending', 'ascending']" show-overflow-tooltip/>
+      <el-table-column label="主页数量" align="center" prop="pageNumber" width="60" sortable="custom" :sort-orders="['descending', 'ascending']" show-overflow-tooltip/>
+      <el-table-column label="bm数量" align="center" prop="bmNumber" width="60" sortable="custom" :sort-orders="['descending', 'ascending']" show-overflow-tooltip/>
+      <el-table-column label="帖子数量" align="center" prop="postsNumber" width="60" sortable="custom" :sort-orders="['descending', 'ascending']" show-overflow-tooltip/>
       <el-table-column label="登录记录" align="center" prop="lastPostsTime" width="250" show-overflow-tooltip/>
       <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width" fixed="right" >
         <template slot-scope="scope">
@@ -883,8 +930,13 @@
     <el-dialog :title="title" :visible.sync="openCreatePage" width="520px" append-to-body class="standard-dialog">
       <el-form ref="createPageForm" :model="createPageFormData" size="medium" label-width="100px" class="dialog-form">
         <el-form-item label="主页名称" prop="pageName">
-          <el-input v-model="createPageFormData.pageName" placeholder="请输入主页名称" clearable :style="{width: '100%'}">
-          </el-input>
+          <el-input
+            v-model="createPageFormData.pageName"
+            type="textarea"
+            :rows="8"
+            placeholder="请输入主页名称，多个主页名称每行一个"
+            :style="{width: '100%'}"
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -1048,6 +1100,42 @@
         >复制验证码</el-button>
       </div>
     </el-dialog>
+
+    <el-dialog
+      title="选择手机登录设备"
+      :visible.sync="phoneLogin.open"
+      width="560px"
+      append-to-body
+      class="standard-dialog"
+      @closed="resetPhoneLogin"
+    >
+      <el-table
+        v-loading="phoneLogin.loading"
+        :data="phoneLogin.devices"
+        border
+        stripe
+        empty-text="暂无可用在线设备"
+      >
+        <el-table-column label="序号" type="index" width="70" align="center" />
+        <el-table-column label="设备名称" align="center" prop="deviceName" show-overflow-tooltip />
+        <el-table-column label="操作" align="center" width="120">
+          <template slot-scope="scope">
+            <el-button
+              type="text"
+              size="mini"
+              icon="el-icon-mobile-phone"
+              :loading="phoneLogin.submittingDeviceName === scope.row.deviceName"
+              :disabled="!!phoneLogin.submittingDeviceName && phoneLogin.submittingDeviceName !== scope.row.deviceName"
+              @click="submitPhoneLogin(scope.row.deviceName)"
+            >登录</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="phoneLogin.open = false">关闭</el-button>
+        <el-button type="primary" :loading="phoneLogin.loading" @click="loadPhoneLoginDevices">刷新</el-button>
+      </div>
+    </el-dialog>
   </div>
 
 
@@ -1083,6 +1171,8 @@ import {
   getSellForShow,
   unlockWSVerify,
   loginEmail,
+  getPhoneLoginDevices,
+  getPhoneLoginBoundDevice,
   loginInPhone,
   aaa
 } from "@/api/account/sell";
@@ -1111,6 +1201,14 @@ export default {
       // 根据窗口可用空间动态计算表格高度
       tableHeight: 360,
       tableResizeTimer: null,
+      indexSelecting: false,
+      indexSelectValue: true,
+      jumpPageListMode: false,
+      jumpPageState: {
+        signature: '',
+        pages: [],
+        nextIndex: 0
+      },
       // 卖号表格数据
       sellList: [],
       // 弹出层标题
@@ -1135,6 +1233,14 @@ export default {
         loading: false,
         secretKey: '',
         code: ''
+      },
+      phoneLogin: {
+        open: false,
+        loading: false,
+        submittingDeviceName: '',
+        closeTimer: null,
+        accountKeyId: null,
+        devices: []
       },
       twoFARules: {
         secretKey: [
@@ -1163,10 +1269,18 @@ export default {
         emailStatus: null,
         adAccountStatus: null,
         friendNumber: null,
+        friendNumberMin: null,
+        friendNumberMax: null,
         canAds: null,
         pageNumber: null,
+        pageNumberMin: null,
+        pageNumberMax: null,
         bmNumber: null,
+        bmNumberMin: null,
+        bmNumberMax: null,
         postsNumber: null,
+        postsNumberMin: null,
+        postsNumberMax: null,
         ua: null,
         browserStatus: null,
         browserProfile: null,
@@ -1200,8 +1314,8 @@ export default {
         number: ''
       },
 
-      //创建主页参数
-      createPageFormData:{
+      // 创建主页参数
+      createPageFormData: {
         pageName: ''
       },
 
@@ -1270,6 +1384,7 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.scheduleTableResize);
+    document.removeEventListener('mouseup', this.stopIndexSelection);
     if (this.tableResizeTimer) {
       clearTimeout(this.tableResizeTimer);
     }
@@ -1314,9 +1429,81 @@ export default {
       });
     },
     /** 查询卖号列表 */
+    getJumpPageRangeFields() {
+      return [
+        'friendNumberMin',
+        'friendNumberMax',
+        'pageNumberMin',
+        'pageNumberMax',
+        'bmNumberMin',
+        'bmNumberMax',
+        'postsNumberMin',
+        'postsNumberMax'
+      ];
+    },
+    clearJumpPageRangeQuery(query) {
+      this.getJumpPageRangeFields().forEach(field => {
+        query[field] = null;
+      });
+      return query;
+    },
+    buildJumpPageQuery() {
+      const query = { ...this.queryParams };
+      query.pageNum = 1;
+      return this.clearJumpPageRangeQuery(query);
+    },
+    buildJumpPageListQuery(pageNum) {
+      const query = {
+        pageNum,
+        pageSize: this.queryParams.pageSize
+      };
+      if (this.queryParams.orderByColumn) {
+        query.orderByColumn = this.queryParams.orderByColumn;
+      }
+      if (this.queryParams.isAsc) {
+        query.isAsc = this.queryParams.isAsc;
+      }
+      return query;
+    },
+    buildJumpPageSignature(query) {
+      return JSON.stringify({
+        ...query,
+        pageNum: 1
+      });
+    },
+    resetJumpPageState() {
+      this.jumpPageListMode = false;
+      this.jumpPageState = {
+        signature: '',
+        pages: [],
+        nextIndex: 0
+      };
+    },
+    getJumpPages(indexes) {
+      const values = Array.isArray(indexes) ? indexes : [indexes];
+      const pageSize = Number(this.queryParams.pageSize) || 10;
+      const pages = values
+        .map(index => Number(index))
+        .filter(index => Number.isFinite(index) && index >= 0)
+        .map(index => Math.ceil((index + 1) / pageSize));
+      return Array.from(new Set(pages)).sort((a, b) => b - a);
+    },
+    jumpToNextMatchedPage() {
+      if (!this.jumpPageState.pages.length) {
+        this.$message.warning('没有找到符合条件的账号');
+        return;
+      }
+      const targetPage = this.jumpPageState.pages[this.jumpPageState.nextIndex];
+      this.jumpPageState.nextIndex = (this.jumpPageState.nextIndex + 1) % this.jumpPageState.pages.length;
+      this.jumpPageListMode = true;
+      this.queryParams.pageNum = targetPage;
+      this.getList();
+      this.$message.info('已跳转到第 ' + targetPage + ' 页');
+    },
     getList() {
       this.loading = true;
-      listSell(this.queryParams).then(response => {
+      const query = this.jumpPageListMode ? this.buildJumpPageListQuery(this.queryParams.pageNum) : this.queryParams;
+      listSell(query).then(response => {
         this.sellList = response.rows;
         this.total = response.total;
         this.loading = false;
@@ -1347,10 +1534,18 @@ export default {
         isSell: null,
         emailStatus: null,
         friendNumber: null,
+        friendNumberMin: null,
+        friendNumberMax: null,
         canAds: null,
         pageNumber: null,
+        pageNumberMin: null,
+        pageNumberMax: null,
         bmNumber: null,
+        bmNumberMin: null,
+        bmNumberMax: null,
         postsNumber: null,
+        postsNumberMin: null,
+        postsNumberMax: null,
         ua: null,
         browserStatus: null,
         browserProfile: null,
@@ -1407,13 +1602,25 @@ export default {
 
     /** 搜索按钮操作 */
     handleQuery() {
+      this.resetJumpPageState();
       this.queryParams.pageNum = 1;
       this.getList();
     },
     /** 重置按钮操作 */
     resetQuery() {
       this.resetForm("queryForm");
+      this.resetRangeQuery();
       this.handleQuery();
+    },
+    resetRangeQuery() {
+      this.queryParams.friendNumberMin = null;
+      this.queryParams.friendNumberMax = null;
+      this.queryParams.pageNumberMin = null;
+      this.queryParams.pageNumberMax = null;
+      this.queryParams.bmNumberMin = null;
+      this.queryParams.bmNumberMax = null;
+      this.queryParams.postsNumberMin = null;
+      this.queryParams.postsNumberMax = null;
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
@@ -1421,6 +1628,38 @@ export default {
       this.ids = selection.map(item => item.id)
       this.single = selection.length!==1
       this.multiple = !selection.length
+    },
+    /** 排序触发事件 */
+    handleSortChange(column) {
+      this.resetJumpPageState()
+      this.queryParams.orderByColumn = column.prop
+      this.queryParams.isAsc = column.order
+      this.getList()
+    },
+    startIndexSelection(row) {
+      this.indexSelecting = true
+      this.indexSelectValue = !this.isRowSelected(row)
+      this.setRowSelection(row, this.indexSelectValue)
+      document.removeEventListener('mouseup', this.stopIndexSelection)
+      document.addEventListener('mouseup', this.stopIndexSelection)
+    },
+    dragIndexSelection(row) {
+      if (!this.indexSelecting) {
+        return
+      }
+      this.setRowSelection(row, this.indexSelectValue)
+    },
+    stopIndexSelection() {
+      this.indexSelecting = false
+    },
+    setRowSelection(row, selected) {
+      if (!this.$refs.sellTable || !row) {
+        return
+      }
+      this.$refs.sellTable.toggleRowSelection(row, selected)
+    },
+    isRowSelected(row) {
+      return this.keyIds.indexOf(row.keyId) !== -1
     },
     /** 新增按钮操作 */
     handleAdd() {
@@ -1601,8 +1840,12 @@ ${this.labels.name}：${item.name}
 
     //提交卖出操作
     submitSellAccount(row) {
-      const keyId = row.keyId || this.keyIds
-      updateSellForSell(keyId).then(response => {
+      const keyIds = row?.keyId ? [row.keyId] : this.keyIds
+      if (!keyIds.length) {
+        this.$message.warning('请选择要卖出的账号')
+        return
+      }
+      updateSellForSell(keyIds).then(response => {
         this.$modal.msgSuccess("标记卖出成功");
         this.sellAccount = false;
         this.getList();
@@ -1800,12 +2043,25 @@ ${this.labels.name}：${item.name}
 
 
     /** 创建主页弹出窗确定按钮 */
-    submitCreatePage(){
-      const operationAccount = this.ids;
-      const pageName = this.createPageFormData.pageName;
-      this.resetCreatePageForm();// 提交后重置表单
-      this.openCreatePage = false;
-      createPage(operationAccount,pageName);
+    submitCreatePage() {
+      const operationAccount = this.ids
+      const pageNames = (this.createPageFormData.pageName || '')
+        .split('\n')
+        .map(item => item.trim())
+        .filter(item => item)
+      if (!pageNames.length) {
+        this.$message.warning('请输入主页名称')
+        return
+      }
+      if (pageNames.length > 1 && operationAccount.length === 1) {
+        this.$message.warning('多个主页名称需要选择多个账号')
+        return
+      }
+      this.resetCreatePageForm() // 提交后重置表单
+      this.openCreatePage = false
+      createPage(operationAccount, pageNames.join('\n')).then(response => {
+        this.$modal.msgSuccess(response.msg)
+      })
     },
 
     /** 创建修改名字弹出窗确定按钮 */
@@ -1889,12 +2145,20 @@ ${this.labels.name}：${item.name}
     },
     //跳转页面
     handleJumpPage(){
-      jumpPage(this.queryParams).then(response => {
-        if (response.data === -1){
-        }else {
-          console.log(response.data);
-          this.$message.info(Math.ceil((response.data+1)/this.queryParams.pageSize));
-        }
+      const query = this.buildJumpPageQuery();
+      const signature = this.buildJumpPageSignature(query);
+      if (this.jumpPageState.signature === signature && this.jumpPageState.pages.length) {
+        this.jumpToNextMatchedPage();
+        return;
+      }
+      jumpPage(query).then(response => {
+        const pages = this.getJumpPages(response.data);
+        this.jumpPageState = {
+          signature,
+          pages,
+          nextIndex: 0
+        };
+        this.jumpToNextMatchedPage();
       });
     },
 
@@ -1942,6 +2206,14 @@ ${this.labels.name}：${item.name}
         emailStatus: '',
         sellDate: '',
         friendNumber: '',
+        friendNumberMin: '',
+        friendNumberMax: '',
+        pageNumberMin: '',
+        pageNumberMax: '',
+        bmNumberMin: '',
+        bmNumberMax: '',
+        postsNumberMin: '',
+        postsNumberMax: '',
         note: ''
       };
     },
@@ -1990,11 +2262,83 @@ ${this.labels.name}：${item.name}
       window.open(routeUrl.href, "_blank");
     },
 
-    handleLoginInPhone(row){
-      const keyId = this.keyIds
-      loginInPhone(keyId).then(response => {
-        this.$modal.alertSuccess(response.msg)
+    handleLoginInPhone(){
+      if (this.keyIds.length !== 1) {
+        this.$message.warning('请选择一个账号进行手机登录')
+        return
+      }
+      this.phoneLogin.accountKeyId = this.keyIds[0]
+      this.phoneLogin.loading = true
+      getPhoneLoginBoundDevice(this.phoneLogin.accountKeyId).then(response => {
+        const boundDevice = response.data
+        if (boundDevice && boundDevice.deviceName) {
+          this.confirmPhoneLogin(boundDevice.deviceName, false)
+          return
+        }
+        this.phoneLogin.open = true
+        this.loadPhoneLoginDevices()
+      }).finally(() => {
+        this.phoneLogin.loading = false
       })
+    },
+
+    loadPhoneLoginDevices() {
+      if (!this.phoneLogin.accountKeyId) {
+        return
+      }
+      this.phoneLogin.loading = true
+      getPhoneLoginDevices(this.phoneLogin.accountKeyId).then(response => {
+        const devices = response.data || []
+        this.phoneLogin.devices = devices.map(deviceName => ({ deviceName }))
+      }).finally(() => {
+        this.phoneLogin.loading = false
+      })
+    },
+
+    submitPhoneLogin(deviceName) {
+      if (!this.phoneLogin.accountKeyId || !deviceName) {
+        return
+      }
+      if (this.phoneLogin.submittingDeviceName) {
+        return
+      }
+      this.confirmPhoneLogin(deviceName, true)
+    },
+
+    confirmPhoneLogin(deviceName, closeDialogAfterConfirm) {
+      this.$modal.confirm('确认使用设备 "' + deviceName + '" 进行手机登录？').then(() => {
+        this.phoneLogin.submittingDeviceName = deviceName
+        if (closeDialogAfterConfirm) {
+          this.startPhoneLoginCloseTimer()
+        }
+        loginInPhone(this.phoneLogin.accountKeyId, deviceName).then(response => {
+          this.$modal.alertSuccess(response.msg)
+          this.getList()
+        }).finally(() => {
+          this.phoneLogin.submittingDeviceName = ''
+        })
+      }).catch(() => {})
+    },
+
+    startPhoneLoginCloseTimer() {
+      if (this.phoneLogin.closeTimer) {
+        clearTimeout(this.phoneLogin.closeTimer)
+      }
+      this.phoneLogin.closeTimer = setTimeout(() => {
+        this.phoneLogin.open = false
+        this.phoneLogin.closeTimer = null
+      }, 3000)
+    },
+
+    resetPhoneLogin() {
+      this.phoneLogin.loading = false
+      this.phoneLogin.submittingDeviceName = ''
+      if (this.phoneLogin.closeTimer) {
+        clearTimeout(this.phoneLogin.closeTimer)
+        this.phoneLogin.closeTimer = null
+      }
+      this.phoneLogin.accountKeyId = null
+      this.phoneLogin.devices = []
     }
   }
 };
@@ -2066,7 +2410,7 @@ ${this.labels.name}：${item.name}
 
 .search-form ::v-deep .el-form-item {
   display: flex;
-  width: calc(20% - 12px);
+  width: calc(16.666% - 12px);
   margin: 0 6px 14px;
 }
 
@@ -2089,6 +2433,28 @@ ${this.labels.name}：${item.name}
 .search-form ::v-deep .el-input__inner {
   border-color: #dfe5ec;
   border-radius: 6px;
+}
+
+.range-search-item ::v-deep .el-form-item__content {
+  display: flex;
+  align-items: center;
+}
+
+.range-search-item ::v-deep .el-input {
+  flex: 0 0 120px;
+  width: 120px;
+}
+
+.range-search-item ::v-deep .el-input__inner {
+  padding-right: 20px;
+  padding-left: 8px;
+  text-align: center;
+}
+
+.range-separator {
+  flex: 0 0 16px;
+  color: #909399;
+  text-align: center;
 }
 
 .search-actions {
@@ -2116,12 +2482,22 @@ ${this.labels.name}：${item.name}
 }
 
 .operation-heading {
-  margin-bottom: 12px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 14px;
+  margin-bottom: 0;
+}
+
+.operation-heading > div:first-child {
+  flex: 0 0 116px;
+  padding-top: 2px;
 }
 
 .action-grid {
   display: flex;
   flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
   margin-right: -4px !important;
   margin-left: -4px !important;
 }
@@ -2167,6 +2543,16 @@ ${this.labels.name}：${item.name}
 
 .sell-table ::v-deep .el-table__row:hover > td.el-table__cell {
   background: #f0f7ff;
+}
+
+.row-index-selector {
+  display: block;
+  cursor: pointer;
+  user-select: none;
+}
+
+.row-index-selector:hover {
+  color: #409eff;
 }
 
 .expand-container {
@@ -2423,13 +2809,13 @@ ${this.labels.name}：${item.name}
 
 @media (max-width: 1600px) {
   .search-form ::v-deep .el-form-item {
-    width: calc(25% - 12px);
+    width: calc(20% - 12px);
   }
 }
 
 @media (max-width: 1200px) {
   .search-form ::v-deep .el-form-item {
-    width: calc(33.333% - 12px);
+    width: calc(25% - 12px);
   }
 }
 

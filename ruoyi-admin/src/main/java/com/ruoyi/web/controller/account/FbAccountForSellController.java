@@ -3,6 +3,7 @@ package com.ruoyi.web.controller.account;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -14,6 +15,8 @@ import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.ruoyi.account.domain.*;
 import com.ruoyi.account.mapper.FbAccountForSellMapper;
 import com.ruoyi.account.service.*;
@@ -35,9 +38,13 @@ import org.springframework.web.bind.annotation.*;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.page.PageDomain;
+import com.ruoyi.common.core.page.TableSupport;
 import com.ruoyi.common.enums.BusinessType;
+import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.utils.sql.SqlUtil;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -49,6 +56,15 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/account/sell")
 public class FbAccountForSellController extends BaseController {
+
+    private static final Map<String, String> SELL_NUMERIC_SORT_COLUMNS = new HashMap<>();
+
+    static {
+        SELL_NUMERIC_SORT_COLUMNS.put("friendNumber", "friend_number");
+        SELL_NUMERIC_SORT_COLUMNS.put("pageNumber", "page_number");
+        SELL_NUMERIC_SORT_COLUMNS.put("bmNumber", "bm_number");
+        SELL_NUMERIC_SORT_COLUMNS.put("postsNumber", "posts_number");
+    }
 
     @Autowired
     private IFbAccountForSellService fbAccountForSellService;
@@ -124,9 +140,32 @@ public class FbAccountForSellController extends BaseController {
     @PreAuthorize("@ss.hasPermi('account:sell:list')")
     @GetMapping("/list")
     public TableDataInfo list(FbAccountForSell fbAccountForSell) {
-        startPage();
+        startSellPage();
         List<FbAccountForSell> list = fbAccountForSellService.selectFbAccountForSellList(fbAccountForSell);
         return getDataTable(list);
+    }
+
+    private void startSellPage() {
+        PageDomain pageDomain = TableSupport.buildPageRequest();
+        Integer pageNum = pageDomain.getPageNum();
+        Integer pageSize = pageDomain.getPageSize();
+        String orderByColumn = pageDomain.getOrderByColumn();
+        if (SELL_NUMERIC_SORT_COLUMNS.containsKey(orderByColumn)) {
+            String direction = getSellSortDirection(pageDomain.getIsAsc());
+            String column = SELL_NUMERIC_SORT_COLUMNS.get(orderByColumn);
+            String orderBy = "CAST(" + column + " AS UNSIGNED) " + direction + ", key_id DESC";
+            Page<?> page = PageHelper.startPage(pageNum, pageSize);
+            page.setReasonable(pageDomain.getReasonable());
+            page.setUnsafeOrderBy(orderBy);
+            return;
+        }
+
+        String orderBy = SqlUtil.escapeOrderBySql(pageDomain.getOrderBy());
+        PageHelper.startPage(pageNum, pageSize, orderBy).setReasonable(pageDomain.getReasonable());
+    }
+
+    private String getSellSortDirection(String isAsc) {
+        return "desc".equalsIgnoreCase(isAsc) ? "DESC" : "ASC";
     }
 
     @PostMapping("/batchSearch")
@@ -298,6 +337,7 @@ public class FbAccountForSellController extends BaseController {
             fbAccountForSell.setIsSell("1");
             fbAccountForSell.setSellDate(LocalDate.now());
             fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+            markSoldNoteOnCreateDevice(fbAccountForSell);
         }
 
         return success();
@@ -458,17 +498,38 @@ public class FbAccountForSellController extends BaseController {
     @GetMapping("/jumpPage")
     @ResponseBody
     public AjaxResult jumpPage(FbAccountForSell fbAccountForSell){
+        clearJumpPageRangeCondition(fbAccountForSell);
         List<FbAccountForSell> list = fbAccountForSellService.selectFbAccountForSellList(fbAccountForSell);
-        if (list.size() == 1){
-            FbAccountForSell targetAccount = list.get(0);
-            // 查询数据库中所有的记录（这里假设数据库中记录的顺序就是你所需要的顺序）
-            List<FbAccountForSell> allAccounts = fbAccountForSellService.selectFbAccountForSellListNoId(fbAccountForSell);
-            // 通过 indexOf 方法获取 targetAccount 在所有记录中的位置
-            int index = allAccounts.indexOf(targetAccount);
-            return success(index); // 返回成功结果，包含位置
-
+        if (list.isEmpty()){
+            return success(Collections.emptyList());
         }
-        return success(-1);
+
+        startOrderBy();
+        List<FbAccountForSell> allAccounts = fbAccountForSellService.selectFbAccountForSellList(new FbAccountForSell());
+        Map<Long, Integer> accountIndexMap = new HashMap<>();
+        for (int i = 0; i < allAccounts.size(); i++) {
+            accountIndexMap.put(allAccounts.get(i).getKeyId(), i);
+        }
+
+        List<Integer> indexes = new ArrayList<>();
+        for (FbAccountForSell account : list) {
+            Integer index = accountIndexMap.get(account.getKeyId());
+            if (index != null) {
+                indexes.add(index);
+            }
+        }
+        return success(indexes);
+    }
+
+    private void clearJumpPageRangeCondition(FbAccountForSell fbAccountForSell) {
+        fbAccountForSell.setFriendNumberMin(null);
+        fbAccountForSell.setFriendNumberMax(null);
+        fbAccountForSell.setPageNumberMin(null);
+        fbAccountForSell.setPageNumberMax(null);
+        fbAccountForSell.setBmNumberMin(null);
+        fbAccountForSell.setBmNumberMax(null);
+        fbAccountForSell.setPostsNumberMin(null);
+        fbAccountForSell.setPostsNumberMax(null);
     }
 
     @GetMapping("/checkAccountActive/{keyIds}")
@@ -553,21 +614,59 @@ public class FbAccountForSellController extends BaseController {
 
     @GetMapping("/createPage")
     @ResponseBody
-    public AjaxResult createPage(@RequestParam("keyId") List<Long> keyId, @RequestParam("pageName") String pageName){
+    public AjaxResult createPage(@RequestParam("keyId") List<Long> keyId,
+                                 @RequestParam("pageName") String pageName,
+                                 @RequestParam(value = "isVerified", defaultValue = "0") String isVerified,
+                                 @RequestParam(value = "verifyAccountId", required = false) String verifyAccountId,
+                                 @RequestParam(value = "purpose", required = false) String purpose) {
+        List<String> pageNames = parsePageNames(pageName);
+        if (pageNames.isEmpty()) {
+            return AjaxResult.error("请输入主页名称");
+        }
         List<FbAccountForSell> fbAccountForSellList = fbAccountForSellService.selectFbAccountForSellListByAccountIds(keyId.toArray(new Long[0]));
+        if (pageNames.size() > 1 && fbAccountForSellList.size() == 1) {
+            return AjaxResult.error("多个主页名称需要选择多个账号");
+        }
+
+        int pageIndex = 0;
+        int successCount = 0;
+        int executedAccountCount = 0;
         for (FbAccountForSell fbAccountForSell : fbAccountForSellList) {
+            if (pageIndex >= pageNames.size()) {
+                break;
+            }
             String createPageResult = null;
             try {
                 WebDriver webDriver = hubEnvService.openOrCreateAndOpenEnvForFb(fbAccountForSell.getKeyId());
-                createPageResult = fbAccountForSellService.createPage(webDriver, fbAccountForSell, pageName);
+                createPageResult = fbAccountForSellService.createPage(webDriver, fbAccountForSell, pageNames.get(pageIndex), isVerified, verifyAccountId, purpose);
+                executedAccountCount++;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            if (createPageResult.equals("true")){
-                break;
+            if ("true".equals(createPageResult)) {
+                successCount++;
+                pageIndex++;
             }
         }
-        return success();
+        return success("创建主页执行完成，成功：" + successCount + "，执行账号：" + executedAccountCount);
+    }
+
+    private List<String> parsePageNames(String pageName) {
+        List<String> pageNames = new ArrayList<>();
+        if (pageName == null) {
+            return pageNames;
+        }
+        String[] lines = pageName.split("\\r?\\n");
+        for (String line : lines) {
+            if (line == null) {
+                continue;
+            }
+            String trimLine = line.trim();
+            if (!trimLine.isEmpty()) {
+                pageNames.add(trimLine);
+            }
+        }
+        return pageNames;
     }
 
     @GetMapping("/confirmAddFriend/{keyId}")
@@ -877,9 +976,45 @@ public class FbAccountForSellController extends BaseController {
         return success();
     }
 
+    @GetMapping("/phoneLoginDevices/{keyId}")
+    @ResponseBody
+    public AjaxResult phoneLoginDevices(@PathVariable Long keyId){
+        FbAccountForSell fbAccountForSell =
+                fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+
+        if (fbAccountForSell == null){
+            return error("账号不存在");
+        }
+
+        try {
+            List<String> devices = selectAvailableCreateDeviceNames();
+            if (devices.isEmpty()){
+                return error("没有还有空余位置的设备");
+            }
+            return success(devices);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/phoneLoginBoundDevice/{keyId}")
+    @ResponseBody
+    public AjaxResult phoneLoginBoundDevice(@PathVariable Long keyId){
+        FbAccountForSell fbAccountForSell =
+                fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+
+        if (fbAccountForSell == null){
+            return error("账号不存在");
+        }
+
+        CreateDevice boundDevice = createDeviceService.selectCreateDeviceByCreateId(fbAccountForSell.getId());
+        return success(boundDevice);
+    }
+
     @GetMapping("/loginInPhone/{keyId}")
     @ResponseBody
-    public AjaxResult loginInPhone(@PathVariable Long keyId){
+    public AjaxResult loginInPhone(@PathVariable Long keyId, @RequestParam(value = "deviceName", required = false) String deviceName){
         // FB账号
         FbAccountForSell fbAccountForSell =
                 fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
@@ -888,47 +1023,27 @@ public class FbAccountForSellController extends BaseController {
             return error("账号不存在");
         }
 
-        // 2️⃣ 先查是否已有绑定设备
-        CreateDevice createDevice =
-                createDeviceService.selectCreateDeviceByCreateId(fbAccountForSell.getId());
-
-        // 3️⃣ 如果没有，再查空闲设备
-        if (createDevice == null){
-            createDevice = createDeviceService.selectMinNoAccountDevice();
-        }
-
-        // 4️⃣ 如果还是没有
-        if (createDevice == null){
-            return error("没有可用设备");
-        }
-
         try {
+            CreateDevice createDevice = selectLoginCreateDevice(fbAccountForSell, deviceName);
+            if (createDevice == null){
+                return error("没有可用设备");
+            }
 
-            // 锁定设备（防止并发重复使用）
-            createDevice.setCreateAccountId(
-                    fbAccountForSell.getId()
-            );
+            if (isCreateAccountIdEmpty(createDevice)) {
+                createDevice.setCreateAccountId(fbAccountForSell.getId());
+                createDeviceService.updateCreateDevice(createDevice);
+                markPhoneLoginNote(fbAccountForSell);
+            }
 
-            createDeviceService.updateCreateDevice(createDevice);
-
-            // 打开APP
             AppiumDriver appiumDriver =
                     createDeviceService.openApp(createDevice);
 
-            createDevice.setCreateAccountId(fbAccountForSell.getId());
-            createDeviceService.updateCreateDevice(createDevice);
-
-            String oldNote = fbAccountForSell.getNote();
-            if(!oldNote.contains("已登手机")){
-                fbAccountForSell.setNote("已登手机|"+oldNote);
-                fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
-            }
-
-            // 登录
             createDeviceService.loginAccount(
                     appiumDriver,
                     fbAccountForSell
             );
+
+            markPhoneLoginNote(fbAccountForSell);
 
             return success("登录成功");
 
@@ -939,6 +1054,113 @@ public class FbAccountForSellController extends BaseController {
             return error(e.getMessage());
 
         }
+    }
+
+    private void markPhoneLoginNote(FbAccountForSell fbAccountForSell) {
+        String oldNote = fbAccountForSell.getNote() == null ? "" : fbAccountForSell.getNote();
+        if (oldNote.contains("已登录手机") || oldNote.contains("已登手机")) {
+            return;
+        }
+        fbAccountForSell.setNote(oldNote.isEmpty() ? "已登录手机" : "已登录手机|" + oldNote);
+        fbAccountForSellService.updateFbAccountForSell(fbAccountForSell);
+    }
+
+    private void markSoldNoteOnCreateDevice(FbAccountForSell fbAccountForSell) {
+        if (fbAccountForSell == null || fbAccountForSell.getId() == null || "".equals(fbAccountForSell.getId().trim())) {
+            return;
+        }
+        CreateDevice createDevice = createDeviceService.selectCreateDeviceByCreateId(fbAccountForSell.getId());
+        if (createDevice == null) {
+            return;
+        }
+        String oldNote = createDevice.getNote() == null ? "" : createDevice.getNote();
+        if (oldNote.contains("已卖出")) {
+            return;
+        }
+        createDevice.setNote(oldNote.isEmpty() ? "已卖出" : "已卖出|" + oldNote);
+        createDeviceService.updateCreateDevice(createDevice);
+    }
+
+    private CreateDevice selectLoginCreateDevice(FbAccountForSell account, String deviceName) {
+        CreateDevice boundDevice = createDeviceService.selectCreateDeviceByCreateId(account.getId());
+        if (boundDevice != null) {
+            if (deviceName != null && !"".equals(deviceName) && !deviceName.equals(boundDevice.getDeviceName())) {
+                throw new IllegalStateException("该账号已登记到设备：" + boundDevice.getDeviceName());
+            }
+            return boundDevice;
+        }
+
+        List<CreateDevice> devices = createDeviceService.selectCreateDeviceList(new CreateDevice());
+        if (devices.isEmpty()){
+            return null;
+        }
+
+        List<CreateDevice> candidateDevices = new ArrayList<>();
+        if (deviceName != null && !"".equals(deviceName)){
+            for (CreateDevice device : devices) {
+                if (deviceName.equals(device.getDeviceName())){
+                    candidateDevices.add(device);
+                }
+            }
+            if (candidateDevices.isEmpty()){
+                throw new IllegalStateException("选择的设备不在创建设备表中");
+            }
+        } else {
+            candidateDevices.addAll(devices);
+        }
+
+        candidateDevices.sort(Comparator.comparing(CreateDevice::getKeyId));
+
+        for (CreateDevice device : candidateDevices) {
+            if (isCreateAccountIdEmpty(device)){
+                return device;
+            }
+        }
+
+        if (deviceName != null && !"".equals(deviceName)){
+            throw new IllegalStateException("该设备的包都已登录账号");
+        }
+        throw new IllegalStateException("所有设备的包都已登录账号");
+    }
+
+    private List<String> selectAvailableCreateDeviceNames() throws IOException, InterruptedException {
+        Set<String> onlineDeviceNames = getOnlineDeviceNames();
+        if (onlineDeviceNames.isEmpty()){
+            return Collections.emptyList();
+        }
+
+        List<CreateDevice> devices = createDeviceService.selectCreateDeviceList(new CreateDevice());
+        Set<String> deviceNames = new LinkedHashSet<>();
+        for (CreateDevice device : devices) {
+            if (device.getDeviceName() != null
+                    && !"".equals(device.getDeviceName())
+                    && onlineDeviceNames.contains(device.getDeviceName())
+                    && isCreateAccountIdEmpty(device)){
+                deviceNames.add(device.getDeviceName());
+            }
+        }
+        return new ArrayList<>(deviceNames);
+    }
+
+    private boolean isCreateAccountIdEmpty(CreateDevice device) {
+        return device.getCreateAccountId() == null || "".equals(device.getCreateAccountId().trim());
+    }
+
+    private Set<String> getOnlineDeviceNames() throws IOException, InterruptedException {
+        Set<String> deviceNames = new HashSet<>();
+        ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", "adb devices");
+        builder.redirectErrorStream(true);
+        Process process = builder.start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "GBK"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.endsWith("\tdevice")) {
+                    deviceNames.add(line.split("\t")[0].trim());
+                }
+            }
+        }
+        process.waitFor();
+        return deviceNames;
     }
 
 

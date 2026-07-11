@@ -43,24 +43,33 @@ export function delDevice(keyId) {
   })
 }
 
-export function getDevices(){
+export function getDevices() {
   return request({
-    url:  '/account/device/getDevices',
+    url: '/account/device/getDevices',
     method: 'get'
   })
 }
 
-export function openDevice(keyId){
+// 查询当前在线设备
+export function getOnlineDevices() {
   return request({
-    url:  '/account/device/openDevice/'+keyId,
+    url: '/account/device/onlineDevices',
     method: 'get'
   })
 }
 
-//修改备注
-export function changeNote(keyId, note){
+export function openDevice(data) {
   return request({
-    url: "/account/device/changeNote",
+    url: '/account/device/openDevice',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改备注
+export function changeNote(keyId, note) {
+  return request({
+    url: '/account/device/changeNote',
     method: 'get',
     params: {
       id: keyId.join(','),

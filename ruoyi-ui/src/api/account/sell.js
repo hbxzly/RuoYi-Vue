@@ -144,10 +144,10 @@ export function checkAccountActive(keyIds){
   })
 }
 
-//创建主页
-export function createPage(keyId, pageName){
+// 创建主页
+export function createPage(keyId, pageName) {
   return request({
-    url: "/account/sell/createPage",
+    url: '/account/sell/createPage',
     method: 'get',
     params: {
       keyId: keyId.join(','),
@@ -261,9 +261,26 @@ export function aaa(keyId){
   })
 }
 
-export function loginInPhone(keyId){
+export function getPhoneLoginDevices(keyId){
+  return request({
+    url: "/account/sell/phoneLoginDevices/"+keyId,
+    method: "get",
+  })
+}
+
+export function getPhoneLoginBoundDevice(keyId){
+  return request({
+    url: "/account/sell/phoneLoginBoundDevice/"+keyId,
+    method: "get",
+  })
+}
+
+export function loginInPhone(keyId, deviceName){
   return request({
     url: "/account/sell/loginInPhone/"+keyId,
     method: "get",
+    params: {
+      deviceName
+    }
   })
 }

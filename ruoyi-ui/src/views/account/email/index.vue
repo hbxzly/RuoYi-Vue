@@ -144,9 +144,9 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="emailList" @selection-change="handleSelectionChange" height="800">
+    <el-table v-loading="loading" :data="emailList" height="800" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="keyId" />
+      <el-table-column label="主键" align="center" prop="keyId" sortable="custom" :sort-orders="['descending', 'ascending']" />
       <el-table-column label="邮箱" align="center" prop="email" />
       <el-table-column label="密码" align="center" prop="password" />
       <el-table-column label="账号ID" align="center" prop="accountId" />
@@ -472,6 +472,11 @@ export default {
       this.selectEmail = selection.map(item => item.email)
       this.single = selection.length!==1
       this.multiple = !selection.length
+    },
+    handleSortChange(column) {
+      this.queryParams.orderByColumn = column.prop
+      this.queryParams.isAsc = column.order
+      this.getList()
     },
 
     /** 新增按钮操作 */

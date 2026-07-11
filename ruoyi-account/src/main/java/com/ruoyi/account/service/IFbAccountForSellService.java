@@ -232,9 +232,10 @@ public interface IFbAccountForSellService
      * @param fbAccountForSell
      * @param webDriver
      * @param pageName
+     * @param isVerified
      * @return
      */
-    public String createPage(WebDriver webDriver, FbAccountForSell fbAccountForSell,String pageName);
+    public String createPage(WebDriver webDriver, FbAccountForSell fbAccountForSell, String pageName, String isVerified, String verifyAccountId, String purpose);
 
     /**
      * 打开比特浏览器

@@ -4,12 +4,15 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 
 import com.ruoyi.account.domain.CreateInfo;
 import com.ruoyi.account.domain.FbAccountForSell;
 import com.ruoyi.account.service.ICreateInfoService;
+import com.ruoyi.account.service.IFbAccountForSellService;
 import io.appium.java_client.AppiumDriver;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,9 @@ public class CreateDeviceController extends BaseController
 
     @Autowired
     private ICreateInfoService createInfoService;
+
+    @Autowired
+    private IFbAccountForSellService fbAccountForSellService;
 
     /**
      * 查询创建设备列表
@@ -112,81 +118,121 @@ public class CreateDeviceController extends BaseController
     public AjaxResult getDevices(){
 
         try {
-            // 1. 获取设备名
-            String deviceName = null;
-            ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", "adb devices");
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream(), "GBK"));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.endsWith("\tdevice")) {
-                    deviceName = line.split("\t")[0].trim();  // 取出 emulator-5554
-                    break;
-                }
-            }
-            process.waitFor();
+            List<String> deviceNames = selectOnlineDeviceNames();
 
-            if (deviceName == null) {
-                System.out.println("未找到任何设备");
+            if (deviceNames.isEmpty()) {
+                return error("未找到任何在线设备");
             }
 
-            System.out.println("获取到设备名: " + deviceName);
-
-            // 2. 获取所有 package
-            ProcessBuilder builderA = new ProcessBuilder("cmd.exe", "/c", "adb shell pm list packages");
-            builderA.redirectErrorStream(true);
-            Process processA = builderA.start();
-            BufferedReader readerA = new BufferedReader(
-                    new InputStreamReader(processA.getInputStream(), "GBK"));
-            String lineA;
-            List<CreateDevice> deviceList = new ArrayList<>();
-            while ((lineA = readerA.readLine()) != null) {
-                if (lineA.startsWith("package:com.facebook.lit")) {
-                    String packageName = lineA.replace("package:", "").trim();
-
-                    // 构建实体对象
-                    CreateDevice device = new CreateDevice();
-                    device.setDeviceName(deviceName);
-                    device.setPackageName(packageName);
-                    createDeviceService.insertCreateDevice(device);
-                }
-                if (lineA.startsWith("package:com.facebook.katan")) {
-                    String packageName = lineA.replace("package:", "").trim();
-
-                    // 构建实体对象
-                    CreateDevice device = new CreateDevice();
-                    device.setDeviceName(deviceName);
-                    device.setPackageName(packageName);
-                    createDeviceService.insertCreateDevice(device);
-                }
+            Set<String> existingDevices = new HashSet<>();
+            List<CreateDevice> allDevices = createDeviceService.selectCreateDeviceList(new CreateDevice());
+            for (CreateDevice device : allDevices) {
+                existingDevices.add(buildDeviceUniqueKey(device.getDeviceName(), device.getPackageName()));
             }
+
+            int addCount = 0;
+            int skipCount = 0;
+            for (String deviceName : deviceNames) {
+                System.out.println("获取到设备名: " + deviceName);
+
+                String deviceVersion = null;
+                ProcessBuilder versionBuilder = new ProcessBuilder("cmd.exe", "/c", "adb -s " + deviceName + " shell getprop ro.build.version.release");
+                versionBuilder.redirectErrorStream(true);
+                Process versionProcess = versionBuilder.start();
+                BufferedReader versionReader = new BufferedReader(
+                        new InputStreamReader(versionProcess.getInputStream(), "GBK"));
+                String versionLine = versionReader.readLine();
+                if (versionLine != null) {
+                    deviceVersion = versionLine.trim();
+                }
+                versionProcess.waitFor();
+
+                ProcessBuilder builderA = new ProcessBuilder("cmd.exe", "/c", "adb -s " + deviceName + " shell pm list packages");
+                builderA.redirectErrorStream(true);
+                Process processA = builderA.start();
+                BufferedReader readerA = new BufferedReader(
+                        new InputStreamReader(processA.getInputStream(), "GBK"));
+                String lineA;
+                while ((lineA = readerA.readLine()) != null) {
+                    if (lineA.startsWith("package:com.facebook.lit") || lineA.startsWith("package:com.facebook.katan")) {
+                        String packageName = lineA.replace("package:", "").trim();
+                        String uniqueKey = buildDeviceUniqueKey(deviceName, packageName);
+                        if (existingDevices.contains(uniqueKey)) {
+                            skipCount++;
+                            continue;
+                        }
+
+                        CreateDevice device = new CreateDevice();
+                        device.setDeviceName(deviceName);
+                        device.setDeviceVersion(deviceVersion);
+                        device.setPackageName(packageName);
+                        createDeviceService.insertCreateDevice(device);
+                        existingDevices.add(uniqueKey);
+                        addCount++;
+                    }
+                }
+                processA.waitFor();
+            }
+            return success("获取完成，新增" + addCount + "个，跳过已存在" + skipCount + "个");
         } catch (Exception e) {
             e.printStackTrace();
+            return error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/onlineDevices")
+    @ResponseBody
+    public AjaxResult onlineDevices(){
+        try {
+            List<String> deviceNames = selectOnlineDeviceNames();
+            if (deviceNames.isEmpty()) {
+                return error("未找到任何在线设备");
+            }
+            return success(deviceNames);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return error(e.getMessage());
+        }
+    }
+
+    private List<String> selectOnlineDeviceNames() throws Exception {
+        List<String> deviceNames = new ArrayList<>();
+        ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", "adb devices");
+        builder.redirectErrorStream(true);
+        Process process = builder.start();
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream(), "GBK"));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.endsWith("\tdevice")) {
+                deviceNames.add(line.split("\t")[0].trim());
+            }
+        }
+        process.waitFor();
+        return deviceNames;
+    }
+
+    private String buildDeviceUniqueKey(String deviceName, String packageName) {
+        return (deviceName == null ? "" : deviceName) + "|" + (packageName == null ? "" : packageName);
+    }
+
+    @PostMapping("/openDevice")
+    @ResponseBody
+    public AjaxResult openDevice(@RequestBody CreateDevice createDevice){
+        AppiumDriver appiumDriver = createDeviceService.openApp(createDevice);
+        if (!isBlank(createDevice.getCreateAccountId())) {
+            FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellById(createDevice.getCreateAccountId());
+            if (fbAccountForSell == null) {
+                return error("未找到账号ID：" + createDevice.getCreateAccountId());
+            }
+            createDeviceService.loginAccount(appiumDriver, fbAccountForSell);
+            return success();
         }
         return success();
     }
 
-    @GetMapping("/openDevice/{keyIds}")
-    @ResponseBody
-    public AjaxResult openDevice(@PathVariable Long[] keyIds){
-
-        for (Long keyId : keyIds) {
-            CreateDevice createDevice = createDeviceService.selectCreateDeviceByKeyId(keyId);
-            AppiumDriver appiumDriver = createDeviceService.openApp(createDevice);
-            List<CreateInfo> createInfos = createInfoService.selectCreateInfoList(new CreateInfo());
-            CreateInfo createInfo = null;
-
-            for (CreateInfo info : createInfos) {
-                if (!"已创建".equals(info.getCreateStatus())) {
-                    createInfo = info;
-                    break; // 找到就退出
-                }
-            }
-            createDeviceService.CreateAccounnt(appiumDriver, createDevice, createInfo);
-        }
-        return success();
+    private boolean isBlank(String value) {
+        return value == null || "".equals(value.trim());
     }
 
 

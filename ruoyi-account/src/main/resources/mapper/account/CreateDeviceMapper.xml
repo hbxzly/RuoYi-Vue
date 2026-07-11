@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="CreateDevice" id="CreateDeviceResult">
         <result property="keyId"    column="key_id"    />
         <result property="deviceName"    column="device_name"    />
+        <result property="deviceVersion"    column="device_version"    />
         <result property="packageName"    column="package_name"    />
         <result property="createAccountId"    column="create_account_id"    />
         <result property="createDate"    column="create_date"    />
@@ -14,13 +15,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectCreateDeviceVo">
-        select key_id, device_name, package_name, create_account_id, create_date, note from create_device
+        select key_id, device_name, device_version, package_name, create_account_id, create_date, note from create_device
     </sql>
 
     <select id="selectCreateDeviceList" parameterType="CreateDevice" resultMap="CreateDeviceResult">
         <include refid="selectCreateDeviceVo"/>
         <where>  
             <if test="deviceName != null  and deviceName != ''"> and device_name like concat('%', #{deviceName}, '%')</if>
+            <if test="deviceVersion != null  and deviceVersion != ''"> and device_version like concat('%', #{deviceVersion}, '%')</if>
             <if test="packageName != null  and packageName != ''"> and package_name like concat('%', #{packageName}, '%')</if>
             <if test="createAccountId != null  and createAccountId != ''"> and create_account_id = #{createAccountId}</if>
             <if test="createDate != null "> and create_date = #{createDate}</if>
@@ -73,6 +75,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         insert into create_device
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="deviceName != null">device_name,</if>
+            <if test="deviceVersion != null">device_version,</if>
             <if test="packageName != null">package_name,</if>
             <if test="createAccountId != null">create_account_id,</if>
             <if test="createDate != null">create_date,</if>
@@ -80,6 +83,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="deviceName != null">#{deviceName},</if>
+            <if test="deviceVersion != null">#{deviceVersion},</if>
             <if test="packageName != null">#{packageName},</if>
             <if test="createAccountId != null">#{createAccountId},</if>
             <if test="createDate != null">#{createDate},</if>
@@ -91,6 +95,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update create_device
         <trim prefix="SET" suffixOverrides=",">
             <if test="deviceName != null">device_name = #{deviceName},</if>
+            <if test="deviceVersion != null">device_version = #{deviceVersion},</if>
             <if test="packageName != null">package_name = #{packageName},</if>
             <if test="createAccountId != null">create_account_id = #{createAccountId},</if>
             <if test="createDate != null">create_date = #{createDate},</if>

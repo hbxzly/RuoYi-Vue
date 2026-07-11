@@ -57,6 +57,9 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
     private IOperationLogService operationLogService;
 
     @Autowired
+    private IFbPageService fbPageService;
+
+    @Autowired
     private IProxyIpService proxyIpService;
 
     @Autowired
@@ -682,7 +685,6 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
     @Override
     public void getAccountPage(WebDriver webDriver, FbAccountForSell fbAccountForSell){
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30);
-        //主页数量
         webDriver.get("https://www.facebook.com/pages/?category=your_pages&ref=bookmarks");
         try {
             webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='/pages/?category=invites&ref=bookmarks']")));
@@ -690,12 +692,19 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
             e.printStackTrace();
         }
         String pageSource = webDriver.getPageSource();
-        Pattern pattern = Pattern.compile("/latest/inbox/all");
-        Matcher matcher = pattern.matcher(pageSource);
-        int countPage = 0;
-        while (matcher.find()) {
-            countPage++;
+        Map<String, String> accountPages = parseAccountPages(pageSource);
+        for (Map.Entry<String, String> entry : accountPages.entrySet()) {
+            saveAccountPage(entry.getKey(), entry.getValue(), fbAccountForSell);
         }
+        int countPage = accountPages.size();
+        if (countPage == 0) {
+            Pattern pattern = Pattern.compile("/latest/inbox/all");
+            Matcher matcher = pattern.matcher(pageSource);
+            while (matcher.find()) {
+                countPage++;
+            }
+        }
+
         if (countPage > 0) {
             fbAccountForSell.setPageNumber(String.valueOf(countPage));
             updateFbAccountForSell(fbAccountForSell);
@@ -703,6 +712,60 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
             fbAccountForSell.setPageNumber("0");
             updateFbAccountForSell(fbAccountForSell);
         }
+    }
+
+    private Map<String, String> parseAccountPages(String pageSource) {
+        Map<String, String> pages = new LinkedHashMap<>();
+        Pattern pattern = Pattern.compile(
+                "\"profile\"\\s*:\\s*\\{\\s*\"is_profile_plus\"\\s*:\\s*true\\s*,\\s*\"id\"\\s*:\\s*\"\\d+\"\\s*,\\s*\"name\"\\s*:\\s*\"((?:\\\\.|[^\"])*)\".*?\"delegate_page_id\"\\s*:\\s*\"(\\d+)\"",
+                Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(pageSource);
+        while (matcher.find()) {
+            String pageName = decodeFacebookJsonText(matcher.group(1));
+            String pageId = matcher.group(2);
+            if (!isBlank(pageName) && !isBlank(pageId)) {
+                pages.put(pageId, pageName);
+            }
+        }
+        return pages;
+    }
+
+    private void saveAccountPage(String pageId, String pageName, FbAccountForSell fbAccountForSell) {
+        FbPage query = new FbPage();
+        query.setPageId(pageId);
+        query.setAdminAccountId(fbAccountForSell.getId());
+        FbPage existingPage = fbPageService.selectFbPageByPageIdAndAdminAccountId(query);
+        if (existingPage != null) {
+            existingPage.setPageName(pageName);
+            existingPage.setIsAdmin("1");
+            existingPage.setIsAvailable("1");
+            fbPageService.updateFbPage(existingPage);
+        } else {
+            FbPage fbPage = new FbPage();
+            fbPage.setPageId(pageId);
+            fbPage.setPageName(pageName);
+            fbPage.setAdminAccountId(fbAccountForSell.getId());
+            fbPage.setPageStatus("1");
+            fbPage.setIsVerified("0");
+            fbPage.setIsAdmin("1");
+            fbPage.setIsAvailable("1");
+            fbPage.setIsTop("0");
+            fbPage.setIsBindBm("0");
+            fbPage.setIsSold("0");
+            fbPage.setIsSettled("0");
+            fbPage.setFanCount(0L);
+            fbPage.setPostCount(0L);
+            fbPage.setUnreadMessageCount(0L);
+            fbPageService.insertFbPage(fbPage);
+        }
+    }
+
+    private String decodeFacebookJsonText(String value) {
+        String decoded = decodeUnicode(value);
+        decoded = decoded.replace("\\/", "/")
+                .replace("\\\"", "\"")
+                .replace("\\\\", "\\");
+        return Jsoup.parse(decoded).text();
     }
 
     /**
@@ -1455,10 +1518,11 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
      * @param webDriver
      * @param fbAccountForSell
      * @param pageName
+     * @param isVerified
      * @return
      */
     @Override
-    public String createPage(WebDriver webDriver, FbAccountForSell fbAccountForSell, String pageName) {
+    public String createPage(WebDriver webDriver, FbAccountForSell fbAccountForSell, String pageName, String isVerified, String verifyAccountId, String purpose) {
         loginFbAccountForSell(webDriver,fbAccountForSell);
         WebDriverWait webDriverWait = new WebDriverWait(webDriver, 30);
         // 要输入的文本
@@ -1492,6 +1556,7 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
             operationLog.setOperationStatus("成功");
             operationLog.setOperationTime(new Date());
             operationLogService.insertOperationLog(operationLog);
+            saveCreatedSellPage(fbAccountForSell, pageName, isVerified, verifyAccountId, purpose);
             return "true";
         }else {
             operationLog.setOperationAccount(fbAccountForSell.getId());
@@ -1503,6 +1568,44 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
             webDriver.quit();
             return "false";
         }
+    }
+
+    private void saveCreatedSellPage(FbAccountForSell fbAccountForSell, String pageName, String isVerified, String verifyAccountId, String purpose) {
+        FbPage fbPage = new FbPage();
+        fbPage.setPageName(pageName);
+        fbPage.setAdminAccountId(fbAccountForSell.getId());
+        fbPage.setVerifyAccountId(resolveVerifyAccountId(fbAccountForSell, isVerified, verifyAccountId));
+        fbPage.setPurpose(trimToNull(purpose));
+        fbPage.setIsTop("0");
+        fbPage.setPageStatus("1");
+        fbPage.setIsVerified(isBlank(isVerified) ? "0" : isVerified);
+        fbPage.setIsAdmin("1");
+        fbPage.setIsAvailable("1");
+        fbPage.setIsBindBm("0");
+        fbPage.setIsSold("0");
+        fbPage.setIsSettled("0");
+        fbPage.setPageCreateTime(new Date());
+        fbPage.setPostCount(0L);
+        fbPage.setFanCount(0L);
+        fbPage.setUnreadMessageCount(0L);
+        fbPageService.insertFbPage(fbPage);
+    }
+
+    private String resolveVerifyAccountId(FbAccountForSell fbAccountForSell, String isVerified, String verifyAccountId) {
+        if (verifyAccountId != null && !"".equals(verifyAccountId.trim())) {
+            return verifyAccountId.trim();
+        }
+        if ("1".equals(isVerified)) {
+            return fbAccountForSell.getId();
+        }
+        return null;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null || "".equals(value.trim())) {
+            return null;
+        }
+        return value.trim();
     }
 
 
@@ -2180,6 +2283,4 @@ public class FbAccountForSellServiceImpl implements IFbAccountForSellService {
         return str == null || str.trim().isEmpty();
     }
 }
-
-
 
