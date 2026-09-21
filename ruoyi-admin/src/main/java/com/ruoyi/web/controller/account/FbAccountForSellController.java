@@ -436,6 +436,9 @@ public class FbAccountForSellController extends BaseController {
     @ResponseBody
     public AjaxResult getEmail(@PathVariable Long keyId){
         FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+        if (fbAccountForSell == null || fbAccountForSell.getEmail() == null) {
+            return AjaxResult.error("账号不存在或未绑定邮箱");
+        }
         Email email = emailService.selectEmailByEmail(fbAccountForSell.getEmail());
         if (email == null){
             email = new Email();
@@ -446,7 +449,7 @@ public class FbAccountForSellController extends BaseController {
         try {
             message = emailService.getMessage(email);
         } catch (Exception e) {
-            e.printStackTrace();
+            return AjaxResult.error("拉取邮箱邮件失败: " + e.getMessage());
         }
         return success(message);
     }
@@ -455,8 +458,17 @@ public class FbAccountForSellController extends BaseController {
     @ResponseBody
     public AjaxResult unlockEmail(@PathVariable Long keyId){
         FbAccountForSell fbAccountForSell = fbAccountForSellService.selectFbAccountForSellByKeyId(keyId);
+        if (fbAccountForSell == null || fbAccountForSell.getEmail() == null) {
+            return AjaxResult.error("账号不存在或未绑定邮箱");
+        }
         Email email = emailService.selectEmailByEmail(fbAccountForSell.getEmail());
+        if (email == null) {
+            return AjaxResult.error("邮箱配置不存在");
+        }
         List<ProxyIp> proxyIps = proxyIpService.selectProxyIpListByStatus("1");
+        if (proxyIps == null || proxyIps.isEmpty()) {
+            return AjaxResult.error("暂无可用代理IP");
+        }
         ProxyIp proxyIp = proxyIps.get(proxyIps.size() - 1);
         emailService.unlockEmail(email,proxyIp);
 
@@ -469,6 +481,12 @@ public class FbAccountForSellController extends BaseController {
         // 从请求体中解析 keyIds 和 selectedOptions
         List<String> keyIds = (List<String>) payload.get("keyIds");
         List<String> selectedOptions = (List<String>) payload.get("selectedOptions");
+        if (keyIds == null || keyIds.isEmpty()) {
+            return AjaxResult.error("keyIds 不能为空");
+        }
+        if (selectedOptions == null) {
+            selectedOptions = List.of();
+        }
 
         int count = 0; // 计数器
 
@@ -508,7 +526,9 @@ public class FbAccountForSellController extends BaseController {
                     System.err.println("处理账号 [" + id + "] 时出错: " + innerEx.getMessage());
                     innerEx.printStackTrace();
                 } finally {
-                    webDriver.quit(); // 无论是否出错都关闭浏览器
+                    if (webDriver != null) {
+                        webDriver.quit(); // 无论是否出错都关闭浏览器
+                    }
                     count++;
                     if (count > 1 && count % 5 == 0) {
 //                    if (count > 1) {
@@ -542,4 +562,3 @@ public class FbAccountForSellController extends BaseController {
     }
 
 }
-
